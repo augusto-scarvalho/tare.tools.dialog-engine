@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+
+output/*
+!output/.gitkeep
+
+# Exports reais do Watson Assistant são dados locais e não devem ser versionados.
+input/*.json

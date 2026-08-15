@@ -1,0 +1,24 @@
+{
+  "nos": [
+    {
+      "uuid": "node-demo",
+      "nome": "Nó demonstrativo",
+      "tags": ["produto", "vip"],
+      "respostas": [
+        {
+          "uuid": "resposta-demo",
+          "textoResposta": "Mensagem anterior"
+        }
+      ],
+      "itens": ["primeiro", "segundo"],
+      "json": "{\"media\":{\"tipo\":\"imagem\",\"url\":\"antes.png\"}}"
+    }
+  ],
+  "intencoes": [
+    {
+      "uuid": "intent-demo",
+      "nome": "consulta",
+      "dataModificacao": "2026-01-01"
+    }
+  ]
+}
