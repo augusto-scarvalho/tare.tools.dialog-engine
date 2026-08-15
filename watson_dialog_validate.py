@@ -23,9 +23,14 @@ from watson_spel import syntax_diagnostics
 
 SCHEMA_VERSION = 1
 MAX_CONDITION_LENGTH = 2048
+V1_NODE_TYPES = {"standard", "event_handler", "frame", "slot", "response_condition", "folder"}
+V1_SLOT_EVENTS = {"focus", "input", "filled", "nomatch"}
 
 
 def field_for_condition(node: str) -> str:
+    if node.startswith("response:"):
+        _prefix, parent, response = node.split(":", 2)
+        return f"nos[uuid={parent}].respostas[uuid={response}].condicao"
     return "condicao" if not node.startswith("slot:") else "slots[uuid=%s].condicao" % node.removeprefix("slot:")
 
 
@@ -54,6 +59,96 @@ def iter_nodes(document: dict[str, Any]) -> Iterator[dict[str, Any]]:
             yield from visit(node_data.get("filhos") or [])
 
     yield from visit(document.get("nos") or [])
+
+
+def iter_response_owners(document: dict[str, Any]) -> Iterator[tuple[str, list[dict[str, Any]]]]:
+    def visit(nodes: list[dict[str, Any]]) -> Iterator[tuple[str, list[dict[str, Any]]]]:
+        for node_data in nodes:
+            yield str(node_data["uuid"]), node_data.get("respostas") or []
+            for slot in node_data.get("slots") or []:
+                yield f"slot:{slot['uuid']}", slot.get("respostas") or []
+                yield from visit(slot.get("filhos") or [])
+            yield from visit(node_data.get("filhos") or [])
+
+    yield from visit(document.get("nos") or [])
+
+
+def validate_v1_structure(document: dict[str, Any], issues: list[dict[str, Any]]) -> None:
+    """Validate the documented graph constraints when an API V1 payload is used."""
+    raw_nodes = document.get("dialog_nodes")
+    if not isinstance(raw_nodes, list):
+        return
+    nodes = [item for item in raw_nodes if isinstance(item, dict) and item.get("dialog_node") is not None]
+    by_id: dict[str, dict[str, Any]] = {}
+    for node_data in nodes:
+        node_id = str(node_data["dialog_node"])
+        if node_id in by_id:
+            issues.append(issue("semantic", "duplicate_dialog_node_id", "error", node_id, "dialog_node", node_id, f"O ID {node_id} é duplicado na API V1."))
+        else:
+            by_id[node_id] = node_data
+
+    parents = {node_id: str(node_data["parent"]) for node_id, node_data in by_id.items() if node_data.get("parent") not in (None, "")}
+    children: dict[str | None, list[str]] = defaultdict(list)
+    for node_id, node_data in by_id.items():
+        parent = node_data.get("parent")
+        parent_id = str(parent) if parent not in (None, "") else None
+        children[parent_id].append(node_id)
+        if parent_id and parent_id not in by_id:
+            issues.append(issue("semantic", "unresolved_parent", "error", node_id, "parent", parent, f"O parent {parent_id} não existe."))
+        if parent_id == node_id:
+            issues.append(issue("semantic", "self_parent", "error", node_id, "parent", parent, "Um nó não pode ser pai de si mesmo."))
+        ancestor = parent_id
+        seen: set[str] = set()
+        while ancestor in parents and ancestor not in seen:
+            if ancestor == node_id:
+                issues.append(issue("semantic", "parent_is_descendant", "error", node_id, "parent", parent, "O parent não pode ser descendente do nó."))
+                break
+            seen.add(ancestor)
+            ancestor = parents[ancestor]
+
+    previous_owners: dict[str, list[str]] = defaultdict(list)
+    for node_id, node_data in by_id.items():
+        node_type = str(node_data.get("type") or "standard")
+        if node_type not in V1_NODE_TYPES:
+            issues.append(issue("syntactic", "unknown_dialog_node_type", "error", node_id, "type", node_type, f"Tipo de nó V1 não suportado: {node_type}."))
+        previous = node_data.get("previous_sibling")
+        if previous not in (None, ""):
+            previous_id = str(previous)
+            previous_owners[previous_id].append(node_id)
+            if previous_id not in by_id:
+                issues.append(issue("semantic", "unresolved_previous_sibling", "error", node_id, "previous_sibling", previous, f"O irmão anterior {previous_id} não existe."))
+            elif previous_id == node_id:
+                issues.append(issue("semantic", "self_previous_sibling", "error", node_id, "previous_sibling", previous, "Um nó não pode ser irmão anterior de si mesmo."))
+            elif by_id[previous_id].get("parent") != node_data.get("parent"):
+                issues.append(issue("semantic", "cross_parent_previous_sibling", "error", node_id, "previous_sibling", previous, "O irmão anterior precisa ter o mesmo parent."))
+        if node_type == "slot" and str(node_data.get("parent") or "") in by_id and str(by_id[str(node_data["parent"])].get("type") or "standard") != "frame":
+            issues.append(issue("semantic", "slot_parent_not_frame", "error", node_id, "parent", node_data.get("parent"), "Um slot precisa ser filho de um frame."))
+        if node_type == "response_condition" and str(node_data.get("parent") or "") in by_id and str(by_id[str(node_data["parent"])].get("type") or "standard") not in {"standard", "frame"}:
+            issues.append(issue("semantic", "response_condition_parent_invalid", "error", node_id, "parent", node_data.get("parent"), "Uma response_condition precisa ser filha de standard ou frame."))
+        if node_type in {"event_handler", "response_condition"} and children.get(node_id):
+            issues.append(issue("semantic", "leaf_node_has_children", "error", node_id, "parent", children[node_id], f"Um nó {node_type} não pode ter filhos."))
+        if node_type == "event_handler":
+            event = str(node_data.get("event_name") or "")
+            parent_type = str(by_id.get(str(node_data.get("parent") or ""), {}).get("type") or "standard")
+            if event not in V1_SLOT_EVENTS | {"generic"}:
+                issues.append(issue("syntactic", "invalid_event_handler_name", "error", node_id, "event_name", node_data.get("event_name"), "event_name não é permitido para event_handler."))
+            elif event == "generic" and parent_type not in {"slot", "frame"}:
+                issues.append(issue("semantic", "generic_handler_parent_invalid", "error", node_id, "parent", node_data.get("parent"), "Handler generic precisa pertencer a slot ou frame."))
+            elif event in V1_SLOT_EVENTS and parent_type != "slot":
+                issues.append(issue("semantic", "slot_handler_parent_invalid", "error", node_id, "parent", node_data.get("parent"), f"Handler {event} precisa pertencer a slot."))
+
+    for previous, owners in previous_owners.items():
+        if len(owners) > 1:
+            for node_id in sorted(owners):
+                issues.append(issue("semantic", "previous_sibling_has_multiple_successors", "error", node_id, "previous_sibling", previous, f"Mais de um nó aponta para o irmão anterior {previous}."))
+    for parent, sibling_ids in children.items():
+        first = [node_id for node_id in sibling_ids if by_id[node_id].get("previous_sibling") in (None, "")]
+        if len(first) > 1:
+            for node_id in sorted(first):
+                issues.append(issue("semantic", "multiple_first_siblings", "error", node_id, "previous_sibling", None, f"O grupo de irmãos de {parent or 'root'} tem mais de um primeiro nó."))
+    for node_id, node_data in by_id.items():
+        if str(node_data.get("type") or "standard") == "frame" and not any(str(by_id[child].get("type") or "standard") == "slot" for child in children.get(node_id, [])):
+            issues.append(issue("semantic", "frame_without_slot", "error", node_id, "type", "frame", "Um frame precisa ter pelo menos um filho slot."))
 
 
 def context_variables(document: dict[str, Any]) -> dict[str, str]:
@@ -129,6 +224,15 @@ def validate(document: dict[str, Any], check_variables: bool = False) -> dict[st
         except json.JSONDecodeError as error:
             issues.append(issue("syntactic", "invalid_json_configuration", "error", node, field, value, f"Configuração JSON inválida: {error.msg}."))
 
+    for owner, responses in iter_response_owners(document):
+        blocks: dict[tuple[Any, Any], set[Any]] = defaultdict(set)
+        for response in responses:
+            if response.get("idTipoComponente") is not None:
+                blocks[(response.get("idTipoResposta"), response.get("sequenciaBloco"))].add(response["idTipoComponente"])
+        for block, component_types in sorted(blocks.items(), key=lambda item: (str(item[0][0]), str(item[0][1]))):
+            if len(component_types) > 5:
+                issues.append(issue("semantic", "too_many_response_types", "error", owner, "respostas", sorted(component_types, key=str), f"A resposta condicional {block!r} possui {len(component_types)} tipos; o limite do Watson é 5."))
+
     for parent, siblings in iter_groups(document.get("nos") or []):
         seen_sequences: dict[Any, list[str]] = defaultdict(list)
         for index, node_data in enumerate(siblings):
@@ -167,6 +271,13 @@ def validate(document: dict[str, Any], check_variables: bool = False) -> dict[st
         target = node_data.get("uuidEnviarPara")
         if target not in (None, "") and str(target) not in node_ids:
             issues.append(issue("semantic", "unresolved_jump_target", "error", str(node_data["uuid"]), "uuidEnviarPara", target, f"O jump aponta para o UUID inexistente {target}."))
+    for owner, responses in iter_response_owners(document):
+        for response in responses:
+            target = response.get("uuidEnviarPara") or response.get("dialog_node")
+            if target not in (None, "") and str(target) not in node_ids:
+                issues.append(issue("semantic", "unresolved_response_jump_target", "error", owner, "respostas.uuidEnviarPara", target, f"O jump de resposta aponta para o UUID inexistente {target}."))
+
+    validate_v1_structure(document, issues)
 
     issues.sort(key=lambda item: (item["node"], item["field"], item["code"], json.dumps(item["value"], ensure_ascii=False, sort_keys=True)))
     by_category = {category: sum(item["category"] == category for item in issues) for category in sorted({item["category"] for item in issues})}

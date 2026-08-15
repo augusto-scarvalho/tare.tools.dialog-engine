@@ -32,11 +32,15 @@ class WatsonDialogGraphTests(unittest.TestCase):
         self.assertTrue(all(set(edge) == {"node", "target", "type"} for edge in graph["edges"]))
         edges = {(edge["node"], edge["target"], edge["type"]) for edge in graph["edges"]}
         self.assertEqual(graph["summary"]["dialog_nodes"], 5)
+        self.assertEqual(graph["summary"]["folders"], 1)
         self.assertEqual(graph["summary"]["slots"], 1)
+        self.assertTrue(vertices["root"]["folder"])
+        self.assertFalse(vertices["first-child"]["folder"])
         self.assertEqual(vertices["slot:customer-name"]["kind"], "slot")
         self.assertTrue(vertices["slot:customer-name"]["required"])
         self.assertEqual(vertices["slot-reprompt"]["kind"], "slot_child")
         self.assertIn(("root", "first-child", "contains"), edges)
+        self.assertIn(("root", "first-child", "folder_entry"), edges)
         self.assertIn(("root", "slot:customer-name", "contains_slot"), edges)
         self.assertIn(("slot:customer-name", "slot-reprompt", "slot_branch"), edges)
         self.assertIn(("first-child", "jumping-child", "next_evaluation"), edges)
@@ -47,7 +51,9 @@ class WatsonDialogGraphTests(unittest.TestCase):
         first = json.dumps(graph, ensure_ascii=False, indent=2, sort_keys=True)
         second = json.dumps(self.graph(), ensure_ascii=False, indent=2, sort_keys=True)
         self.assertEqual(first, second)
-        self.assertIn('"jumping-child" -> "target" [label="jump"]', graph_module.dot(graph))
+        dot = graph_module.dot(graph)
+        self.assertIn('"root" [label="[folder] Entrada\\\\n#inicio", shape="folder"', dot)
+        self.assertIn('"jumping-child" -> "target" [label="jump"]', dot)
 
     def test_unresolved_jump_is_reported(self) -> None:
         document = {"nos": [{"uuid": "source", "uuidEnviarPara": "missing", "respostas": [], "filhos": []}]}

@@ -1,0 +1,8 @@
+{
+  "name": "slots em dois turnos",
+  "turns": [
+    {"input": {"text": "reservar Paris"}, "intents": [{"name": "book"}], "entities": {"city": ["Paris"]}, "context": {}},
+    {"input": {"text": "amanhã"}, "intents": [], "entities": {"date": ["2026-08-16"]}}
+  ],
+  "expect": {"selected_nodes": ["frame", "frame"]}
+}

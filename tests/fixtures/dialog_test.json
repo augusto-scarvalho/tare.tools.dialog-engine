@@ -1,0 +1,8 @@
+{
+  "intencoes": [{"nome": "cancelar"}],
+  "entidades": [{"nome": "produto"}],
+  "nos": [
+    {"uuid": "cancel", "nome": "cancelamento", "sequencia": 0, "condicao": "#cancelar && @produto:cartão && $whatsapp", "filhos": []},
+    {"uuid": "fallback", "nome": "fallback", "sequencia": 1, "condicao": "anything_else", "filhos": []}
+  ]
+}

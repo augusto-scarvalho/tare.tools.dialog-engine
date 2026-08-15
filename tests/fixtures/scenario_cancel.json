@@ -1,0 +1,8 @@
+{
+  "name": "cancelamento por WhatsApp",
+  "input": {"text": "quero cancelar"},
+  "intents": [{"name": "cancelar", "confidence": 0.98}],
+  "entities": {"produto": ["cartão"]},
+  "context": {"whatsapp": true},
+  "expect": {"selected_node": "cancel"}
+}

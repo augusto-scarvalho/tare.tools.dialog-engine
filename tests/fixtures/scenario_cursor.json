@@ -1,0 +1,9 @@
+{
+  "name": "cursor começa em UUID",
+  "dialog_stack": [{"dialog_node": "jump-target"}],
+  "input": {"text": "resposta direta"},
+  "intents": [{"name": "body"}],
+  "entities": {},
+  "context": {},
+  "expect": {"selected_node": "body-target"}
+}

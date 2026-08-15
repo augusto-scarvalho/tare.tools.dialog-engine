@@ -72,6 +72,7 @@ os vértices detalhados e as arestas. Cada aresta contém somente `node`,
 `target` e `type`. Os tipos são:
 
 - `contains`: nó filho na árvore do diálogo;
+- `folder_entry`: entrada para o primeiro nó de um folder cuja condição foi aceita;
 - `next_evaluation`: próximo irmão, na ordem em que condições podem ser avaliadas;
 - `contains_slot` e `slot_branch`: estrutura de slots e de seus filhos;
 - `jump`: rota configurada por `uuidEnviarPara`, com o `jumpSelector` original.
@@ -79,6 +80,14 @@ os vértices detalhados e as arestas. Cada aresta contém somente `node`,
 Os vértices preservam respostas múltiplas, contagem/tipos de resposta,
 componentes, condição, tags, slots e a presença de configuração JSON. Saltos
 para UUIDs ausentes ficam também listados em `unresolved_jumps`.
+
+Folders reais do Watson são marcados com `folder: true` (e contabilizados em
+`summary.folders`). Não são inferidos por terem filhos: `folder` é um tipo
+explícito do export; pode ser vazio, ter condição própria e apenas agrupar nós.
+No formato DOT eles usam o formato visual `folder` e o prefixo `[folder]`.
+Quando um folder possui filhos, a aresta `folder_entry` aponta para o primeiro
+nó interno, separando a entrada lógica do folder da relação estrutural
+`contains`.
 
 O campo `reachability` une o grafo à análise de condições e lista somente nós
 comprovadamente inalcançáveis. Um salto `body` é tratado como exceção, pois
@@ -122,6 +131,80 @@ condições SpEL: aspas não fechadas, parênteses desbalanceados e `AND`/`OR` o
 `&&`/`||` sem operando. O formato é determinístico e retorna código `1`
 quando há achados.
 
+Em exports legados, valida também no máximo cinco tipos de componente por
+resposta condicional e jumps definidos dentro de respostas compatíveis. Em um
+payload API V1 que contenha `dialog_nodes`, habilita as regras estruturais de
+`parent`, `previous_sibling`, `frame`, `slot`, `response_condition` e
+`event_handler`.
+
 As fontes e o inventário de regras da IBM ficam em
 [`rules/ibm_watson_dialog.md`](rules/ibm_watson_dialog.md). Elas distinguem o
 formato legado de Dialog skill do formato de nós da API.
+
+## Cenários de teste
+
+```bash
+python3 watson_dialog_test.py input/current.json tests/fixtures/scenario_cancel.json --output output/test_report.json
+```
+
+Um cenário descreve um turno com `input`, `intents`, `entities` e `context`.
+Opcionalmente, `expect.selected_node` transforma o cenário em asserção. O
+runner avalia os nós raiz em ordem e devolve o nó selecionado e o trace de cada
+condição avaliada.
+
+Para uma sessão, use `turns` e `expect.selected_nodes`:
+
+```json
+{
+  "turns": [
+    {"input": {"text": "começar"}, "intents": [{"name": "start"}]},
+    {"input": {"text": "sim"}, "intents": [{"name": "yes"}]}
+  ],
+  "expect": {"selected_nodes": ["start", "confirm"]}
+}
+```
+
+O estado preserva `context`, ramo filho pendente e slots preenchidos. Folders
+são transparentes para a seleção: depois de sua condição, o runner avalia os
+nós internos. O runner executa jumps `condition`, `body` e `user_input`, bem
+como jumps de respostas condicionais quando o export os representa. Handlers
+legados sob slots são avaliados em ordem e aparecem no trace; o ciclo completo
+de eventos `event_handler` da API V1, digressões e integrações externas seguem
+fora do escopo do simulador.
+
+Cada request aceita `dialog_stack` no formato da API V1, por exemplo
+`[{"dialog_node":"root"}]`, ou uma string como alias de compatibilidade. Ele
+identifica o último nó válido da jornada; na próxima request, a avaliação
+começa no primeiro filho dele. O runner devolve `dialog_stack_after` com o nó
+ainda ativo, ou `root` e `branch_exited: true` quando a branch encerra. Apenas
+em slots o stack recebe `state: "in_progress"`; o UUID cru do slot permite
+retomar o preenchimento em uma nova request.
+
+## Gerar cenário até um nó
+
+```bash
+python3 watson_dialog_generate_test.py input/current.json UUID_DO_NO --output output/generated_scenario.json
+```
+
+O gerador encontra o caminho estrutural até o nó, cria turns com os artefatos
+simples das condições e inclui o UUID-alvo em `expect.selected_nodes`. Em
+seguida, executa o runner e registra se a asserção gerada passou. Trechos SpEL
+que não podem ser sintetizados ficam em `generated.issues`.
+
+## Quem faz jump para um nó
+
+```bash
+python3 watson_dialog_jumps.py input/current.json UUID_DE_DESTINO --output output/incoming_jumps.json
+```
+
+O resultado lista os UUIDs e nomes dos nós que possuem `uuidEnviarPara` apontando
+para o destino, incluindo a condição e o modo (`jump_selector`) de cada jump.
+
+## Topologia de um nó
+
+```bash
+python3 watson_dialog_topology.py input/current.json UUID_DO_NO --output output/topology.json
+```
+
+Gera o caminho de ancestrais e a subárvore de descendentes apenas pelas relações
+de pai, filho, slot, handler de slot e blocos de resposta. Jumps são excluídos.

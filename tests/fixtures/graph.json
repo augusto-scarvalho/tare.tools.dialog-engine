@@ -3,6 +3,7 @@
     {
       "uuid": "root",
       "nome": "Entrada",
+      "folder": true,
       "sequencia": 0,
       "condicao": "#inicio",
       "respostas": [],

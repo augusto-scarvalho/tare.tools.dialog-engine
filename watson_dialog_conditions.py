@@ -213,6 +213,10 @@ def iter_conditions(document: dict[str, Any]) -> Any:
         for node in nodes:
             if node.get("condicao"):
                 yield str(node["uuid"]), "dialog_node", str(node["condicao"])
+            for response in node.get("respostas") or []:
+                condition = response.get("condicao") or response.get("conditions")
+                if condition:
+                    yield f"response:{node['uuid']}:{response.get('uuid', '')}", "response_condition", str(condition)
             for slot in node.get("slots") or []:
                 if slot.get("condicao"):
                     yield f"slot:{slot['uuid']}", "slot", str(slot["condicao"])

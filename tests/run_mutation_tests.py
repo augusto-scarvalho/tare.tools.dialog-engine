@@ -15,6 +15,7 @@ GRAPH_SOURCE = ROOT / "watson_dialog_graph.py"
 CONDITIONS_SOURCE = ROOT / "watson_dialog_conditions.py"
 SPEL_SOURCE = ROOT / "watson_spel.py"
 VALIDATE_SOURCE = ROOT / "watson_dialog_validate.py"
+TEST_RUNNER_SOURCE = ROOT / "watson_dialog_test.py"
 MUTANTS = (
     (DIFF_SOURCE, "WATSON_DIALOG_DIFF_PATH", "timestamps_are_not_ignored", 'DEFAULT_IGNORED_FIELDS = {"dataCriacao", "dataModificacao"}', "DEFAULT_IGNORED_FIELDS = set()"),
     (DIFF_SOURCE, "WATSON_DIALOG_DIFF_PATH", "uuid_matching_is_disabled", 'return {str(item["uuid"]): item for item in value}', "return None"),
@@ -37,6 +38,8 @@ MUTANTS = (
     (VALIDATE_SOURCE, "WATSON_DIALOG_VALIDATE_PATH", "unresolved_jumps_are_ignored", 'if target not in (None, "") and str(target) not in node_ids:', "if False:"),
     (VALIDATE_SOURCE, "WATSON_DIALOG_VALIDATE_PATH", "spel_syntax_diagnostics_are_ignored", "for diagnostic in syntax_diagnostics(condition):", "for diagnostic in []:"),
     (VALIDATE_SOURCE, "WATSON_DIALOG_VALIDATE_PATH", "condition_length_limit_is_ignored", "if len(condition) > MAX_CONDITION_LENGTH:", "if False:"),
+    (TEST_RUNNER_SOURCE, "WATSON_DIALOG_TEST_PATH", "matching_nodes_are_not_selected", 'if result == "true":', "if False:"),
+    (TEST_RUNNER_SOURCE, "WATSON_DIALOG_TEST_PATH", "cursor_is_ignored", "if cursor == ROOT_GROUP:", "if True:"),
 )
 
 

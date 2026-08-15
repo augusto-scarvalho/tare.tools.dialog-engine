@@ -1,0 +1,8 @@
+{
+  "name": "fallback sem intent",
+  "input": {"text": "não sei"},
+  "intents": [],
+  "entities": {},
+  "context": {"whatsapp": true},
+  "expect": {"selected_node": "fallback"}
+}

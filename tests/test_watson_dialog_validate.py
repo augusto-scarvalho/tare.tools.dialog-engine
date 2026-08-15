@@ -69,6 +69,33 @@ class WatsonDialogValidateTests(unittest.TestCase):
         self.assertIn(("slot:second", "slot_depends_on_optional_slot"), codes)
         self.assertIn(("long-condition", "condition_too_long"), codes)
 
+    def test_reports_rich_response_and_v1_structure_rules(self) -> None:
+        legacy = {"nos": [{
+            "uuid": "many", "condicao": "anything_else", "respostas": [
+                {"idTipoResposta": 1, "sequenciaBloco": 1, "idTipoComponente": component}
+                for component in range(1, 7)
+            ], "filhos": [],
+        }]}
+        legacy_codes = {item["code"] for item in validator.validate(legacy)["issues"]}
+        self.assertIn("too_many_response_types", legacy_codes)
+
+        response_condition = {"nos": [{"uuid": "source", "condicao": "anything_else", "respostas": [{"uuid": "response", "condicao": "@bad &&", "uuidEnviarPara": "missing"}], "filhos": []}]}
+        response_issues = {(item["node"], item["code"]) for item in validator.validate(response_condition)["issues"]}
+        self.assertIn(("response:source:response", "missing_right_operand"), response_issues)
+        self.assertIn(("source", "unresolved_response_jump_target"), response_issues)
+
+        v1 = {"dialog_nodes": [
+            {"dialog_node": "standard", "type": "standard"},
+            {"dialog_node": "frame", "type": "frame"},
+            {"dialog_node": "slot", "type": "slot", "parent": "standard"},
+            {"dialog_node": "response", "type": "response_condition", "parent": "slot"},
+            {"dialog_node": "handler", "type": "event_handler", "event_name": "focus", "parent": "frame"},
+            {"dialog_node": "handler-child", "type": "standard", "parent": "handler"},
+            {"dialog_node": "bad-type", "type": "other"},
+        ]}
+        v1_codes = {item["code"] for item in validator.validate(v1)["issues"]}
+        self.assertTrue({"frame_without_slot", "slot_parent_not_frame", "response_condition_parent_invalid", "slot_handler_parent_invalid", "leaf_node_has_children", "unknown_dialog_node_type"}.issubset(v1_codes))
+
 
 if __name__ == "__main__":
     unittest.main()

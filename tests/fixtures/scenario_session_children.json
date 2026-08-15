@@ -1,0 +1,8 @@
+{
+  "name": "filho no turno seguinte",
+  "turns": [
+    {"input": {"text": "começar"}, "intents": [{"name": "start"}], "entities": {}, "context": {}},
+    {"input": {"text": "sim"}, "intents": [{"name": "yes"}], "entities": {}}
+  ],
+  "expect": {"selected_nodes": ["start", "confirm"]}
+}

@@ -34,6 +34,10 @@ def node_metadata(node: dict[str, Any], kind: str) -> dict[str, Any]:
     metadata: dict[str, Any] = {
         "id": str(node["uuid"]),
         "kind": kind,
+        # `folder` is a first-class legacy Watson Dialog node type. It is not
+        # inferred from the presence of children: standard nodes can also have
+        # child nodes, while a folder can be empty.
+        "folder": bool(node.get("folder")),
         "name": text(node.get("nome")),
         "condition": text(node.get("condicao")),
         "sequence": node.get("sequencia"),
@@ -166,6 +170,8 @@ def build_graph(document: dict[str, Any]) -> dict[str, Any]:
 
         children = node.get("filhos") or []
         add_sibling_edges(children)
+        if node.get("folder") and children:
+            add_edge(node_id, str(sorted_siblings(children)[0]["uuid"]), "folder_entry")
         for child in sorted_siblings(children):
             add_node(child, node_id, "contains")
 
@@ -200,6 +206,7 @@ def build_graph(document: dict[str, Any]) -> dict[str, Any]:
         "summary": {
             "vertices": len(ordered_vertices),
             "dialog_nodes": sum(vertex["kind"] != "slot" for vertex in ordered_vertices),
+            "folders": sum(bool(vertex.get("folder")) for vertex in ordered_vertices),
             "slots": sum(vertex["kind"] == "slot" for vertex in ordered_vertices),
             "edges": len(ordered_edges),
             "edges_by_type": {edge_type: sum(edge["type"] == edge_type for edge in ordered_edges) for edge_type in sorted({edge["type"] for edge in ordered_edges})},
@@ -218,10 +225,14 @@ def dot(graph: dict[str, Any]) -> str:
     lines = ["digraph watson_dialog {", "  rankdir=LR;", "  node [shape=box, style=rounded, fontname=Arial];"]
     for vertex in graph["vertices"]:
         label = vertex.get("name") or vertex["id"]
+        if vertex.get("folder"):
+            label = "[folder] " + label
         if vertex.get("condition"):
             label += "\\n" + vertex["condition"]
         escaped = label.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-        lines.append(f'  "{vertex["id"]}" [label="{escaped}", fillcolor="{colors[vertex["kind"]]}", style="rounded,filled"];')
+        shape = "folder" if vertex.get("folder") else "box"
+        color = "#D7F2DF" if vertex.get("folder") else colors[vertex["kind"]]
+        lines.append(f'  "{vertex["id"]}" [label="{escaped}", shape="{shape}", fillcolor="{color}", style="rounded,filled"];')
     for edge in graph["edges"]:
         lines.append(f'  "{edge["node"]}" -> "{edge["target"]}" [label="{edge["type"]}"];')
     lines.append("}")

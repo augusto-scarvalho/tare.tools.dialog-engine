@@ -1,0 +1,18 @@
+{
+  "variaveisContexto": [
+    {"uuid": "city-var", "variavelContexto": "city"},
+    {"uuid": "date-var", "variavelContexto": "date"}
+  ],
+  "nos": [
+    {"uuid": "start", "sequencia": 0, "condicao": "#start", "filhos": [{"uuid": "confirm", "sequencia": 0, "condicao": "#yes", "filhos": []}]},
+    {"uuid": "jump-source", "sequencia": 1, "condicao": "#jump", "jumpSelector": "condition", "uuidEnviarPara": "jump-target", "filhos": []},
+    {"uuid": "jump-target", "sequencia": 2, "condicao": "#jump && $approved", "filhos": []},
+    {"uuid": "body-source", "sequencia": 3, "condicao": "#body", "jumpSelector": "body", "uuidEnviarPara": "body-target", "filhos": []},
+    {"uuid": "body-target", "sequencia": 4, "condicao": "false", "filhos": []},
+    {"uuid": "frame", "sequencia": 5, "condicao": "#book", "filhos": [], "slots": [
+      {"uuid": "city-slot", "uuidVariavelContexto": "city-var", "indicadorObrigatorio": true, "condicao": "@city"},
+      {"uuid": "date-slot", "uuidVariavelContexto": "date-var", "indicadorObrigatorio": true, "condicao": "@date"}
+    ]},
+    {"uuid": "fallback", "sequencia": 6, "condicao": "anything_else", "filhos": []}
+  ]
+}
