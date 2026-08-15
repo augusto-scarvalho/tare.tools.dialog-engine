@@ -79,3 +79,49 @@ os vértices detalhados e as arestas. Cada aresta contém somente `node`,
 Os vértices preservam respostas múltiplas, contagem/tipos de resposta,
 componentes, condição, tags, slots e a presença de configuração JSON. Saltos
 para UUIDs ausentes ficam também listados em `unresolved_jumps`.
+
+O campo `reachability` une o grafo à análise de condições e lista somente nós
+comprovadamente inalcançáveis. Um salto `body` é tratado como exceção, pois
+executa a resposta do destino sem avaliar a condição dele.
+
+## Análise de condições
+
+```bash
+python3 watson_dialog_conditions.py input/current.json --output output/condition_analysis.json
+```
+
+O relatório determinístico valida referências a intents, entities e variáveis
+de contexto; identifica condições booleanamente impossíveis; e aponta irmãos
+que ficam potencialmente inalcançáveis após uma condição `true`. Expressões
+dinâmicas que não podem ser provadas são mantidas fora do diagnóstico de erro.
+Use `--check-variables` para também comparar referências a variáveis com
+`variaveisContexto`; essa opção pode produzir avisos para valores definidos por
+integrações externas ou webhooks.
+
+Para executar as expressões SpEL das condições contra um estado de runtime,
+forneça `--scenario`. O JSON pode conter `input`, `context`, `intents` e
+`entities`; métodos sem implementação segura retornam `unknown`, sem executar
+código externo.
+
+```bash
+python3 watson_dialog_conditions.py input/current.json --scenario scenario.json --output output/condition_analysis.json
+```
+
+## Validação unificada
+
+```bash
+python3 watson_dialog_validate.py input/current.json --output output/validation.json
+```
+
+Este é o relatório canônico de validação do export inteiro. Cada achado possui
+`category` (`syntactic` ou `semantic`), `code`, `severity`, `node`, `field`,
+`value` e `message`. Ele reúne a análise de condições e acrescenta validações
+de configuração JSON, destino de jump, posição de `anything_else` e colisão
+de sequência entre irmãos. Também identifica erros formais inequívocos em
+condições SpEL: aspas não fechadas, parênteses desbalanceados e `AND`/`OR` ou
+`&&`/`||` sem operando. O formato é determinístico e retorna código `1`
+quando há achados.
+
+As fontes e o inventário de regras da IBM ficam em
+[`rules/ibm_watson_dialog.md`](rules/ibm_watson_dialog.md). Elas distinguem o
+formato legado de Dialog skill do formato de nós da API.

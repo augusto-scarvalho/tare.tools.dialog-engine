@@ -1,0 +1,22 @@
+{
+  "intencoes": [],
+  "entidades": [],
+  "nos": [
+    {
+      "uuid": "fallback",
+      "sequencia": 0,
+      "condicao": "anything_else",
+      "filhos": [],
+      "slots": []
+    },
+    {
+      "uuid": "same-sequence",
+      "sequencia": 0,
+      "condicao": "@missing(value)",
+      "uuidEnviarPara": "absent",
+      "json": "{",
+      "filhos": [],
+      "slots": []
+    }
+  ]
+}

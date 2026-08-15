@@ -1,0 +1,8 @@
+{
+  "nos": [
+    {"uuid": "quote", "condicao": "input.text == 'aberta", "filhos": []},
+    {"uuid": "parenthesis", "condicao": "(#intent", "filhos": []},
+    {"uuid": "operator", "condicao": "@bola &&", "filhos": []},
+    {"uuid": "operators", "condicao": "#one OR && #two", "filhos": []}
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "intencoes": [
+    {"nome": "known_intent"}
+  ],
+  "entidades": [
+    {"nome": "known_entity"}
+  ],
+  "variaveisContexto": [
+    {"variavelContexto": "flag"}
+  ],
+  "nos": [
+    {
+      "uuid": "impossible",
+      "sequencia": 0,
+      "condicao": "$flag && !$flag",
+      "filhos": [],
+      "slots": []
+    },
+    {
+      "uuid": "catchall",
+      "sequencia": 1,
+      "condicao": "true",
+      "filhos": [],
+      "slots": []
+    },
+    {
+      "uuid": "shadowed",
+      "sequencia": 2,
+      "condicao": "#known_intent && @known_entity:value",
+      "filhos": [],
+      "slots": []
+    },
+    {
+      "uuid": "unknown-references",
+      "sequencia": 3,
+      "condicao": "#missing_intent && @missing_entity:value && $missing_variable",
+      "filhos": [],
+      "slots": []
+    }
+  ]
+}

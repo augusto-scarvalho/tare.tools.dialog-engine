@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from watson_dialog_conditions import analyze_conditions
 from watson_dialog_diff import load_json
 
 
@@ -68,6 +69,65 @@ def slot_metadata(slot: dict[str, Any]) -> dict[str, Any]:
 
 def sorted_siblings(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(nodes, key=lambda node: (node.get("sequencia") is None, node.get("sequencia", 0), str(node["uuid"])))
+
+
+def reachability(document: dict[str, Any], graph: dict[str, Any]) -> dict[str, Any]:
+    """Prove unreachable vertices from conditions and structural graph edges.
+
+    A `body` jump targets a response directly, bypassing the target condition;
+    it therefore prevents this static analysis from classifying that target as
+    unreachable. Other jump modes do not provide that proof.
+    """
+    condition_report = analyze_conditions(document)
+    direct_reasons: dict[str, list[str]] = {}
+    for issue in condition_report["issues"]:
+        if issue["type"] in {"unsatisfiable_condition", "shadowed_by_always_true"}:
+            direct_reasons.setdefault(issue["node"], []).append(issue["type"])
+
+    vertices = {vertex["id"]: vertex for vertex in graph["vertices"]}
+    direct_body_targets = {
+        edge["target"]
+        for edge in graph["edges"]
+        if edge["type"] == "jump" and vertices.get(edge["node"], {}).get("jump_selector") == "body"
+    }
+    parents: dict[str, set[str]] = {vertex_id: set() for vertex_id in vertices}
+    for edge in graph["edges"]:
+        if edge["type"] in {"contains", "contains_slot", "slot_branch"} and edge["target"] in parents:
+            parents[edge["target"]].add(edge["node"])
+
+    unreachable: dict[str, list[str]] = {
+        node: sorted(reasons)
+        for node, reasons in direct_reasons.items()
+        if node in vertices and node not in direct_body_targets
+    }
+    changed = True
+    while changed:
+        changed = False
+        for node in sorted(vertices):
+            if node in unreachable or node in direct_body_targets or not parents[node]:
+                continue
+            if parents[node].issubset(unreachable):
+                unreachable[node] = [f"all_structural_parents_unreachable:{parent}" for parent in sorted(parents[node])]
+                changed = True
+
+    items = [
+        {
+            "node": node,
+            "kind": vertices[node]["kind"],
+            "name": vertices[node].get("name"),
+            "condition": vertices[node].get("condition"),
+            "reasons": unreachable[node],
+        }
+        for node in sorted(unreachable)
+    ]
+    return {
+        "summary": {
+            "proven_unreachable": len(items),
+            "condition_blocks": len(direct_reasons),
+            "body_jump_exceptions": len(set(direct_reasons) & direct_body_targets),
+        },
+        "unreachable": items,
+    }
 
 
 def build_graph(document: dict[str, Any]) -> dict[str, Any]:
@@ -135,7 +195,7 @@ def build_graph(document: dict[str, Any]) -> dict[str, Any]:
 
     ordered_vertices = [vertices[vertex_id] for vertex_id in sorted(vertices)]
     ordered_edges = sorted(edges, key=lambda edge: (edge["node"], edge["target"], edge["type"]))
-    return {
+    graph = {
         "schema_version": GRAPH_SCHEMA_VERSION,
         "summary": {
             "vertices": len(ordered_vertices),
@@ -149,6 +209,8 @@ def build_graph(document: dict[str, Any]) -> dict[str, Any]:
         "edges": ordered_edges,
         "unresolved_jumps": unresolved_jumps,
     }
+    graph["reachability"] = reachability(document, graph)
+    return graph
 
 
 def dot(graph: dict[str, Any]) -> str:

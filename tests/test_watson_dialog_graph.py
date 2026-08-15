@@ -54,6 +54,24 @@ class WatsonDialogGraphTests(unittest.TestCase):
         graph = graph_module.build_graph(document)
         self.assertEqual(graph["unresolved_jumps"], [{"node": "source", "target": "missing", "type": "jump"}])
 
+    def test_reachability_combines_conditions_structure_and_body_jumps(self) -> None:
+        document = {
+            "nos": [
+                {"uuid": "rescue", "sequencia": 0, "condicao": "#go", "jumpSelector": "body", "uuidEnviarPara": "rescued", "respostas": [], "filhos": []},
+                {"uuid": "disabled", "sequencia": 1, "condicao": "false", "respostas": [], "filhos": [{"uuid": "disabled-child", "sequencia": 0, "respostas": [], "filhos": []}]},
+                {"uuid": "rescued", "sequencia": 2, "condicao": "false", "respostas": [], "filhos": []},
+                {"uuid": "catchall", "sequencia": 3, "condicao": "true", "respostas": [], "filhos": []},
+                {"uuid": "after-catchall", "sequencia": 4, "condicao": "#later", "respostas": [], "filhos": []},
+            ]
+        }
+        result = graph_module.build_graph(document)["reachability"]
+        unreachable = {item["node"]: item["reasons"] for item in result["unreachable"]}
+        self.assertIn("disabled", unreachable)
+        self.assertIn("disabled-child", unreachable)
+        self.assertIn("after-catchall", unreachable)
+        self.assertNotIn("rescued", unreachable)
+        self.assertEqual(result["summary"]["body_jump_exceptions"], 1)
+
     def test_cli_generates_json(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "graph.json"
