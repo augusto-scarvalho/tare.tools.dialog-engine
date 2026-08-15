@@ -1,0 +1,55 @@
+{
+  "nos": [
+    {
+      "uuid": "root",
+      "nome": "Entrada",
+      "sequencia": 0,
+      "condicao": "#inicio",
+      "respostas": [],
+      "filhos": [
+        {
+          "uuid": "first-child",
+          "nome": "Primeiro filho",
+          "sequencia": 0,
+          "respostas": [],
+          "filhos": []
+        },
+        {
+          "uuid": "jumping-child",
+          "nome": "Filho com salto",
+          "sequencia": 1,
+          "uuidEnviarPara": "target",
+          "jumpSelector": "body",
+          "respostas": [],
+          "filhos": []
+        }
+      ],
+      "slots": [
+        {
+          "uuid": "customer-name",
+          "identificador": "nome",
+          "condicao": "@sys-person",
+          "indicadorObrigatorio": true,
+          "respostas": [],
+          "filhos": [
+            {
+              "uuid": "slot-reprompt",
+              "uuidSlot": "customer-name",
+              "sequencia": 0,
+              "jumpSelector": "reprompt",
+              "respostas": [],
+              "filhos": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "uuid": "target",
+      "nome": "Destino",
+      "sequencia": 1,
+      "respostas": [],
+      "filhos": []
+    }
+  ]
+}

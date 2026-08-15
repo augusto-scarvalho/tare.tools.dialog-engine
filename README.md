@@ -56,6 +56,26 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 python3 tests/run_mutation_tests.py
 ```
 
-O segundo comando aplica cinco mutações comportamentais temporárias ao
+O segundo comando aplica mutações comportamentais temporárias ao
 comparador. A suíte deve falhar para todas elas; caso alguma sobreviva, o
 comando retorna erro.
+
+## Grafo direcionado do diálogo
+
+```bash
+python3 watson_dialog_graph.py input/current.json --output output/dialog_graph.json
+python3 watson_dialog_graph.py input/current.json --format dot --output output/dialog_graph.dot
+```
+
+O JSON do grafo é o formato canônico e determinístico. Ele contém um sumário,
+os vértices detalhados e as arestas. Cada aresta contém somente `node`,
+`target` e `type`. Os tipos são:
+
+- `contains`: nó filho na árvore do diálogo;
+- `next_evaluation`: próximo irmão, na ordem em que condições podem ser avaliadas;
+- `contains_slot` e `slot_branch`: estrutura de slots e de seus filhos;
+- `jump`: rota configurada por `uuidEnviarPara`, com o `jumpSelector` original.
+
+Os vértices preservam respostas múltiplas, contagem/tipos de resposta,
+componentes, condição, tags, slots e a presença de configuração JSON. Saltos
+para UUIDs ausentes ficam também listados em `unresolved_jumps`.
