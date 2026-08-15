@@ -60,6 +60,31 @@ class WatsonDialogGraphTests(unittest.TestCase):
         graph = graph_module.build_graph(document)
         self.assertEqual(graph["unresolved_jumps"], [{"node": "source", "target": "missing", "type": "jump"}])
 
+    def test_jump_to_root_is_a_tree_restart_not_an_unresolved_jump(self) -> None:
+        graph = graph_module.build_graph({"nos": [{"uuid": "restart", "uuidEnviarPara": "root", "respostas": [], "filhos": []}]})
+        self.assertIn({"node": "restart", "target": "root", "type": "tree_restart"}, graph["edges"])
+        self.assertEqual(graph["unresolved_jumps"], [])
+
+    def test_normalizes_v1_nodes_and_reports_execution_features(self) -> None:
+        document = {"dialog_nodes": [
+            {"dialog_node": "frame", "type": "frame", "conditions": "#book", "actions": [{"name": "x"}]},
+            {"dialog_node": "slot", "type": "slot", "parent": "frame", "variable": "city", "conditions": "@city"},
+            {"dialog_node": "focus", "type": "event_handler", "parent": "slot", "event_name": "focus", "conditions": "true"},
+        ]}
+        graph = graph_module.build_graph(document)
+        vertices = {vertex["id"]: vertex for vertex in graph["vertices"]}
+        self.assertEqual(vertices["focus"]["kind"], "event_handler")
+        self.assertTrue(vertices["frame"]["has_action"])
+        self.assertEqual(graph["summary"]["event_handlers"], 1)
+        self.assertEqual(graph["summary"]["callouts"], 1)
+
+    def test_lists_root_digression_targets_without_expanding_them_into_edges(self) -> None:
+        graph = graph_module.build_graph({"nos": [
+            {"uuid": "topic", "nome": "Tópico", "inDigressionIn": True, "inRetornoDigression": True, "respostas": [], "filhos": []},
+        ]})
+        self.assertEqual(graph["digression_targets"], [{"node": "topic", "name": "Tópico", "returns": True}])
+        self.assertEqual(graph["summary"]["digression_targets"], 1)
+
     def test_reachability_combines_conditions_structure_and_body_jumps(self) -> None:
         document = {
             "nos": [

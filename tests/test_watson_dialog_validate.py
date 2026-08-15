@@ -96,6 +96,11 @@ class WatsonDialogValidateTests(unittest.TestCase):
         v1_codes = {item["code"] for item in validator.validate(v1)["issues"]}
         self.assertTrue({"frame_without_slot", "slot_parent_not_frame", "response_condition_parent_invalid", "slot_handler_parent_invalid", "leaf_node_has_children", "unknown_dialog_node_type"}.issubset(v1_codes))
 
+    def test_accepts_root_as_a_builtin_jump_target(self) -> None:
+        document = {"nos": [{"uuid": "restart", "condicao": "anything_else", "uuidEnviarPara": "root", "respostas": [], "filhos": []}]}
+        codes = {item["code"] for item in validator.validate(document)["issues"]}
+        self.assertNotIn("unresolved_jump_target", codes)
+
 
 if __name__ == "__main__":
     unittest.main()

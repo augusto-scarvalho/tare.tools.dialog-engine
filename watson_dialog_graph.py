@@ -11,6 +11,7 @@ from typing import Any
 
 from watson_dialog_conditions import analyze_conditions
 from watson_dialog_diff import load_json
+from watson_dialog_test import normalize_document
 
 
 GRAPH_SCHEMA_VERSION = 1
@@ -44,6 +45,8 @@ def node_metadata(node: dict[str, Any], kind: str) -> dict[str, Any]:
         "status": text(node.get("status")),
         "jump_selector": text(node.get("jumpSelector")),
         "multiple_responses": bool(node.get("respostaMultipla")),
+        "has_action": bool(node.get("actions") or node.get("uuidAcao")),
+        "has_webhook": bool(node.get("webhook") or node.get("urlWebhook")),
         "tags": sorted(str(tag) for tag in (node.get("tags") or [])),
         "digression": {
             "in": bool(node.get("inDigressionIn")),
@@ -136,6 +139,7 @@ def reachability(document: dict[str, Any], graph: dict[str, Any]) -> dict[str, A
 
 def build_graph(document: dict[str, Any]) -> dict[str, Any]:
     """Create a detailed graph whose edges always have node, target, and type."""
+    document = normalize_document(document)
     vertices: dict[str, dict[str, Any]] = {}
     edges: list[dict[str, str]] = []
     unresolved_jumps: list[dict[str, str]] = []
@@ -150,7 +154,7 @@ def build_graph(document: dict[str, Any]) -> dict[str, Any]:
 
     def add_node(node: dict[str, Any], parent: str | None, edge_type: str | None) -> None:
         node_id = str(node["uuid"])
-        kind = "slot_child" if node.get("uuidSlot") else "dialog_node"
+        kind = "event_handler" if node.get("event_name") else "slot_child" if node.get("uuidSlot") else "dialog_node"
         if node_id in vertices:
             raise ValueError(f"UUID de nó duplicado: {node_id}")
         vertices[node_id] = node_metadata(node, kind)
@@ -192,7 +196,9 @@ def build_graph(document: dict[str, Any]) -> dict[str, Any]:
     index_native(roots)
     for node_id in sorted(native_nodes):
         target = text(native_nodes[node_id].get("uuidEnviarPara"))
-        if target in vertices:
+        if target == "root":
+            add_edge(node_id, target, "tree_restart")
+        elif target in vertices:
             if target:
                 add_edge(node_id, target, "jump")
         elif target:
@@ -201,13 +207,21 @@ def build_graph(document: dict[str, Any]) -> dict[str, Any]:
 
     ordered_vertices = [vertices[vertex_id] for vertex_id in sorted(vertices)]
     ordered_edges = sorted(edges, key=lambda edge: (edge["node"], edge["target"], edge["type"]))
+    digression_targets = [
+        {"node": str(root["uuid"]), "name": text(root.get("nome")), "returns": bool(root.get("inRetornoDigression"))}
+        for root in sorted_siblings(roots)
+        if root.get("inDigressionIn")
+    ]
     graph = {
         "schema_version": GRAPH_SCHEMA_VERSION,
         "summary": {
             "vertices": len(ordered_vertices),
             "dialog_nodes": sum(vertex["kind"] != "slot" for vertex in ordered_vertices),
+            "event_handlers": sum(vertex["kind"] == "event_handler" for vertex in ordered_vertices),
             "folders": sum(bool(vertex.get("folder")) for vertex in ordered_vertices),
             "slots": sum(vertex["kind"] == "slot" for vertex in ordered_vertices),
+            "callouts": sum(bool(vertex.get("has_action") or vertex.get("has_webhook")) for vertex in ordered_vertices),
+            "digression_targets": len(digression_targets),
             "edges": len(ordered_edges),
             "edges_by_type": {edge_type: sum(edge["type"] == edge_type for edge in ordered_edges) for edge_type in sorted({edge["type"] for edge in ordered_edges})},
             "unresolved_jumps": len(unresolved_jumps),
@@ -215,13 +229,14 @@ def build_graph(document: dict[str, Any]) -> dict[str, Any]:
         "vertices": ordered_vertices,
         "edges": ordered_edges,
         "unresolved_jumps": unresolved_jumps,
+        "digression_targets": digression_targets,
     }
     graph["reachability"] = reachability(document, graph)
     return graph
 
 
 def dot(graph: dict[str, Any]) -> str:
-    colors = {"dialog_node": "#DCEEFF", "slot_child": "#FFF1CC", "slot": "#E5D8FF"}
+    colors = {"dialog_node": "#DCEEFF", "slot_child": "#FFF1CC", "event_handler": "#FFE2B8", "slot": "#E5D8FF"}
     lines = ["digraph watson_dialog {", "  rankdir=LR;", "  node [shape=box, style=rounded, fontname=Arial];"]
     for vertex in graph["vertices"]:
         label = vertex.get("name") or vertex["id"]

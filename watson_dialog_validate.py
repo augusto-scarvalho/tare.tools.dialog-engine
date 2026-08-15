@@ -269,12 +269,16 @@ def validate(document: dict[str, Any], check_variables: bool = False) -> dict[st
     node_ids = {str(node_data["uuid"]) for node_data in iter_nodes(document)}
     for node_data in iter_nodes(document):
         target = node_data.get("uuidEnviarPara")
-        if target not in (None, "") and str(target) not in node_ids:
+        if target not in (None, "") and str(target) not in node_ids | {"root"}:
             issues.append(issue("semantic", "unresolved_jump_target", "error", str(node_data["uuid"]), "uuidEnviarPara", target, f"O jump aponta para o UUID inexistente {target}."))
+        if node_data.get("inDigressionOut") and (target not in (None, "") or str(node_data.get("jumpSelector") or "") == "move_on"):
+            issues.append(issue("semantic", "digression_blocked_by_transition", "warning", str(node_data["uuid"]), "inDigressionOut", node_data.get("inDigressionOut"), "O Watson não permite digressão de saída quando o nó força jump ou Skip user input."))
+        if node_data.get("inDigressionOut") and any(str(child.get("condicao") or "").strip().lower() in {"true", "anything_else"} for child in node_data.get("filhos") or []):
+            issues.append(issue("semantic", "digression_blocked_by_forcing_child", "warning", str(node_data["uuid"]), "inDigressionOut", node_data.get("inDigressionOut"), "O Watson não permite digressão de saída com filho true ou anything_else."))
     for owner, responses in iter_response_owners(document):
         for response in responses:
             target = response.get("uuidEnviarPara") or response.get("dialog_node")
-            if target not in (None, "") and str(target) not in node_ids:
+            if target not in (None, "") and str(target) not in node_ids | {"root"}:
                 issues.append(issue("semantic", "unresolved_response_jump_target", "error", owner, "respostas.uuidEnviarPara", target, f"O jump de resposta aponta para o UUID inexistente {target}."))
 
     validate_v1_structure(document, issues)

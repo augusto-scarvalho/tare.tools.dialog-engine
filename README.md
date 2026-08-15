@@ -89,6 +89,11 @@ Quando um folder possui filhos, a aresta `folder_entry` aponta para o primeiro
 nó interno, separando a entrada lógica do folder da relação estrutural
 `contains`.
 
+O grafo também expõe `digression_targets`: raízes que aceitam digressão. Elas
+não viram arestas entre todos os nós e todas as raízes, pois isso seria uma
+relação dinâmica e potencialmente quadrática; os metadados de digressão em
+cada vértice permitem decidir a elegibilidade no runner.
+
 O campo `reachability` une o grafo à análise de condições e lista somente nós
 comprovadamente inalcançáveis. Um salto `body` é tratado como exceção, pois
 executa a resposta do destino sem avaliar a condição dele.
@@ -168,9 +173,10 @@ O estado preserva `context`, ramo filho pendente e slots preenchidos. Folders
 são transparentes para a seleção: depois de sua condição, o runner avalia os
 nós internos. O runner executa jumps `condition`, `body` e `user_input`, bem
 como jumps de respostas condicionais quando o export os representa. Handlers
-legados sob slots são avaliados em ordem e aparecem no trace; o ciclo completo
-de eventos `event_handler` da API V1, digressões e integrações externas seguem
-fora do escopo do simulador.
+legados sob slots são avaliados em ordem e aparecem no trace. Para payloads
+V1, o runner normaliza `frame`, `slot`, `event_handler` e
+`response_condition`; os eventos de slot seguem `focus`, `input`, `filled`,
+`generic` e `nomatch`.
 
 Cada request aceita `dialog_stack` no formato da API V1, por exemplo
 `[{"dialog_node":"root"}]`, ou uma string como alias de compatibilidade. Ele
@@ -179,6 +185,38 @@ começa no primeiro filho dele. O runner devolve `dialog_stack_after` com o nó
 ainda ativo, ou `root` e `branch_exited: true` quando a branch encerra. Apenas
 em slots o stack recebe `state: "in_progress"`; o UUID cru do slot permite
 retomar o preenchimento em uma nova request.
+
+Quando uma condição de filho não atende a mensagem, o runner pode iniciar uma
+digressão para uma raiz elegível. Os retornos são uma pilha interna e separada
+do `dialog_stack`; portanto uma digressão pode iniciar outra e cada término
+retoma o ramo imediatamente interrompido. Um destino de digressão pode executar
+seu próprio jump; qualquer jump abandona todos os retornos pendentes e segue o
+novo fluxo. Quando o destino é o especial `root`, o runner também reinicia a
+árvore e devolve `root` no stack.
+
+Callouts não são executados. Cenários podem injetar resultados determinísticos
+por nó, evitando rede e código externo:
+
+```json
+{
+  "effects": {
+    "actions": {
+      "node-uuid": {
+        "context": {"currency": "BRL"},
+        "result_variable": "quote_result",
+        "result": {"amount": 42}
+      }
+    }
+  }
+}
+```
+
+O mesmo formato aceita `webhooks` no lugar de `actions`; nesse caso apenas o
+objeto `context` é aplicado.
+
+Como guarda contra ciclos, cada turno registra `node_execution` no trace e
+interrompe a execução com `node_execution_limit` quando o mesmo UUID ultrapassa
+50 execuções. O contador é reiniciado a cada request.
 
 ## Gerar cenário até um nó
 

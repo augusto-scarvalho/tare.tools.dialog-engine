@@ -1,0 +1,63 @@
+{
+  "dialog_nodes": [
+    {
+      "dialog_node": "booking",
+      "type": "frame",
+      "title": "Reserva",
+      "conditions": "#book"
+    },
+    {
+      "dialog_node": "booking-city",
+      "type": "slot",
+      "parent": "booking",
+      "variable": "city",
+      "required": true,
+      "conditions": "@city"
+    },
+    {
+      "dialog_node": "booking-focus",
+      "type": "event_handler",
+      "parent": "booking-city",
+      "event_name": "focus",
+      "conditions": "true"
+    },
+    {
+      "dialog_node": "booking-input",
+      "type": "event_handler",
+      "parent": "booking-city",
+      "previous_sibling": "booking-focus",
+      "event_name": "input",
+      "conditions": "true"
+    },
+    {
+      "dialog_node": "booking-filled",
+      "type": "event_handler",
+      "parent": "booking-city",
+      "previous_sibling": "booking-input",
+      "event_name": "filled",
+      "conditions": "true"
+    },
+    {
+      "dialog_node": "booking-nomatch",
+      "type": "event_handler",
+      "parent": "booking-city",
+      "previous_sibling": "booking-filled",
+      "event_name": "nomatch",
+      "conditions": "true"
+    },
+    {
+      "dialog_node": "booking-generic",
+      "type": "event_handler",
+      "parent": "booking",
+      "previous_sibling": "booking-city",
+      "event_name": "generic",
+      "conditions": "#help"
+    },
+    {
+      "dialog_node": "fallback",
+      "type": "standard",
+      "conditions": "anything_else",
+      "previous_sibling": "booking"
+    }
+  ]
+}

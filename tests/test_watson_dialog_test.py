@@ -132,6 +132,143 @@ class WatsonDialogTestRunnerTests(unittest.TestCase):
         self.assertTrue(result["passed"])
         self.assertIn({"event": "response_jump", "node": "source", "target": "response-target", "mode": "body"}, result["turns"][0]["trace"])
 
+    def test_accepts_and_normalizes_a_v1_dialog_payload(self) -> None:
+        document = json.loads((FIXTURES / "dialog_v1.json").read_text(encoding="utf-8"))
+        result = runner.run_scenario(document, {"turns": [
+            {"input": {"text": "reservar"}, "intents": [{"name": "book"}], "entities": {}},
+            {"dialog_stack": [{"dialog_node": "booking-city"}], "input": {"text": "Paris"}, "entities": {"city": ["Paris"]}},
+        ]})
+        self.assertEqual([item["selected"]["node"] for item in result["turns"]], ["booking-focus", "booking-filled"])
+        self.assertEqual(result["turns"][1]["context"], {"city": "Paris"})
+        events = [item["handler_event"] for item in result["turns"][1]["trace"] if item["event"] == "slot_handler"]
+        self.assertEqual(events, ["input", "filled"])
+
+    def test_v1_slot_handlers_follow_the_documented_event_order(self) -> None:
+        document = json.loads((FIXTURES / "dialog_v1.json").read_text(encoding="utf-8"))
+        result = runner.run_scenario(document, {"turns": [
+            {"input": {"text": "reservar"}, "intents": [{"name": "book"}], "entities": {}},
+            {"dialog_stack": [{"dialog_node": "booking-city"}], "input": {"text": "ajuda"}, "intents": [{"name": "help"}], "entities": {}},
+        ]})
+        self.assertEqual(result["turns"][1]["selected"]["node"], "booking-generic")
+        events = [item["handler_event"] for item in result["turns"][1]["trace"] if item["event"] == "slot_handler"]
+        self.assertEqual(events, ["input", "generic"])
+
+    def test_v1_slot_nomatch_runs_after_input_when_no_handler_matches(self) -> None:
+        document = json.loads((FIXTURES / "dialog_v1.json").read_text(encoding="utf-8"))
+        result = runner.run_scenario(document, {"turns": [
+            {"input": {"text": "reservar"}, "intents": [{"name": "book"}], "entities": {}},
+            {"dialog_stack": [{"dialog_node": "booking-city"}], "input": {"text": "não sei"}, "entities": {}},
+        ]})
+        self.assertEqual(result["turns"][1]["selected"]["node"], "booking-nomatch")
+        events = [item["handler_event"] for item in result["turns"][1]["trace"] if item["event"] == "slot_handler"]
+        self.assertEqual(events, ["input", "nomatch"])
+
+    def test_digression_returns_without_overloading_dialog_stack(self) -> None:
+        document = {"nos": [
+            {"uuid": "order", "sequencia": 0, "condicao": "#order", "inDigressionOut": True, "respostas": [], "filhos": [
+                {"uuid": "order-size", "sequencia": 0, "condicao": "#size", "respostas": [], "filhos": []},
+            ]},
+            {"uuid": "weather", "sequencia": 1, "condicao": "#weather", "inDigressionIn": True, "inRetornoDigression": True, "respostas": [], "filhos": []},
+        ]}
+        result = runner.run_scenario(document, {"turns": [
+            {"input": {"text": "pedido"}, "intents": [{"name": "order"}]},
+            {"input": {"text": "tempo"}, "intents": [{"name": "weather"}]},
+            {"input": {"text": "grande"}, "intents": [{"name": "size"}]},
+        ]})
+        self.assertEqual([item["selected"]["node"] for item in result["turns"]], ["order", "weather", "order-size"])
+        self.assertEqual(result["turns"][1]["dialog_stack_after"], [{"dialog_node": "order"}])
+        self.assertIn({"event": "digression", "from": "order", "target": "weather", "returns": True}, result["turns"][1]["trace"])
+        self.assertIn({"event": "digression_return", "node": "weather", "to": "order"}, result["turns"][1]["trace"])
+
+    def test_digressions_can_return_recursively(self) -> None:
+        document = {"nos": [
+            {"uuid": "order", "sequencia": 0, "condicao": "#order", "inDigressionOut": True, "respostas": [], "filhos": [
+                {"uuid": "order-size", "sequencia": 0, "condicao": "#size", "respostas": [], "filhos": []},
+            ]},
+            {"uuid": "help-primary", "sequencia": 1, "condicao": "#help_primary", "inDigressionIn": True, "inDigressionOut": True, "inRetornoDigression": True, "respostas": [], "filhos": [
+                {"uuid": "help-primary-finish", "sequencia": 0, "condicao": "#resume_primary", "respostas": [], "filhos": []},
+            ]},
+            {"uuid": "help-secondary", "sequencia": 2, "condicao": "#help_secondary", "inDigressionIn": True, "inRetornoDigression": True, "respostas": [], "filhos": []},
+        ]}
+        result = runner.run_scenario(document, {"turns": [
+            {"input": {"text": "pedido"}, "intents": [{"name": "order"}]},
+            {"input": {"text": "ajuda principal"}, "intents": [{"name": "help_primary"}]},
+            {"input": {"text": "mais ajuda"}, "intents": [{"name": "help_secondary"}]},
+            {"input": {"text": "voltar"}, "intents": [{"name": "resume_primary"}]},
+            {"input": {"text": "grande"}, "intents": [{"name": "size"}]},
+        ]})
+        self.assertEqual([item["selected"]["node"] for item in result["turns"]], ["order", "help-primary", "help-secondary", "help-primary-finish", "order-size"])
+        self.assertEqual(result["turns"][2]["dialog_stack_after"], [{"dialog_node": "help-primary"}])
+        self.assertIn({"event": "digression_return", "node": "help-secondary", "to": "help-primary"}, result["turns"][2]["trace"])
+        self.assertIn({"event": "digression_return", "node": "help-primary-finish", "to": "order"}, result["turns"][3]["trace"])
+
+    def test_jump_from_a_digression_discards_returns_for_any_target(self) -> None:
+        document = {"nos": [
+            {"uuid": "order", "sequencia": 0, "condicao": "#order", "inDigressionOut": True, "respostas": [], "filhos": [
+                {"uuid": "order-size", "sequencia": 0, "condicao": "#size", "respostas": [], "filhos": []},
+            ]},
+            {"uuid": "restart", "sequencia": 1, "condicao": "#restart", "inDigressionIn": True, "inRetornoDigression": True, "uuidEnviarPara": "new-flow", "jumpSelector": "user_input", "respostas": [], "filhos": []},
+            {"uuid": "new-flow", "sequencia": 2, "condicao": "#finish", "respostas": [], "filhos": []},
+        ]}
+        result = runner.run_scenario(document, {"turns": [
+            {"input": {"text": "pedido"}, "intents": [{"name": "order"}]},
+            {"input": {"text": "novo fluxo"}, "intents": [{"name": "restart"}]},
+            {"input": {"text": "terminar"}, "intents": [{"name": "finish"}]},
+            {"input": {"text": "novo pedido"}, "intents": [{"name": "order"}]},
+            {"input": {"text": "grande"}, "intents": [{"name": "size"}]},
+        ]})
+        self.assertEqual([item["selected"]["node"] if item["selected"] else None for item in result["turns"]], ["order", "restart", "new-flow", "order", "order-size"])
+        self.assertEqual(result["turns"][1]["dialog_stack_after"], [{"dialog_node": "new-flow"}])
+        self.assertFalse(result["turns"][1]["branch_exited"])
+        self.assertEqual(result["turns"][2]["dialog_stack_after"], [{"dialog_node": "root"}])
+        self.assertEqual(result["turns"][4]["dialog_stack_after"], [{"dialog_node": "root"}])
+        self.assertIn({"event": "digression_return_abandoned", "node": "restart", "target": "new-flow", "returns": 1}, result["turns"][1]["trace"])
+        self.assertNotIn("digression_return", [item["event"] for item in result["turns"][1]["trace"]])
+
+    def test_skip_user_input_from_a_digression_also_discards_returns(self) -> None:
+        document = {"nos": [
+            {"uuid": "order", "sequencia": 0, "condicao": "#order", "inDigressionOut": True, "respostas": [], "filhos": [
+                {"uuid": "order-size", "sequencia": 0, "condicao": "#size", "respostas": [], "filhos": []},
+            ]},
+            {"uuid": "diversion", "sequencia": 1, "condicao": "#diversion", "inDigressionIn": True, "inRetornoDigression": True, "jumpSelector": "move_on", "respostas": [], "filhos": [
+                {"uuid": "diversion-next", "sequencia": 0, "condicao": "true", "respostas": [], "filhos": []},
+            ]},
+        ]}
+        result = runner.run_scenario(document, {"turns": [
+            {"input": {"text": "pedido"}, "intents": [{"name": "order"}]},
+            {"input": {"text": "outro assunto"}, "intents": [{"name": "diversion"}]},
+        ]})
+        self.assertEqual([item["selected"]["node"] for item in result["turns"]], ["order", "diversion-next"])
+        self.assertEqual(result["turns"][1]["dialog_stack_after"], [{"dialog_node": "root"}])
+        self.assertIn({"event": "digression_return_abandoned", "node": "diversion", "target": "diversion-next", "returns": 1}, result["turns"][1]["trace"])
+
+    def test_action_results_are_injected_from_the_scenario_without_network(self) -> None:
+        document = {"nos": [{"uuid": "quote", "sequencia": 0, "condicao": "#quote", "actions": [{"name": "get_quote"}], "respostas": [], "filhos": []}]}
+        result = runner.run_scenario(document, {
+            "input": {"text": "cotação"}, "intents": [{"name": "quote"}],
+            "effects": {"actions": {"quote": {"context": {"currency": "BRL"}, "result_variable": "quote_result", "result": {"amount": 42}}}},
+        })
+        self.assertEqual(result["turns"][0]["context"], {"currency": "BRL", "quote_result": {"amount": 42}})
+        self.assertIn({"event": "callout", "node": "quote", "kind": "action", "result": "applied", "context_keys": ["currency"]}, result["turns"][0]["trace"])
+
+    def test_v1_response_condition_jump_takes_precedence(self) -> None:
+        document = {"dialog_nodes": [
+            {"dialog_node": "source", "type": "standard", "conditions": "#go", "next_step": {"behavior": "jump_to", "dialog_node": "node-target", "selector": "response"}},
+            {"dialog_node": "response", "type": "response_condition", "parent": "source", "conditions": "#go", "next_step": {"behavior": "jump_to", "dialog_node": "response-target", "selector": "response"}},
+            {"dialog_node": "node-target", "type": "standard", "conditions": "false", "previous_sibling": "source"},
+            {"dialog_node": "response-target", "type": "standard", "conditions": "false", "previous_sibling": "node-target"},
+        ]}
+        result = runner.run_scenario(document, {"input": {"text": "ir"}, "intents": [{"name": "go"}]})
+        self.assertEqual(result["selected"]["node"], "response-target")
+
+    def test_stops_a_turn_after_more_than_fifty_executions_of_one_node(self) -> None:
+        document = {"nos": [{"uuid": "loop", "sequencia": 0, "condicao": "#loop", "uuidEnviarPara": "loop", "jumpSelector": "body", "respostas": [], "filhos": []}]}
+        result = runner.run_scenario(document, {"input": {"text": "loop"}, "intents": [{"name": "loop"}]})
+        executions = [item for item in result["turns"][0]["trace"] if item["event"] == "node_execution" and item["node"] == "loop"]
+        self.assertEqual(len(executions), 51)
+        self.assertEqual(executions[-1]["count"], 51)
+        self.assertIn({"event": "error", "code": "node_execution_limit", "node": "loop", "executions": 51, "limit": 50}, result["turns"][0]["trace"])
+
     def test_cli_reports_failed_expectations_and_is_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             first, second = Path(directory) / "first.json", Path(directory) / "second.json"

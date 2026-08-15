@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from watson_dialog_diff import load_json
-from watson_dialog_test import run_scenario
+from watson_dialog_test import normalize_document, run_scenario
 
 
 def index_paths(document: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
@@ -49,14 +49,16 @@ def turn_for(condition: str, context: dict[str, Any]) -> tuple[dict[str, Any], l
 
 
 def generate(document: dict[str, Any], target: str) -> dict[str, Any]:
+    document = normalize_document(document)
     path = index_paths(document).get(target)
     if not path: raise ValueError(f"UUID não encontrado: {target}")
     context: dict[str, Any] = {}
     turns, issues = [], []
-    for node in path:
+    executable_path = [node for node in path if not node.get("folder")]
+    for node in executable_path:
         turn, turn_issues = turn_for(str(node.get("condicao") or "true"), context)
         turns.append(turn); issues.extend(turn_issues)
-    scenario = {"name": f"path-to-{target}", "turns": turns, "expect": {"selected_nodes": [str(node["uuid"]) for node in path]}, "generated": {"target": target, "path": [str(node["uuid"]) for node in path], "issues": sorted(set(issues))}}
+    scenario = {"name": f"path-to-{target}", "turns": turns, "expect": {"selected_nodes": [str(node["uuid"]) for node in executable_path]}, "generated": {"target": target, "path": [str(node["uuid"]) for node in path], "issues": sorted(set(issues))}}
     validation = run_scenario(document, scenario)
     scenario["generated"]["runner_passed"] = validation["passed"]
     scenario["generated"]["actual_selected_nodes"] = [turn["selected"]["node"] if turn["selected"] else None for turn in validation["turns"]]

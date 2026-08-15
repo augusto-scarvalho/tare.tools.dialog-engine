@@ -95,6 +95,10 @@ Dialog a referencia diretamente, pois é outro modelo de execução.
 - Slots bloqueiam digressão por padrão. Digressões também não são permitidas
   quando há filho `true`/`anything_else`, jump, ou Skip user input que force a
   sequência. Apenas nós raiz podem ser alvos de digressão.
+- O simulador mantém os retornos de digressão em uma pilha privada: uma
+  digressão retornável pode abrir outra, e os términos retornam em ordem LIFO.
+  Um alvo pode executar o próprio jump; qualquer jump descarta essa pilha de
+  retornos. O destino especial `root` também reinicia a árvore.
 
 ## Regras estruturais da API V1
 
@@ -121,5 +125,12 @@ Dialog a referencia diretamente, pois é outro modelo de execução.
 - O runner é um simulador determinístico para exports legados; não é uma
   implementação integral do runtime Watson. Ele trata folders, retoma stack de
   slots, avalia handlers legados sob slots e respeita jump em resposta quando o
-  export traz os campos de condição/destino. Digressões, webhooks/actions e o
-  ciclo completo de eventos da API V1 continuam fora do escopo de simulação.
+  export traz os campos de condição/destino. Para payload V1, normaliza frame,
+  slot, response_condition e event_handler, inclusive a ordem dos eventos de
+  slot. Digressões usam uma pilha de retorno privada, separada do dialog_stack;
+  qualquer jump descarta seus retornos, e jump para `root` reinicia a árvore.
+- Webhooks e actions não são invocados pelo runner. Seus resultados precisam
+  ser injetados pela fixture do cenário, o que preserva determinismo e impede
+  qualquer efeito externo durante teste.
+- O runner aplica uma guarda por request: o mesmo UUID pode ser executado até
+  50 vezes; a 51ª produz `node_execution_limit` no trace.
