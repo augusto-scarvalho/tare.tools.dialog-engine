@@ -229,6 +229,18 @@ simples das condições e inclui o UUID-alvo em `expect.selected_nodes`. Em
 seguida, executa o runner e registra se a asserção gerada passou. Trechos SpEL
 que não podem ser sintetizados ficam em `generated.issues`.
 
+## Gerar testes para uma topologia
+
+```bash
+python3 watson_dialog_generate_test.py input/current.json --topology output/topology.json --output output/topology_scenarios.json
+```
+
+Use o JSON produzido por `watson_dialog_topology.py` como escopo. O gerador cria
+um cenário por item, em ordem `leaves_to_root`: filhos, handlers e slots antes
+de seus pais e ancestrais. Para testar um slot posterior, inclui os slots
+anteriores como pré-requisitos. A saída preserva o resultado individual do
+runner para condições ou fluxos que não puderam ser sintetizados.
+
 ## Quem faz jump para um nó
 
 ```bash

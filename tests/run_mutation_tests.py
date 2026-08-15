@@ -16,6 +16,7 @@ CONDITIONS_SOURCE = ROOT / "watson_dialog_conditions.py"
 SPEL_SOURCE = ROOT / "watson_spel.py"
 VALIDATE_SOURCE = ROOT / "watson_dialog_validate.py"
 TEST_RUNNER_SOURCE = ROOT / "watson_dialog_test.py"
+GENERATE_TEST_SOURCE = ROOT / "watson_dialog_generate_test.py"
 MUTANTS = (
     (DIFF_SOURCE, "WATSON_DIALOG_DIFF_PATH", "timestamps_are_not_ignored", 'DEFAULT_IGNORED_FIELDS = {"dataCriacao", "dataModificacao"}', "DEFAULT_IGNORED_FIELDS = set()"),
     (DIFF_SOURCE, "WATSON_DIALOG_DIFF_PATH", "uuid_matching_is_disabled", 'return {str(item["uuid"]): item for item in value}', "return None"),
@@ -47,6 +48,8 @@ MUTANTS = (
     (TEST_RUNNER_SOURCE, "WATSON_DIALOG_TEST_PATH", "digression_jump_keeps_returns", 'state["digression_returns"].clear()\n    trace.append({"event": "digression_return_abandoned"', 'pass\n    trace.append({"event": "digression_return_abandoned"'),
     (TEST_RUNNER_SOURCE, "WATSON_DIALOG_TEST_PATH", "callout_effect_is_ignored", 'state["context"].update(context)', "pass"),
     (TEST_RUNNER_SOURCE, "WATSON_DIALOG_TEST_PATH", "node_execution_limit_is_disabled", "if count <= MAX_NODE_EXECUTIONS_PER_TURN:", "if True:"),
+    (GENERATE_TEST_SOURCE, "WATSON_DIALOG_GENERATE_TEST_PATH", "topology_children_are_not_generated", 'for child in item.get("children") or []:', "for child in []:"),
+    (GENERATE_TEST_SOURCE, "WATSON_DIALOG_GENERATE_TEST_PATH", "topology_slot_prerequisites_are_ignored", 'owner_slots[:target_position + 1]', 'owner_slots[target_position:target_position + 1]'),
 )
 
 
