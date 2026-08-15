@@ -17,6 +17,7 @@ SPEL_SOURCE = ROOT / "watson_spel.py"
 VALIDATE_SOURCE = ROOT / "watson_dialog_validate.py"
 TEST_RUNNER_SOURCE = ROOT / "watson_dialog_test.py"
 GENERATE_TEST_SOURCE = ROOT / "watson_dialog_generate_test.py"
+DIFF_GENERATE_TEST_SOURCE = ROOT / "watson_dialog_generate_diff_tests.py"
 MUTANTS = (
     (DIFF_SOURCE, "WATSON_DIALOG_DIFF_PATH", "timestamps_are_not_ignored", 'DEFAULT_IGNORED_FIELDS = {"dataCriacao", "dataModificacao"}', "DEFAULT_IGNORED_FIELDS = set()"),
     (DIFF_SOURCE, "WATSON_DIALOG_DIFF_PATH", "uuid_matching_is_disabled", 'return {str(item["uuid"]): item for item in value}', "return None"),
@@ -50,6 +51,8 @@ MUTANTS = (
     (TEST_RUNNER_SOURCE, "WATSON_DIALOG_TEST_PATH", "node_execution_limit_is_disabled", "if count <= MAX_NODE_EXECUTIONS_PER_TURN:", "if True:"),
     (GENERATE_TEST_SOURCE, "WATSON_DIALOG_GENERATE_TEST_PATH", "topology_children_are_not_generated", 'for child in item.get("children") or []:', "for child in []:"),
     (GENERATE_TEST_SOURCE, "WATSON_DIALOG_GENERATE_TEST_PATH", "topology_slot_prerequisites_are_ignored", 'owner_slots[:target_position + 1]', 'owner_slots[target_position:target_position + 1]'),
+    (DIFF_GENERATE_TEST_SOURCE, "WATSON_DIALOG_GENERATE_DIFF_TEST_PATH", "nested_diff_changes_target_the_parent", "for node_id in reversed(path_targets):", "for node_id in []:"),
+    (DIFF_GENERATE_TEST_SOURCE, "WATSON_DIALOG_GENERATE_DIFF_TEST_PATH", "removed_diff_changes_are_not_reported", '"missing_from_candidate"', '"covered"'),
 )
 
 

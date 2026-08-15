@@ -241,6 +241,18 @@ de seus pais e ancestrais. Para testar um slot posterior, inclui os slots
 anteriores como pré-requisitos. A saída preserva o resultado individual do
 runner para condições ou fluxos que não puderam ser sintetizados.
 
+## Gerar testes a partir do diff
+
+```bash
+python3 watson_dialog_generate_diff_tests.py input/current.json input/candidate.json --output output/diff_scenarios.json
+```
+
+O comando calcula o diff e usa a versão candidata para criar um cenário para
+cada nó afetado. Em mudanças aninhadas, escolhe o nó candidato mais específico
+(filho, slot ou handler); mudanças em respostas, tags e mídia exercitam o nó
+dono. Remoções e mudanças fora de `nos` que não possuem cenário executável são
+mantidas em `uncovered_changes` para auditoria.
+
 ## Quem faz jump para um nó
 
 ```bash
