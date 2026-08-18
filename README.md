@@ -2,289 +2,263 @@
 
 # tare.tools — Dialog Engine
 
-**Deterministic Conversational AST, Semantic Diff Engine, SpEL Expression Evaluator, Scenario Generator, and Mission Control Triage Console for Enterprise Dialog Systems.**
+**Árvore de Sintaxe Abstrata (AST) Conversacional Determinística, Motor de Diff Semântico, Avaliador SpEL Seguro, Analisador de Grafos Topológicos e Console Mission Control de Triagem para Diálogos e Árvores de Conversação Corporativas.**
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://python.org)
-[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero%20(Pure%20Stdlib)-orange.svg)](#zero-external-runtime-dependencies)
-[![Tests](https://img.shields.io/badge/Tests-132%20Passed%20(100%25)-success.svg)](#automated-testing)
-[![Agentic Protocol](https://img.shields.io/badge/Agentic%20Protocol-tare.tools%2Fv1-purple.svg)](#agentic-integration)
+[![High Performance](https://img.shields.io/badge/Accelerated-orjson%20%7C%20networkx%20%7C%20rich-purple.svg)](#performance-e-arquitetura)
+[![Tests](https://img.shields.io/badge/Tests-132%20Passed%20(100%25)-success.svg)](#testes-automatizados)
+[![Dual Distribution](https://img.shields.io/badge/Dual%20Dist-Modular%20%2B%20Ephemeral%20ADA-orange.svg)](#estratégia-de-distribuição-dupla)
 
 <p align="center">
-  <a href="#why-dialog-engine-the-paradigm-shift">Why Dialog Engine</a> •
-  <a href="#key-architectural-pillars">Architectural Pillars</a> •
-  <a href="#the-12-phase-validation-taxonomy">Validation Taxonomy</a> •
-  <a href="#quickstart-and-installation">Quickstart</a> •
-  <a href="#cli-command-reference">CLI Reference</a> •
-  <a href="#python-library-api">Python Library</a> •
-  <a href="#interactive-mission-control">Interactive UI</a> •
-  <a href="#license-and-attribution">License</a>
+  <a href="#por-que-o-dialog-engine">Por que o Dialog Engine?</a> •
+  <a href="#pilares-arquiteturais">Pilares Arquiteturais</a> •
+  <a href="#estratégia-de-distribuição-dupla">Distribuição Dupla</a> •
+  <a href="#taxonomia-de-validação-em-12-fases">Taxonomia de Validação</a> •
+  <a href="#instalação-e-quickstart">Instalação & Quickstart</a> •
+  <a href="#referência-de-comandos-cli">Referência da CLI</a> •
+  <a href="#api-da-biblioteca-python">API Python</a> •
+  <a href="#console-mission-control-html">Console Mission Control</a> •
+  <a href="#licença">Licença</a>
 </p>
 
 </div>
 
 ---
 
-## Why Dialog Engine? (The Paradigm Shift)
+## Por que o Dialog Engine? (A Mudança de Paradigma)
 
-Enterprise conversational AI systems (IBM Watson Assistant, legacy dialog trees, and agentic workflows) rely on deeply nested, non-linear state machines containing thousands of nodes, dynamic Spring Expression Language (SpEL) conditions, multi-turn slots, and recursive digressions.
+Sistemas de IA Conversacional corporativos (IBM Watson Assistant, árvores de diálogo legadas e grafos de agentes) são máquinas de estado não lineares e profundamente aninhadas, contendo milhares de nós, condições dinâmicas em *Spring Expression Language* (SpEL), slots multi-turnos e digressões recursivas.
 
-Traditional text-based diff tools (such as `git diff`) and naive JSON comparators completely break down on these trees due to three systemic failures:
+Ferramentas tradicionais de diff baseadas em texto (`git diff`) e comparadores de JSON ingênuos falham catastroficamente por três motivos estruturais:
 
-1. **False-Positive Noise:** Trivial JSON key reordering or sibling movement generates thousands of lines of spurious diffs.
-2. **Dynamic SpEL Blindness:** Syntactic errors, dead branches, variable type contradictions, and shadow conditions remain undetected until runtime.
-3. **Scale & Digression Havoc:** Enterprise trees (1,000+ nodes, 80+ MB JSON exports) cause memory exhaustion during full DOM parsing, while recursive digressions corrupt conversation state.
+1. **Ruído de Falsos Positivos:** A simples reordenação de chaves JSON ou movimentação de nós irmãos gera milhares de linhas de conflitos falsos.
+2. **Cegueira para Expressões SpEL Dinâmicas:** Erros de sintaxe, branches inalcançáveis, contradições de tipo e condições sombreadas passam despercebidos até o momento da execução em produção.
+3. **Escala e Colapso de Digressão:** Árvores corporativas massivas (mais de 28.000 nós, JSONs de 80 MB+) esgotam a memória RAM durante o parsing DOM ingênuo, enquanto digressões recursivas corrompem o estado da conversa.
 
 ```text
-TRADITIONAL NAIVE DIFF (Spurious Key Noise & False Positives)
-[Node A (line 40)] <--- Diff Chaos ---> [Node A (line 1200)]  [!] Key reordering creates fake conflicts.
+DIFF TRADICIONAL INGÊNUO (Ruído de Chaves & Falsos Positivos)
+[Nó A (linha 40)] <--- Caos de Diffs ---> [Nó A (linha 1200)]  [!] Reordenação de chaves cria conflitos inexistentes.
 
-DETERMINISTIC DIALOG AST ENGINE (Semantic Invariant Preservation)
-   +---> [Intent: #transfer] ---> [Slot: $amount (@sys-number)] ---> [Condition: $amount > 0]
-   |                                                                          │
-[Root Tree] -------------------- (Deterministic UUID Binding) -------------> [Success Node]
-   |                                                                          ▲
-   +---> [Digression: #help] ---> (Stack Preservation / Return) --------------+
+MOTOR DE AST DETERMINÍSTICO DO DIALOG ENGINE (Preservação de Invariantes Semânticos)
+   +---> [Intent: #transferencia] ---> [Slot: $valor (@sys-number)] ---> [Condição: $valor > 0]
+   |                                                                                │
+[Raiz da Árvore] ----------------- (Binding por UUID Determinístico) -------------> [Nó de Sucesso]
+   |                                                                                ▲
+   +---> [Digressão: #ajuda] --------> (Preservação de Pilha / Retorno) ------------+
 ```
 
-### Comparative Capabilities
+### Matriz Comparativa
 
-| Capability | Line-by-Line / Naive JSON Diff | tare.tools Dialog Engine |
+| Capacidade | Diff Ingênuo / Linha a Linha | tare.tools Dialog Engine |
 |---|---|---|
-| **Node Identity Resolution** | Fragile line / array index | **Immutable UUID & AST canonical ordering** |
-| **SpEL Condition Analysis** | None (treated as raw strings) | **Static AST Lexer & fail-closed safe evaluation** |
-| **Control Flow & Cycle Check** | Manual inspection | **Tarjan SCC graph cycle & dead-jump detection** |
-| **Slot & Variable Lifecycles** | Untracked | **Disjoint condition reuse & contradiction triage** |
-| **Large Tree Scalability** | OOM on 50MB+ trees | **Adaptive mmap indexing & compact graph sharding** |
-| **Automated Scenario Synthesis** | Manual QA test writing | **Deterministic leaf-to-root scenario generation** |
-| **Runtime Dependencies** | Heavy frameworks | **Pure Python 3.10+ stdlib (Zero external runtime dependencies)** |
+| **Resolução de Identidade de Nós** | Linha / índice do array (frágil) | **UUID imutável e ordenação canônica de AST** |
+| **Análise de Condições SpEL** | Nenhuma (trata como texto bruto) | **Lexer AST estático e avaliação segura fail-closed** |
+| **Topologia & Detecção de Ciclos** | Inspeção manual | **Detecção de ciclos e loops infinitos via NetworkX** |
+| **Ciclo de Vida de Slots e Variáveis** | Não rastreado | **Detecção de contradições de tipo e reutilização disjunta** |
+| **Parsing & Serialização de Alta Escala** | Lento em JSON padrão | **Acelerado com `orjson` (Rust) — 166MB em 600ms** |
+| **Descoberta de Esquemas & Omnichannel** | Apenas um formato rígido | **Introspecção universal (Watson V1 flat + Corporativo aninhado)** |
+| **Execução em Runtimes Efêmeros** | Requer instalação complexa | **Distribuição Standalone de arquivo único para ChatGPT ADA / Copilot** |
 
 ---
 
-## Key Architectural Pillars
+## Pilares Arquiteturais
 
-```
-                                 TARE.TOOLS DIALOG ENGINE ARCHITECTURE
-                                 
+```text
+                                ARQUITETURA DO TARE.TOOLS DIALOG ENGINE
+                                
    ┌───────────────────────┐     ┌────────────────────────┐     ┌───────────────────────┐
-   │   Semantic Document   │ ──► │  Static AST & SpEL     │ ──► │ Topological Graph &   │
-   │  Normalization Model  │     │   Safety Boundary      │     │    Diff Analyzer      │
+   │  Explorador Universal │ ──► │  Lexer AST SpEL Seguro │ ──► │ Grafo Topológico &    │
+   │  de Esquemas e AST    │     │  com Cache LRU         │     │ Detecção de Ciclos    │
+   │  (tare_dialog.explorer)│     │  (tare_dialog.spel)    │     │ (tare_dialog.graph)   │
    └───────────────────────┘     └────────────────────────┘     └───────────────────────┘
                │                             │                              │
                ▼                             ▼                              ▼
    ┌───────────────────────┐     ┌────────────────────────┐     ┌───────────────────────┐
-   │ Adaptive Memory Mmap  │     │ Scenario Generator &   │     │ SIGNAL Mission Control│
-   │  & Tree Shard Engine  │     │  Traceable Test Runner │     │  Triage Console (HTML)│
+   │ Motor de Diff AST     │     │ Validador em 12 Fases  │     │ Console Mission       │
+   │ Semântico com orjson  │     │ com Contrato Único     │     │ Control SIGNAL (HTML) │
+   │ (tare_dialog.diff)    │     │ (tare_dialog.validator)│     │ (tare_dialog.triage)  │
    └───────────────────────┘     └────────────────────────┘     └───────────────────────┘
 ```
 
-### 1. Universal Dialog AST Explorer & Schema Discovery (`watson_dialog_explorer.py`)
-Polymorphic introspector and bidirectional schema normalizer supporting:
-- Official flat IBM Watson Assistant exports (V1 classic and V2 flat pointer topologies with `dialog_node`, `parent`, `previous_sibling`).
-- Hierarchical / Nested enterprise dialog trees (`nos`, `filhos`, `respostas`, `slots`).
-- Multichannel awareness (WhatsApp, Web Chat, Mobile App, Voice, Slack).
-- Multimodal & rich media responses (text, images, carousels, cards, options, pauses, connect-to-agent).
-- Lossless bidirectional conversion between formats.
+### 1. Explorador Universal de AST & Descoberta de Esquema (`tare_dialog.explorer`)
+Introspector polimórfico e conversor de esquemas bidirecional e sem perdas:
+- **Watson V1 Clássico:** Estrutura flat baseada em ponteiros (`dialog_node`, `parent`, `previous_sibling`).
+- **Árvores Corporativas Aninhadas:** Hierarquias profundas (`nos`, `filhos`, `respostas`, `slots`).
+- **Suporte Multicanal:** Reconhecimento nativo de canais (WhatsApp, Web Chat, Mobile App, Voice, Slack).
+- **Componentes Multimídia:** Imagens, carrosséis, botões/opções, pausas e transferência para atendente humano.
 
-### 2. Deterministic Semantic Diff Engine (`watson_dialog_diff.py`)
-Compares dialog trees by unique identifier (`uuid`), evaluating structural additions, removals, and semantic modifications across nodes, responses, context variables, slots, and slot handlers without false positives from key reordering.
+### 2. Motor de Diff Semântico AST (`tare_dialog.diff_engine`)
+Compara árvores de diálogo por UUID, detectando com precisão adições, remoções e modificações em nós, respostas condicionais, variáveis de contexto, slots e event handlers sem falsos positivos gerados por reordenação de chaves.
 
-### 3. Hardened SpEL Expression Boundary (`watson_spel.py`)
-Static AST lexer and sandboxed evaluator for Spring Expression Language (SpEL) subsets (`#intent`, `@entity`, `$context`, ternary operators, string methods, regex matches):
-- **Recursion Depth Limits:** Capped at 50 frames to prevent stack exhaustion.
-- **Memory Amplification Defense:** Capped against multiplicative expansion attacks.
-- **Dunder Protection:** Rejection of `__dunder__` property traversals.
-- **Safe Evaluation:** Fail-closed `UNKNOWN` / `FALSE` propagation on runtime anomalies.
+### 3. Barreira de Segurança SpEL (`tare_dialog.spel`)
+Lexer estático e avaliador seguro para o subconjunto de Spring Expression Language utilizado pelo Watson (`#intent`, `@entity`, `$context`, operadores ternários, métodos de string, expressões regulares):
+- **Cache LRU:** Tokenização de alta velocidade para árvores com dezenas de milhares de nós.
+- **Proteção Dunder:** Rejeição estrita de travessias `__dunder__` e reflexão.
+- **Fail-Closed:** Propagação segura de `UNKNOWN` em anomalias de tempo de execução.
 
-### 4. Topological Graph & Jump Resolution (`watson_dialog_graph.py`)
-Constructs deterministic directed acyclic/cyclic graphs of the conversation flow, resolving body jumps, response-condition jumps, slot handlers, and root digression anchors into DOT and JSON graph outputs.
-
-### 5. Deterministic Scenario Runner (`watson_dialog_test.py`)
-Traceable headless runner that validates multi-turn conversation sessions against dialog trees, supporting session slot state, digression returns, conditional response branching, and loop detection (safety cap at 50 turn iterations).
-
-### 6. Adaptive External-Memory Sharding (`watson_dialog_shard.py`, `watson_dialog_external.py`)
-Resource-aware execution for large-scale enterprise exports:
-- Automatically selects fast in-memory DOM parsing for files `< 10 MB`.
-- Switches to mmap-indexed single-pass tokenization and compact graph sharding for large exports (`> 10 MB`).
+### 4. Grafo Topológico & Análise de Ciclos (`tare_dialog.graph`)
+Modela o fluxo da conversa como um grafo direcionado (`networkx.DiGraph`), detectando:
+- Ciclos e loops infinitos de jumps (`find_graph_cycles()`).
+- Nós inalcançáveis (*dead branches*) por condições booleanas contraditórias.
+- Exportação nos formatos JSON e Graphviz DOT.
 
 ---
 
-## The 12-Phase Validation Taxonomy
+## Estratégia de Distribuição Dupla
 
-`watson_dialog_validate.py` categorizes issues into a 12-phase calibrated taxonomy:
+O projeto é disponibilizado em **duas distribuições distintas** ([ADR-0004](docs/adr/0004-dual-distribution-strategy-modular-and-ephemeral.md)):
 
-| Phase | Category | Description & Calibrated Handling |
-|---|---|---|
-| **Phase 1** | `catalog_reference` | Verifies intent and entity references against valid catalog definitions. |
-| **Phase 2** | `spel_syntax` | High-confidence lexical and syntax error reporting with byte offsets. |
-| **Phase 3** | `control_flow` | Detects orphaned nodes, unresolvable jump targets, and infinite loops. |
-| **Phase 4** | `numeric_capture` | Flags type contradictions in numeric slot extraction (e.g. conflicting defaults). |
-| **Phase 5** | `conditional_slot_reuse` | Validates variable reuse across provably disjoint conditions. |
-| **Phase 6** | `manual_entities` | Resolves custom entity extraction annotations. |
-| **Phase 7** | `identical_capture_reuse` | Identifies duplicate variable writes with identical values (informational). |
-| **Phase 8** | `mixed_slot_reuse` | Flags high-risk unconditional variable overwrites across disjoint turns. |
-| **Phase 9** | `digression_status` | Audits state persistence and stack integrity during multi-hop digressions. |
-| **Phase 10** | `root_cause_ledger` | Unifies cascading downstream validation errors into single causal issues. |
-| **Phase 11** | `functional_patterns` | Maps conversational idioms into conformance profiles. |
-| **Phase 12** | `warning_calibration` | Threshold-calibrated reporting with `--summary-only` high-signal filtering. |
-
----
-
-## Dual Distribution Architecture
-
-`tare.tools.dialog-engine` is published in **two distinct distributions** ([ADR-0004](docs/adr/0004-dual-distribution-strategy-modular-and-ephemeral.md)):
-
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ 📦 1. MODULAR FULL PACKAGE (Workstations & CI/CD)                          │
-│    - Complete modular architecture, memory mmap sharding, and pytest suite. │
-│    - Interactive SIGNAL Mission Control triage console (HTML).              │
+│ 📦 DISTRIBUIÇÃO A — PACOTE MODULAR (Ambientes de Engenharia, Servidores, CI)│
+│    - Pacote moderno src/tare_dialog com orjson, networkx, pydantic e rich.   │
+│    - Sharding de memória com mmap para árvores massivas (>100.000 nós).     │
+│    - Console interativo SIGNAL Mission Control (HTML).                      │
+│    - Suíte de 132 testes automatizados (pytest).                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ ⚡ 2. EPHEMERAL STANDALONE (ChatGPT ADA & M365 Copilot Runtime)              │
-│    - Single-file zero-install monolith: dist/dialog_engine_standalone.py    │
-│    - Portable Python ZipApp: dist/dialog_engine.pyz (~50 KB)                │
-│    - Drop directly into ChatGPT Advanced Data Analysis / Copilot Studio!    │
+│ ⚡ DISTRIBUIÇÃO B — STANDALONE EFÊMERO (ChatGPT ADA & M365 Copilot Sandbox) │
+│    - Arquivo único zero-install: dist/dialog_engine_standalone.py (~220 KB) │
+│    - Executável portátil ZipApp: dist/dialog_engine.pyz (~50 KB)             │
+│    - Suba diretamente no Code Interpreter / Sandbox sem precisar de pip!    │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Build the Ephemeral Standalone Bundle
-```bash
-python scripts/build_standalone.py
-# Generates dist/dialog_engine_standalone.py and dist/dialog_engine.pyz
-```
+---
+
+## Taxonomia de Validação em 12 Fases
+
+O validador estático unificado (`tare_dialog.validator`) opera sob um **contrato único de issues** classificado em 12 fases progressivas:
+
+| Fase | Código de Regra | Descrição do Invariante Semântico |
+|---|---|---|
+| **Fase 1** | `disabled_condition_false` | Detecta nós desativados inalcançáveis com condição literal `false`. |
+| **Fase 2** | `invalid_spel_syntax` | Audita sintaxe estática SpEL (parênteses desbalanceados, aspas abertas). |
+| **Fase 3** | `unresolved_jump_target` | Identifica jumps que apontam para UUIDs inexistentes. |
+| **Fase 4** | `sys_number_zero_not_captured` | Previne falha onde prompt aceita 0 mas captura `@sys-number` não trata zero. |
+| **Fase 5** | `unsatisfiable_slot_enable` | Alerta contradições lógicas em condições de habilitação de slots (`$var && $var == false`). |
+| **Fase 6** | `slot_type_contradiction` | Identifica incompatibilidade entre entidade de captura e tipo de entrada. |
+| **Fase 7** | `slot_depends_on_later_slot` | Detecta slot cuja condição depende de variável preenchida posteriormente. |
+| **Fase 8** | `slot_depends_on_optional_slot`| Alerta dependência de variável capturada por slot anterior opcional. |
+| **Fase 9** | `digression_blocked_by_transition` | Audita nós com digressão de saída bloqueados por transição forçada. |
+| **Fase 10** | `multiple_first_siblings` | Identifica grupos de nós irmãos com múltiplos nós marcados como primeiro. |
+| **Fase 11** | `missing_root_anything_else` | Alerta ausência de nó raiz de fallback com condição `anything_else`. |
+| **Fase 12** | `too_many_response_types` | Valida o limite de componentes por bloco de resposta condicional. |
 
 ---
 
-## Quickstart and Installation
+## Instalação e Quickstart
 
+### Instalação como Pacote Python
 ```bash
-# Clone the repository
+# Clonar o repositório
 git clone https://github.com/augusto-scarvalho/tare.tools.dialog-engine.git
 cd tare.tools.dialog-engine
 
-# Run the full test suite (132 tests, pure stdlib)
+# Instalar dependências de alta performance
+pip install -e .
+```
+
+### Executar a Suíte de Testes
+```bash
 python -m pytest
 ```
 
 ---
 
-## CLI Command Reference
+## Referência de Comandos CLI
 
-### 1. Universal Dialog Explorer & Introspection
+A CLI `dialog-engine` (ou `tare-dialog`) oferece suporte nativo a terminal rico (`rich`):
+
+### 1. Introspecção e Descoberta Universal de Esquemas (`explore`)
 ```bash
-# Introspect primitives, topology, channels, and rich media assets
-python watson_dialog_explorer.py input/skill.json --introspect
+# Introspecção completa de primitivas, canais e mídias
+dialog-engine explore input/skill.json
 
-# List discovered communication channels
-python watson_dialog_explorer.py input/skill.json --channels
+# Listar apenas os canais de comunicação identificados
+dialog-engine explore input/skill.json --channels
 
-# List rich media and interactive components
-python watson_dialog_explorer.py input/skill.json --multimedia
+# Listar componentes multimídia e rich responses
+dialog-engine explore input/skill.json --multimedia
 
-# Convert official Watson V1 skill to nested enterprise format
-python watson_dialog_explorer.py input/skill.json --convert-to nested --output output/nested_tree.json
-
-# Convert nested enterprise format to official IBM Watson Assistant V1 JSON
-python watson_dialog_explorer.py input/nested.json --convert-to v1 --output output/official_v1.json
+# Converter entre formatos (v1 flat <-> corporativo aninhado)
+dialog-engine explore input/skill.json --convert-to v1 --output output/v1_skill.json
 ```
 
-### 2. Semantic Diff
+### 2. Diff Semântico AST (`diff`)
 ```bash
-# Compare two exports and output a Markdown changelog
-python watson_dialog_diff.py input/current.json input/candidate.json --output output/diff.md
+# Diff visual com terminal formatado em cores
+dialog-engine diff input/current.json input/candidate.json --format rich
 
-# Output structured JSON diff
-python watson_dialog_diff.py input/current.json input/candidate.json --format json --output output/diff.json
+# Gerar relatório de diff em Markdown
+dialog-engine diff input/current.json input/candidate.json --format markdown --output output/diff.md
+
+# Gerar diff estruturado em JSON
+dialog-engine diff input/current.json input/candidate.json --format json --output output/diff.json
 ```
 
-### 3. Validation & Quality Gates
+### 3. Validação Estática com Contrato Único (`validate`)
 ```bash
-# Validate export with single issue contract
-python watson_dialog_validate.py input/candidate.json --output output/validation.json
+# Validação rica no terminal com tabela de issues
+dialog-engine validate input/skill.json --rich
 
-# High-signal summary mode for CI pipelines
-python watson_dialog_validate.py input/candidate.json --summary-only --max-issues 20
+# Exportar relatório completo de validação em JSON
+dialog-engine validate input/skill.json --output output/validation_report.json
 ```
 
-### 4. Graph Export
+### 4. Grafo de Fluxo e Detecção de Ciclos (`graph`)
 ```bash
-# Export topological graph to DOT and JSON
-python watson_dialog_graph.py input/candidate.json --output-json output/graph.json --output-dot output/graph.dot
+# Gerar grafo topológico e estatísticas de alcance
+dialog-engine graph input/skill.json --output-json output/graph.json
+
+# Exportar visualização Graphviz DOT
+dialog-engine graph input/skill.json --output-dot output/graph.dot
 ```
 
-### 5. Condition & SpEL Analysis
+### 5. Execução de Cenários de Teste (`test`)
 ```bash
-# Extract and statically analyze all conditions across nodes and slots
-python watson_dialog_conditions.py input/candidate.json --output output/condition_analysis.json
-```
-
-### 6. Automated Scenario Generation & Execution
-```bash
-# Generate candidate test scenarios from diff
-python watson_dialog_generate_diff_tests.py input/current.json input/candidate.json --output output/scenarios/
-
-# Run a test scenario against candidate export
-python watson_dialog_test.py input/candidate.json tests/fixtures/dialog_test.json
+# Executar cenário determinístico de teste contra o diálogo
+dialog-engine test input/skill.json tests/fixtures/scenario.json --output output/trace.json
 ```
 
 ---
 
-## Python Library API
+## API da Biblioteca Python
 
 ```python
-import watson_dialog_diff as diff
-import watson_dialog_validate as validate
-import watson_spel as spel
+import tare_dialog as td
 
-# 1. Load and validate document
-doc = diff.load_json("tests/fixtures/validation_legacy.json")
-report = validate.validate(doc)
-print(f"Validation Issues: {len(report['issues'])}")
+# 1. Carregar documento com parsing ultra-rápido (orjson)
+doc = td.load_json("input/skill.json")
 
-# 2. Evaluate SpEL expression safely
-context = {"user_tier": "GOLD", "balance": 1500}
-result = spel.evaluate_condition("$user_tier == 'GOLD' and $balance >= 1000", context)
-print(f"Condition Match: {result}")  # Output: True
+# 2. Explorar e normalizar AST
+ast_doc = td.explore_document(doc)
+print(f"Formato: {ast_doc.source_format} | Nós: {len(ast_doc.nodes)}")
 
-# 3. Compare two dialog versions
-current = diff.load_json("tests/fixtures/current.json")
-candidate = diff.load_json("tests/fixtures/candidate.json")
-diff_result = diff.diff_dialogs(current, candidate)
-print(f"Nodes Added: {len(diff_result['nodes_added'])}")
+# 3. Executar validação estática em 12 fases
+relatorio = td.validate(doc)
+print(f"Total de issues encontradas: {relatorio['summary']['issues']}")
+
+# 4. Calcular diff semântico entre duas versões
+diff = td.summarize(doc_v1, doc_v2, td.DEFAULT_IGNORED_FIELDS)
+print(f"Mudanças: +{diff['summary']['added']} ~{diff['summary']['changed']} -{diff['summary']['removed']}")
+
+# 5. Avaliar expressão SpEL com sandbox seguro
+resultado = td.evaluate_condition("$valor > 100 && #confirmar", context={"valor": 150}, intents=["confirmar"])
+assert resultado is True
 ```
 
 ---
 
-## Interactive Mission Control & Triage Console
+## Console Mission Control (HTML)
 
-The repository includes a standalone, zero-dependency HTML5/CSS3 triage application (`triage_viewer.html`) powered by the **tare.tools SIGNAL Design System**:
-
-- **14 Harmonious Color Themes:** Including Dark, Light, Cyberpunk, Amber CRT, Solarized, and Minimalist.
-- **Node Inspection Drawer:** Deep JSON AST tree inspection with path hierarchy.
-- **Dynamic Search & Filtering:** Filter issues by category, severity, node name, or UUID.
-- **Bilingual Support:** Instant Portuguese / English localization switcher.
-- **Zero Server Required:** Opens directly in any modern browser (`file://`).
-
-```bash
-# Regenerate the triage console with updated datasets
-python generate_optimized_data.py
-python generate_triage_html.py
-```
+O projeto inclui o console visual interativo [`triage_viewer.html`](triage_viewer.html), construído com o **SIGNAL Design System**, oferecendo:
+- **14 Temas Visuais de Engenharia** (NASA Deep Space, Tokyo Night, Monokai Pro, Synthwave, etc.).
+- **Filtros Avançados:** Filtragem por severidade, fase de auditoria, UUID do nó e status de regressão.
+- **Painel de Inspeção Profunda:** Visualização do JSON bruto do nó, árvore hierárquica e histórico de mudanças.
 
 ---
 
-## Automated Testing
+## Licença
 
-The suite contains **127 automated tests** covering unit behavior, regression protection, large-scale synthetic scaling (1,000+ nodes), SpEL fuzzing, and Playwright end-to-end UI verification:
-
-```bash
-python -m pytest -v
-```
-
----
-
-## License and Attribution
-
-Licensed under the [Apache License, Version 2.0](LICENSE).  
-Copyright (c) 2026 Augusto Carvalho and tare.tools contributors.  
-Part of the **tare.tools** Deterministic Engineering and Autonomous Agent OS ecosystem.
+Distribuído sob a licença **Apache-2.0**. Consulte o arquivo [LICENSE](LICENSE) e [NOTICE](NOTICE) para obter detalhes completos.
