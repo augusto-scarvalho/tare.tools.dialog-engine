@@ -1,85 +1,26 @@
-#!/usr/bin/env python3
-"""Build pipeline for tare.tools.dialog-engine distributions.
-
-Produces two distinct distributions:
-1. Modular Full Package (Standard development, CI/CD, and CLI tooling).
-2. Ephemeral Standalone Distribution (Single-file .py and .pyz ZipApp for ChatGPT ADA & M365 Copilot runtime).
-"""
-
-from __future__ import annotations
-
-import os
-import re
-import sys
-import zipapp
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parent.parent
-SRC_DIR = ROOT / "src" / "tare_dialog"
-DIST_DIR = ROOT / "dist"
-
-CORE_MODULES = [
-    "resources.py",
-    "spel.py",
-    "conditions.py",
-    "test_runner.py",
-    "graph.py",
-    "validator.py",
-    "diff_engine.py",
-    "explorer.py",
-]
-
-HEADER = """#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-\"\"\"
-tare.tools — Dialog Engine (Ephemeral Standalone Distribution)
-
-A single-file, zero-dependency, pure Python stdlib bundle engineered for:
-- ChatGPT Code Interpreter / Advanced Data Analysis (ADA) sandboxes
-- Microsoft 365 Copilot Studio & Agent Sandboxes
-- Serverless ephemeral runtimes and offline analysis
-
-Capabilities:
-- AST Semantic Diff Engine & Provenance Analysis
-- Spring Expression Language (SpEL) AST Lexer & Safe Evaluator
-- Static Validation & 12-Phase Quality Gates
-- Topological Flow Graph & Reachability Analyzer
-- Deterministic Scenario Runner & Regression Tracing
-- Universal Dialog AST Explorer (Official Watson V1 & Enterprise Nested)
-
-License: Apache-2.0
-Copyright (c) 2026 Augusto Carvalho and tare.tools contributors.
-\"\"\"
+"""Universal CLI for tare.tools Dialog Engine."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import math
-import os
-import re
 import sys
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from difflib import SequenceMatcher
 from pathlib import Path
-from typing import Any, Iterator, NamedTuple
 
-"""
+from tare_dialog.diff_engine import DEFAULT_IGNORED_FIELDS, configure_utf8_output, load_json, markdown, summarize
+from tare_dialog.explorer import explore_document, introspect_primitives, to_nested_format, to_v1_format
+from tare_dialog.graph import build_graph, render_dot
+from tare_dialog.test_runner import run_scenario
+from tare_dialog.validator import validate
 
-MAIN_CLI = """
 
-# ==============================================================================
-# Unified CLI Dispatcher for Ephemeral Sandboxes
-# ==============================================================================
-
-def main_cli() -> None:
+def main() -> None:
     configure_utf8_output()
     parser = argparse.ArgumentParser(
-        prog="dialog_engine",
-        description="tare.tools Dialog Engine — Standalone Ephemeral Runner for ChatGPT ADA and M365 Copilot."
+        prog="dialog-engine",
+        description="tare.tools Dialog Engine — Deterministic AST Diff, SpEL Evaluator & Validator."
     )
-    subparsers = parser.add_subparsers(dest="command", help="Available engine commands")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # 1. Diff
     diff_parser = subparsers.add_parser("diff", help="Semantic AST diff between two dialog versions")
@@ -88,7 +29,7 @@ def main_cli() -> None:
     diff_parser.add_argument("--format", choices=["markdown", "json"], default="markdown", help="Report format")
     diff_parser.add_argument("--output", "-o", type=Path, help="Output destination file")
     diff_parser.add_argument("--summary-only", action="store_true", help="Emit high-signal summary counts only")
-    diff_parser.add_argument("--max-changes", type=int, default=20, help="Maximum changes to print per item in Markdown")
+    diff_parser.add_argument("--max-changes", type=int, default=20, help="Max changes to show per item in Markdown")
 
     # 2. Validate
     val_parser = subparsers.add_parser("validate", help="Validate dialog with single issue contract")
@@ -128,10 +69,7 @@ def main_cli() -> None:
             cur_doc = load_json(args.current)
             cand_doc = load_json(args.candidate)
             report = summarize(cur_doc, cand_doc, DEFAULT_IGNORED_FIELDS, summary_only=args.summary_only)
-            if args.format == "json":
-                out = json.dumps(report, indent=2, ensure_ascii=False)
-            else:
-                out = markdown(report, args.max_changes)
+            out = json.dumps(report, indent=2, ensure_ascii=False) if args.format == "json" else markdown(report, args.max_changes)
             if args.output:
                 args.output.parent.mkdir(parents=True, exist_ok=True)
                 args.output.write_text(out, encoding="utf-8")
@@ -186,7 +124,7 @@ def main_cli() -> None:
             else:
                 intro = introspect_primitives(raw_doc)
                 print("=================================================================")
-                print(f"  tare.tools — Dialog AST Explorer (Ephemeral Standalone)")
+                print("  tare.tools — Dialog AST Explorer & Schema Discovery")
                 print("=================================================================")
                 print(f"  Format Detected:      {intro['format_detected']}")
                 print(f"  Total Dialog Nodes:   {intro['total_nodes']} (Root: {intro['root_nodes']})")
@@ -228,98 +166,8 @@ def main_cli() -> None:
                 print(out)
 
     except Exception as err:
-        sys.stderr.write(f"Error: {err}\\n")
+        sys.stderr.write(f"Error: {err}\n")
         sys.exit(1)
-
-
-if __name__ == "__main__":
-    main_cli()
-"""
-
-
-def clean_module_code(content: str) -> str:
-    """Strip __future__, file headers, duplicate imports, and __main__ blocks."""
-    lines = content.splitlines()
-    cleaned: list[str] = []
-    in_main_block = False
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith("#!/usr/bin/env") or stripped.startswith("# -*- coding:"):
-            continue
-        if stripped.startswith("from __future__ import"):
-            continue
-        if re.match(r"^from (watson_\w+|tare_dialog\.\w+) import", stripped) or re.match(r"^import (watson_\w+|tare_dialog\.\w+)", stripped):
-            continue
-        if stripped == 'if __name__ == "__main__":':
-            in_main_block = True
-            continue
-        if in_main_block:
-            # Skip everything inside if __name__ == "__main__" block
-            if line and not line.startswith("    ") and not line.startswith("\t"):
-                in_main_block = False
-            else:
-                continue
-        cleaned.append(line)
-    return "\n".join(cleaned)
-
-
-def build_standalone_script() -> Path:
-    """Combine all core engine modules into a single monolithic Python file."""
-    DIST_DIR.mkdir(parents=True, exist_ok=True)
-    out_file = DIST_DIR / "dialog_engine_standalone.py"
-    
-    sections = [HEADER]
-    for mod_name in CORE_MODULES:
-        mod_path = SRC_DIR / mod_name
-        if not mod_path.exists():
-            raise FileNotFoundError(f"Missing core module: {mod_path}")
-        print(f"Bundling module: {mod_name}...")
-        raw = mod_path.read_text(encoding="utf-8")
-        cleaned = clean_module_code(raw)
-        sections.append(f"\n# ------------------------------------------------------------------------------\n# Module: {mod_name}\n# ------------------------------------------------------------------------------\n")
-        sections.append(cleaned)
-
-    sections.append(MAIN_CLI)
-    full_content = "\n".join(sections)
-    out_file.write_text(full_content, encoding="utf-8")
-    print(f"Standalone distribution created: {out_file} ({len(full_content.encode('utf-8')):,} bytes)")
-    return out_file
-
-
-def build_zipapp_distribution(standalone_script: Path) -> Path:
-    """Package standalone script as a standard Python .pyz zipapp."""
-    app_dir = DIST_DIR / "_zipapp_staging"
-    app_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Copy as __main__.py
-    (app_dir / "__main__.py").write_text(standalone_script.read_text(encoding="utf-8"), encoding="utf-8")
-    
-    pyz_file = DIST_DIR / "dialog_engine.pyz"
-    zipapp.create_archive(
-        source=app_dir,
-        target=pyz_file,
-        interpreter="/usr/bin/env python3",
-        compressed=True,
-    )
-    
-    # Clean staging
-    import shutil
-    shutil.rmtree(app_dir, ignore_errors=True)
-    print(f"ZipApp distribution created: {pyz_file} ({pyz_file.stat().st_size:,} bytes)")
-    return pyz_file
-
-
-def main() -> None:
-    print("=================================================================")
-    print("  Building tare.tools.dialog-engine Distributions")
-    print("=================================================================")
-    standalone = build_standalone_script()
-    pyz = build_zipapp_distribution(standalone)
-    print("=================================================================")
-    print("Distributions build complete!")
-    print(f"1. Standalone Single-File (ChatGPT ADA / Copilot): {standalone}")
-    print(f"2. Portable ZipApp Executable:                     {pyz}")
-    print("=================================================================")
 
 
 if __name__ == "__main__":

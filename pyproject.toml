@@ -35,6 +35,13 @@ classifiers = [
 ]
 dependencies = []
 
+[project.scripts]
+dialog-engine = "tare_dialog.cli:main"
+tare-dialog = "tare_dialog.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
@@ -44,12 +51,12 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
+pythonpath = [".", "src"]
 addopts = "-v --tb=short"
 
 [tool.coverage.run]
-source = ["."]
-omit = ["tests/*", "generate_*.py"]
+source = ["src/tare_dialog"]
+omit = ["tests/*"]
 
 [tool.coverage.report]
 show_missing = true

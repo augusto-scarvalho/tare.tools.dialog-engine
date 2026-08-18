@@ -37,7 +37,7 @@ from typing import Any, Iterator, NamedTuple
 
 
 # ------------------------------------------------------------------------------
-# Module: watson_dialog_resources.py
+# Module: resources.py
 # ------------------------------------------------------------------------------
 
 """Portable resource discovery and conservative auto-sizing for Watson Dialog tools.
@@ -194,7 +194,7 @@ def resolve_jobs(value: str | int, task_count: int, budget: ResourceBudget | Non
     raise ValueError("jobs deve ser 'auto' ou um inteiro positivo")
 
 # ------------------------------------------------------------------------------
-# Module: watson_spel.py
+# Module: spel.py
 # ------------------------------------------------------------------------------
 
 """Safe evaluator for the SpEL subset used by Watson Assistant Dialog conditions.
@@ -698,7 +698,7 @@ def evaluate_condition(expression: str, environment: dict[str, Any]) -> bool | _
     return _truth(value)
 
 # ------------------------------------------------------------------------------
-# Module: watson_dialog_conditions.py
+# Module: conditions.py
 # ------------------------------------------------------------------------------
 
 """Statically analyze boolean conditions in a Watson Assistant Dialog export."""
@@ -1162,7 +1162,7 @@ def main() -> int:
 
 
 # ------------------------------------------------------------------------------
-# Module: watson_dialog_test.py
+# Module: test_runner.py
 # ------------------------------------------------------------------------------
 
 """Deterministic, traceable scenario runner for legacy Watson Dialog exports."""
@@ -1791,7 +1791,7 @@ def main() -> int:
 
 
 # ------------------------------------------------------------------------------
-# Module: watson_dialog_graph.py
+# Module: graph.py
 # ------------------------------------------------------------------------------
 
 """Build a deterministic directed graph from a Watson Assistant Dialog export."""
@@ -2058,6 +2058,9 @@ def dot(graph: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+render_dot = dot
+
+
 def main() -> int:
     configure_utf8_output()
     parser = argparse.ArgumentParser(description="Gera um grafo direcionado de um export Watson Assistant Dialog.")
@@ -2082,7 +2085,7 @@ def main() -> int:
 
 
 # ------------------------------------------------------------------------------
-# Module: watson_dialog_validate.py
+# Module: validator.py
 # ------------------------------------------------------------------------------
 
 """Validate a Watson Assistant Dialog export using one stable issue contract.
@@ -2727,7 +2730,7 @@ def main() -> int:
 
 
 # ------------------------------------------------------------------------------
-# Module: watson_dialog_diff.py
+# Module: diff_engine.py
 # ------------------------------------------------------------------------------
 
 """Compare two Watson Assistant Dialog exports semantically.
@@ -2954,6 +2957,9 @@ def summarize(current: dict[str, Any], candidate: dict[str, Any], ignored_fields
         for change in result["changes"]:
             result["summary"][change["kind"] if change["kind"] in ("added", "removed") else "changed"] += 1
     return result
+
+
+diff_dialogs = summarize
 
 
 class ExternalDiffUnsupported(ValueError):
@@ -3594,7 +3600,7 @@ def main() -> int:
 
 
 # ------------------------------------------------------------------------------
-# Module: watson_dialog_explorer.py
+# Module: explorer.py
 # ------------------------------------------------------------------------------
 
 """Universal Dialog AST Explorer & Polymorphic Schema Adapter for tare.tools.dialog-engine.
