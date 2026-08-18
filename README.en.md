@@ -9,6 +9,7 @@
 [![High Performance](https://img.shields.io/badge/Accelerated-orjson%20%7C%20networkx%20%7C%20rich-purple.svg)](#performance-and-architecture)
 [![Tests](https://img.shields.io/badge/Tests-132%20Passed%20(100%25)-success.svg)](#automated-testing)
 [![Dual Distribution](https://img.shields.io/badge/Dual%20Dist-Modular%20%2B%20Ephemeral%20ADA-orange.svg)](#dual-distribution-strategy)
+[![Live Web Console](https://img.shields.io/badge/Web%20Console-SIGNAL%20Live-blueviolet.svg)](https://augusto-scarvalho.github.io/tare.tools.dialog-engine/)
 
 <p align="center">
   <a href="#why-dialog-engine-the-paradigm-shift">Why Dialog Engine?</a> •
