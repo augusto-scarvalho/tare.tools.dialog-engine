@@ -6,6 +6,11 @@ output/*
 
 # Exports reais do Watson Assistant são dados locais e não devem ser versionados.
 input/*.json
+dist/production_mutants/
+dist/novos_testes/
+dist/synthesized_tests/
+dist/synthesized_gaps/
+dist/*.json
 
 # Local/editor/runtime artifacts
 *.log
