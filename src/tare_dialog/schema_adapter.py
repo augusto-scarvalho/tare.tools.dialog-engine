@@ -7,9 +7,8 @@ graph by mapping it to canonical Universal AST primitives.
 
 from __future__ import annotations
 
-import copy
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterator
+from typing import Any, Iterator
 
 
 @dataclass

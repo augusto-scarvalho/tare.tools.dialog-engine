@@ -4636,9 +4636,8 @@ graph by mapping it to canonical Universal AST primitives.
 """
 
 
-import copy
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterator
+from typing import Any, Iterator
 
 
 @dataclass
@@ -5136,7 +5135,6 @@ testing blindspots, dead predicates, and unverified edge cases.
 
 
 import copy
-import json
 import sys
 from dataclasses import asdict, dataclass, field
 from enum import Enum
@@ -5259,7 +5257,7 @@ class SemanticRuleMutator:
             # ----------------------------------------------------------
             # 2. BUSINESS FINANCIAL: Limits & Score Thresholds
             # ----------------------------------------------------------
-            for field, val in (ctx.items() if isinstance(ctx, dict) else []):
+            for ctx_key, val in (ctx.items() if isinstance(ctx, dict) else []):
                 if isinstance(val, str) and (">" in val or "<" in val or "score" in val.lower() or "limit" in val.lower()):
                     orig_val = str(val)
                     mutated_val = orig_val.replace(">=", "<").replace(">", "<=").replace("approved", "denied")
@@ -5272,10 +5270,10 @@ class SemanticRuleMutator:
                         node_title=node_title,
                         risk_tier=RiskTier.BUSINESS_FINANCIAL,
                         operator=MutationOperator.LIMIT_INVERSION,
-                        original_expression=f"{field}: {orig_val}",
-                        mutated_expression=f"{field}: {mutated_val}",
-                        explanation=f"Inverted financial underwriting threshold in context variable '{field}'.",
-                        new_ctx_key=field,
+                        original_expression=f"{ctx_key}: {orig_val}",
+                        mutated_expression=f"{ctx_key}: {mutated_val}",
+                        explanation=f"Inverted financial underwriting threshold in context variable '{ctx_key}'.",
+                        new_ctx_key=ctx_key,
                         new_ctx_val=mutated_val,
                     ))
 
