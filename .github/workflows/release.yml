@@ -1,0 +1,64 @@
+name: Production Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build-and-release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install Build Dependencies
+        run: |
+          python -m pip install --upgrade pip build wheel
+          pip install -e ".[dev]"
+
+      - name: Run Full Test Suite
+        run: |
+          python -m pytest
+
+      - name: Build Source and Wheel Distributions
+        run: |
+          python -m build
+
+      - name: Build Standalone Ephemeral Distribution
+        run: |
+          python scripts/build_standalone.py
+
+      - name: Create GitHub Release & Attach Binaries
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          files: |
+            dist/dialog_engine_standalone.py
+            dist/dialog_engine.pyz
+            dist/*.whl
+            dist/*.tar.gz
+            triage_viewer.html
+
+      # To enable automated PyPI deployment:
+      # Configure PyPI Trusted Publishing under Settings -> Environments -> pypi
+      # - name: Publish to PyPI
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+      #   with:
+      #     packages-dir: dist/

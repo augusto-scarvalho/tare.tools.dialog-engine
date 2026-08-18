@@ -1,0 +1,47 @@
+name: Staging & Benchmarks
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  benchmark-and-artifacts:
+    name: Staging Regression & Artifact Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip build wheel
+          pip install -e ".[dev]"
+
+      - name: Run Large-Document Safety & Scaling Tests
+        run: |
+          python -m pytest tests/test_large_document_safety.py tests/test_adversarial_hardening.py -v
+
+      - name: Build Python Wheels & Sdist
+        run: |
+          python -m build
+
+      - name: Build Standalone Ephemeral Bundles
+        run: |
+          python scripts/build_standalone.py
+
+      - name: Upload Staging Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-distribution-packages
+          path: |
+            dist/*
+            triage_viewer.html
+          retention-days: 14
