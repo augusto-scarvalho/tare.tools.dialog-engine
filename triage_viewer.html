@@ -2269,8 +2269,1368 @@ input/current.json input/candidate.json \
   <div id="toast" class="toast">Notificação</div>
 
   <script id="triage-data" type="application/json">
-{"generated_at": "2026-08-16T10:15:00-03:00", "current": {"summary": {"issues": 8, "issues_by_category": {"semantic": 6, "syntactic": 2}, "issues_by_code": {"ambiguous_context_variable_name": 2, "condition_too_long": 1, "entity_shorthand_value_contains_closing_parenthesis": 1, "missing_root_anything_else": 1, "slot_depends_on_later_slot": 1, "slot_depends_on_optional_slot": 1, "unknown_entity": 1}, "issues_by_severity": {"error": 2, "warning": 6}}, "actionable_issues": [{"category": "semantic", "code": "ambiguous_context_variable_name", "severity": "warning", "node": "frame", "field": "condicao", "value": "@city:(Dublin (Ohio)) && $card-type", "message": "A variável $card-type contém hífen; use $(card-type) ou context['card-type']."}, {"category": "syntactic", "code": "entity_shorthand_value_contains_closing_parenthesis", "severity": "error", "node": "frame", "field": "condicao", "value": "@city:(Dublin (Ohio)) && $card-type", "message": "O shorthand @entidade:(valor) não pode ser usado quando o valor contém )."}, {"category": "semantic", "code": "unknown_entity", "severity": "warning", "node": "frame", "field": "condicao", "value": "@city:(Dublin (Ohio)) && $card-type", "message": "Entidade não definida: @city."}, {"category": "syntactic", "code": "condition_too_long", "severity": "error", "node": "long-condition", "field": "condicao", "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "message": "A condição possui 2049 caracteres; o limite do Watson é 2048."}, {"category": "semantic", "code": "missing_root_anything_else", "severity": "warning", "node": "root", "field": "nos", "value": null, "message": "Não há um nó raiz com a condição anything_else."}, {"category": "semantic", "code": "slot_depends_on_later_slot", "severity": "warning", "node": "slot:first", "field": "condicao", "value": "@sys-number && $later", "message": "A condição depende de $later, preenchida por um slot posterior."}, {"category": "semantic", "code": "slot_depends_on_optional_slot", "severity": "warning", "node": "slot:second", "field": "condicao", "value": "$card-type", "message": "A condição depende de $card-type, preenchida por um slot anterior opcional."}, {"category": "semantic", "code": "ambiguous_context_variable_name", "severity": "warning", "node": "slot:second", "field": "slots[uuid=second].condicao", "value": "$card-type", "message": "A variável $card-type contém hífen; use $(card-type) ou context['card-type']."}], "sample_info_issues": [], "total_info_count": 0, "nodes": {"frame": {"uuid": "frame", "kind": "dialog_node", "parent_id": null, "name": null, "status": null, "condition": "@city:(Dublin (Ohio)) && $card-type", "sequence": null, "jump_target": null, "jump_selector": null, "in_digression_in": null, "in_digression_out": null, "path": [{"uuid": "frame", "name": null, "kind": "dialog_node"}], "responses": [], "slots": [{"uuid": "first", "identifier": null, "variable_uuid": "hyphen-variable", "variable_name": "card-type", "required": false, "condition": "@sys-number && $later", "enable_condition": null, "handlers": []}, {"uuid": "second", "identifier": null, "variable_uuid": "later-variable", "variable_name": "later", "required": true, "condition": "$card-type", "enable_condition": null, "handlers": []}], "children": [], "raw_json": {"uuid": "frame", "condicao": "@city:(Dublin (Ohio)) && $card-type"}}, "long-condition": {"uuid": "long-condition", "kind": "dialog_node", "parent_id": null, "name": null, "status": null, "condition": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "sequence": null, "jump_target": null, "jump_selector": null, "in_digression_in": null, "in_digression_out": null, "path": [{"uuid": "long-condition", "name": null, "kind": "dialog_node"}], "responses": [], "slots": [], "children": [], "raw_json": {"uuid": "long-condition", "condicao": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}}, "slot:first": {"uuid": "slot:first", "raw_uuid": "first", "kind": "slot", "parent_node_id": "frame", "parent_name": null, "name": null, "condition": "@sys-number && $later", "enable_condition": null, "required": false, "variable_uuid": "hyphen-variable", "variable_name": "card-type", "path": [{"uuid": "frame", "name": null, "kind": "dialog_node"}, {"uuid": "slot:first", "name": null, "kind": "slot"}], "handlers": [], "raw_json": {"uuid": "first", "uuidVariavelContexto": "hyphen-variable", "indicadorObrigatorio": false, "condicao": "@sys-number && $later"}}, "slot:second": {"uuid": "slot:second", "raw_uuid": "second", "kind": "slot", "parent_node_id": "frame", "parent_name": null, "name": null, "condition": "$card-type", "enable_condition": null, "required": true, "variable_uuid": "later-variable", "variable_name": "later", "path": [{"uuid": "frame", "name": null, "kind": "dialog_node"}, {"uuid": "slot:second", "name": null, "kind": "slot"}], "handlers": [], "raw_json": {"uuid": "second", "uuidVariavelContexto": "later-variable", "indicadorObrigatorio": true, "condicao": "$card-type"}}}}, "candidate": {"summary": {"issues": 8, "issues_by_category": {"semantic": 6, "syntactic": 2}, "issues_by_code": {"ambiguous_context_variable_name": 2, "condition_too_long": 1, "entity_shorthand_value_contains_closing_parenthesis": 1, "missing_root_anything_else": 1, "slot_depends_on_later_slot": 1, "slot_depends_on_optional_slot": 1, "unknown_entity": 1}, "issues_by_severity": {"error": 2, "warning": 6}}, "actionable_issues": [{"category": "semantic", "code": "ambiguous_context_variable_name", "severity": "warning", "node": "frame", "field": "condicao", "value": "@city:(Dublin (Ohio)) && $card-type", "message": "A variável $card-type contém hífen; use $(card-type) ou context['card-type']."}, {"category": "syntactic", "code": "entity_shorthand_value_contains_closing_parenthesis", "severity": "error", "node": "frame", "field": "condicao", "value": "@city:(Dublin (Ohio)) && $card-type", "message": "O shorthand @entidade:(valor) não pode ser usado quando o valor contém )."}, {"category": "semantic", "code": "unknown_entity", "severity": "warning", "node": "frame", "field": "condicao", "value": "@city:(Dublin (Ohio)) && $card-type", "message": "Entidade não definida: @city."}, {"category": "syntactic", "code": "condition_too_long", "severity": "error", "node": "long-condition", "field": "condicao", "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "message": "A condição possui 2049 caracteres; o limite do Watson é 2048."}, {"category": "semantic", "code": "missing_root_anything_else", "severity": "warning", "node": "root", "field": "nos", "value": null, "message": "Não há um nó raiz com a condição anything_else."}, {"category": "semantic", "code": "slot_depends_on_later_slot", "severity": "warning", "node": "slot:first", "field": "condicao", "value": "@sys-number && $later", "message": "A condição depende de $later, preenchida por um slot posterior."}, {"category": "semantic", "code": "slot_depends_on_optional_slot", "severity": "warning", "node": "slot:second", "field": "condicao", "value": "$card-type", "message": "A condição depende de $card-type, preenchida por um slot anterior opcional."}, {"category": "semantic", "code": "ambiguous_context_variable_name", "severity": "warning", "node": "slot:second", "field": "slots[uuid=second].condicao", "value": "$card-type", "message": "A variável $card-type contém hífen; use $(card-type) ou context['card-type']."}], "sample_info_issues": [], "total_info_count": 0, "nodes": {"frame": {"uuid": "frame", "kind": "dialog_node", "parent_id": null, "name": null, "status": null, "condition": "@city:(Dublin (Ohio)) && $card-type", "sequence": null, "jump_target": null, "jump_selector": null, "in_digression_in": null, "in_digression_out": null, "path": [{"uuid": "frame", "name": null, "kind": "dialog_node"}], "responses": [], "slots": [{"uuid": "first", "identifier": null, "variable_uuid": "hyphen-variable", "variable_name": "card-type", "required": false, "condition": "@sys-number && $later", "enable_condition": null, "handlers": []}, {"uuid": "second", "identifier": null, "variable_uuid": "later-variable", "variable_name": "later", "required": true, "condition": "$card-type", "enable_condition": null, "handlers": []}], "children": [], "raw_json": {"uuid": "frame", "condicao": "@city:(Dublin (Ohio)) && $card-type"}}, "long-condition": {"uuid": "long-condition", "kind": "dialog_node", "parent_id": null, "name": null, "status": null, "condition": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "sequence": null, "jump_target": null, "jump_selector": null, "in_digression_in": null, "in_digression_out": null, "path": [{"uuid": "long-condition", "name": null, "kind": "dialog_node"}], "responses": [], "slots": [], "children": [], "raw_json": {"uuid": "long-condition", "condicao": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}}, "slot:first": {"uuid": "slot:first", "raw_uuid": "first", "kind": "slot", "parent_node_id": "frame", "parent_name": null, "name": null, "condition": "@sys-number && $later", "enable_condition": null, "required": false, "variable_uuid": "hyphen-variable", "variable_name": "card-type", "path": [{"uuid": "frame", "name": null, "kind": "dialog_node"}, {"uuid": "slot:first", "name": null, "kind": "slot"}], "handlers": [], "raw_json": {"uuid": "first", "uuidVariavelContexto": "hyphen-variable", "indicadorObrigatorio": false, "condicao": "@sys-number && $later"}}, "slot:second": {"uuid": "slot:second", "raw_uuid": "second", "kind": "slot", "parent_node_id": "frame", "parent_name": null, "name": null, "condition": "$card-type", "enable_condition": null, "required": true, "variable_uuid": "later-variable", "variable_name": "later", "path": [{"uuid": "frame", "name": null, "kind": "dialog_node"}, {"uuid": "slot:second", "name": null, "kind": "slot"}], "handlers": [], "raw_json": {"uuid": "second", "uuidVariavelContexto": "later-variable", "indicadorObrigatorio": true, "condicao": "$card-type"}}}}}
-  </script>
+{
+  "generated_at": "2026-08-18T12:00:00Z",
+  "current": {
+    "summary": {
+      "issues": 1,
+      "issues_by_category": {
+        "semantic": 1
+      },
+      "issues_by_code": {
+        "missing_root_anything_else": 1
+      },
+      "issues_by_severity": {
+        "warning": 1
+      }
+    },
+    "actionable_issues": [
+      {
+        "category": "semantic",
+        "code": "missing_root_anything_else",
+        "severity": "warning",
+        "node": "root",
+        "field": "nos",
+        "value": null,
+        "message": "Não há um nó raiz com a condição anything_else."
+      }
+    ],
+    "total_info_count": 0,
+    "nodes": {
+      "node_welcome": {
+        "uuid": "node_welcome",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Boas-vindas & Menu Principal",
+        "status": "active",
+        "condition": "welcome",
+        "path": [
+          {
+            "uuid": "node_welcome",
+            "name": "Boas-vindas & Menu Principal",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_welcome",
+          "title": "Boas-vindas & Menu Principal",
+          "conditions": "welcome",
+          "parent": null,
+          "previous_sibling": null,
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Olá! Seja bem-vindo ao Banco Digital tare.tools. Como posso te ajudar hoje?"
+                  }
+                ]
+              },
+              {
+                "response_type": "option",
+                "title": "Ações Rápidas:",
+                "options": [
+                  {
+                    "label": "Fazer Transferência PIX",
+                    "value": {
+                      "input": {
+                        "text": "quero fazer pix"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Consultar Fatura do Cartão",
+                    "value": {
+                      "input": {
+                        "text": "consultar fatura"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Pedir Aumento de Limite",
+                    "value": {
+                      "input": {
+                        "text": "aumentar limite"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Falar com Atendente",
+                    "value": {
+                      "input": {
+                        "text": "falar com humano"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "context": {
+            "session_start": "<? now() ?>",
+            "user_authenticated": false,
+            "channel": "whatsapp"
+          },
+          "digress_in": "does_not_return",
+          "digress_out": "allow_all"
+        }
+      },
+      "node_pix_frame": {
+        "uuid": "node_pix_frame",
+        "kind": "frame",
+        "parent_id": null,
+        "name": "Transferência PIX (Frame Multi-turn)",
+        "status": "active",
+        "condition": "#fazer_pix || @operacao:pix",
+        "path": [
+          {
+            "uuid": "node_pix_frame",
+            "name": "Transferência PIX (Frame Multi-turn)",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_pix_frame",
+          "title": "Transferência PIX (Frame Multi-turn)",
+          "conditions": "#fazer_pix || @operacao:pix",
+          "parent": null,
+          "previous_sibling": "node_welcome",
+          "type": "frame",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Perfeito! Transferência de R$ <? $pix_amount ?> para <? $pix_key ?> concluída com sucesso!"
+                  }
+                ]
+              }
+            ]
+          },
+          "next_step": {
+            "behavior": "jump_to",
+            "selector": "body",
+            "dialog_node": "node_pix_receipt"
+          },
+          "digress_out": "allow_all"
+        }
+      },
+      "slot_pix_key": {
+        "uuid": "slot_pix_key",
+        "kind": "slot",
+        "parent_id": "node_pix_frame",
+        "name": "Slot: Chave PIX",
+        "status": "active",
+        "condition": "@chave_pix || @sys-email || @sys-phone || @sys-number",
+        "path": [
+          {
+            "uuid": "slot_pix_key",
+            "name": "Slot: Chave PIX",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "slot_pix_key",
+          "title": "Slot: Chave PIX",
+          "parent": "node_pix_frame",
+          "previous_sibling": null,
+          "type": "slot",
+          "variable": "$pix_key",
+          "conditions": "@chave_pix || @sys-email || @sys-phone || @sys-number",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Por favor, digite a chave PIX de destino (CPF, e-mail, telefone ou chave aleatória):"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "slot_pix_amount": {
+        "uuid": "slot_pix_amount",
+        "kind": "slot",
+        "parent_id": "node_pix_frame",
+        "name": "Slot: Valor do PIX",
+        "status": "active",
+        "condition": "@sys-number",
+        "path": [
+          {
+            "uuid": "slot_pix_amount",
+            "name": "Slot: Valor do PIX",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "slot_pix_amount",
+          "title": "Slot: Valor do PIX",
+          "parent": "node_pix_frame",
+          "previous_sibling": "slot_pix_key",
+          "type": "slot",
+          "variable": "$pix_amount",
+          "conditions": "@sys-number",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Qual o valor da transferência? (Digite 0 para cancelar o envio)"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "slot_pix_description": {
+        "uuid": "slot_pix_description",
+        "kind": "slot",
+        "parent_id": "node_pix_frame",
+        "name": "Slot: Descrição do Comprovante",
+        "status": "active",
+        "condition": "input.text",
+        "path": [
+          {
+            "uuid": "slot_pix_description",
+            "name": "Slot: Descrição do Comprovante",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "slot_pix_description",
+          "title": "Slot: Descrição do Comprovante",
+          "parent": "node_pix_frame",
+          "previous_sibling": "slot_pix_amount",
+          "type": "slot",
+          "variable": "$pix_desc",
+          "conditions": "input.text",
+          "enable_condition": "$pix_confirmed && $pix_confirmed == false",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Deseja adicionar uma mensagem para o recebedor?"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "node_pix_receipt": {
+        "uuid": "node_pix_receipt",
+        "kind": "dialog_node",
+        "parent_id": "node_pix_frame",
+        "name": "Comprovante PIX",
+        "status": "active",
+        "condition": "true",
+        "path": [
+          {
+            "uuid": "node_pix_receipt",
+            "name": "Comprovante PIX",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_pix_receipt",
+          "title": "Comprovante PIX",
+          "conditions": "true",
+          "parent": "node_pix_frame",
+          "previous_sibling": "slot_pix_description",
+          "output": {
+            "generic": [
+              {
+                "response_type": "image",
+                "source": "https://cdn.tare.tools/receipt.png",
+                "title": "Comprovante de Autenticação Digital"
+              },
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Comprovante emitido em <? now() ?>. Código de controle: <? random() ?>"
+                  }
+                ]
+              }
+            ]
+          },
+          "context": {
+            "last_transaction": "pix",
+            "last_value": "<? $pix_amount ?>"
+          }
+        }
+      },
+      "node_card_invoice": {
+        "uuid": "node_card_invoice",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Fatura do Cartão de Crédito",
+        "status": "active",
+        "condition": "#consultar_fatura || @produto:cartao",
+        "path": [
+          {
+            "uuid": "node_card_invoice",
+            "name": "Fatura do Cartão de Crédito",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_card_invoice",
+          "title": "Fatura do Cartão de Crédito",
+          "conditions": "#consultar_fatura || @produto:cartao",
+          "parent": null,
+          "previous_sibling": "node_pix_frame",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "channel": "whatsapp",
+                "values": [
+                  {
+                    "text": "📄 *Fatura do Cartão Platinum*
+Valor Total: *R$ 2.340,50*
+Vencimento: *10/10*
+Linha Digitável: `23793.38128 60000.123456 7 89010000234050`"
+                  }
+                ]
+              },
+              {
+                "response_type": "text",
+                "channel": "web_chat",
+                "values": [
+                  {
+                    "text": "Sua fatura fechada é de **R$ 2.340,50** com vencimento em **10/10**."
+                  }
+                ]
+              },
+              {
+                "response_type": "option",
+                "channel": "web_chat",
+                "title": "Como deseja proceder?",
+                "options": [
+                  {
+                    "label": "Pagar com PIX",
+                    "value": {
+                      "input": {
+                        "text": "pagar fatura no pix"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Parcelar Fatura",
+                    "value": {
+                      "input": {
+                        "text": "parcelar fatura"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Baixar PDF",
+                    "value": {
+                      "input": {
+                        "text": "baixar pdf"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "digress_in": "returns",
+          "digress_out": "allow_all"
+        }
+      },
+      "node_credit_limit": {
+        "uuid": "node_credit_limit",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Solicitação de Aumento de Limite",
+        "status": "active",
+        "condition": "#aumentar_limite",
+        "path": [
+          {
+            "uuid": "node_credit_limit",
+            "name": "Solicitação de Aumento de Limite",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_credit_limit",
+          "title": "Solicitação de Aumento de Limite",
+          "conditions": "#aumentar_limite",
+          "parent": null,
+          "previous_sibling": "node_card_invoice",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Avaliando seu perfil financeiro em tempo real..."
+                  }
+                ]
+              }
+            ]
+          },
+          "context": {
+            "limit_evaluation": "<? ($user_score >= 750 && $account_months > 6) ? 'approved' : 'analysis' ?>"
+          },
+          "next_step": {
+            "behavior": "jump_to",
+            "selector": "condition",
+            "dialog_node": "node_limit_decision"
+          }
+        }
+      },
+      "node_limit_decision": {
+        "uuid": "node_limit_decision",
+        "kind": "dialog_node",
+        "parent_id": "node_credit_limit",
+        "name": "Decisão de Limite",
+        "status": "active",
+        "condition": "$limit_evaluation == 'approved'",
+        "path": [
+          {
+            "uuid": "node_limit_decision",
+            "name": "Decisão de Limite",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_limit_decision",
+          "title": "Decisão de Limite",
+          "conditions": "$limit_evaluation == 'approved'",
+          "parent": "node_credit_limit",
+          "previous_sibling": null,
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "🎉 Parabéns! Seu limite foi aumentado automaticamente para **R$ 8.000,00**."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "node_help_faq": {
+        "uuid": "node_help_faq",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Ajuda & Dúvidas Globais (Digressão)",
+        "status": "active",
+        "condition": "#ajuda || #duvidas",
+        "path": [
+          {
+            "uuid": "node_help_faq",
+            "name": "Ajuda & Dúvidas Globais (Digressão)",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_help_faq",
+          "title": "Ajuda & Dúvidas Globais (Digressão)",
+          "conditions": "#ajuda || #duvidas",
+          "parent": null,
+          "previous_sibling": "node_credit_limit",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Você pode consultar faturas, fazer PIX, solicitar limites ou falar com nosso suporte a qualquer momento."
+                  }
+                ]
+              }
+            ]
+          },
+          "digress_in": "returns",
+          "digress_out": "allow_all"
+        }
+      },
+      "node_human_handoff": {
+        "uuid": "node_human_handoff",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Transbordo para Atendente Humano",
+        "status": "active",
+        "condition": "#falar_atendente || #humano",
+        "path": [
+          {
+            "uuid": "node_human_handoff",
+            "name": "Transbordo para Atendente Humano",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_human_handoff",
+          "title": "Transbordo para Atendente Humano",
+          "conditions": "#falar_atendente || #humano",
+          "parent": null,
+          "previous_sibling": "node_help_faq",
+          "output": {
+            "generic": [
+              {
+                "response_type": "connect_to_agent",
+                "message_to_human_agent": "Cliente solicitou suporte humano após consulta de limite.",
+                "agent_available": {
+                  "generic": [
+                    {
+                      "response_type": "text",
+                      "values": [
+                        {
+                          "text": "Conectando com um especialista. Aguarde alguns instantes..."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "agent_unavailable": {
+                  "generic": [
+                    {
+                      "response_type": "text",
+                      "values": [
+                        {
+                          "text": "Nossa equipe está indisponível no momento. Por favor, deixe sua mensagem."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "context": {
+            "queue": "suporte_financeiro"
+          }
+        }
+      },
+      "node_legacy_campaign": {
+        "uuid": "node_legacy_campaign",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Campanha Promocional Legada 2024",
+        "status": "inactive",
+        "condition": "false",
+        "path": [
+          {
+            "uuid": "node_legacy_campaign",
+            "name": "Campanha Promocional Legada 2024",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_legacy_campaign",
+          "title": "Campanha Promocional Legada 2024",
+          "conditions": "false",
+          "parent": null,
+          "previous_sibling": "node_human_handoff",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Aproveite 50% de cashback no shopping do banco!"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "node_broken_navigation": {
+        "uuid": "node_broken_navigation",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Menu de Seguros (Salto Quebrado)",
+        "status": "active",
+        "condition": "#seguros",
+        "path": [
+          {
+            "uuid": "node_broken_navigation",
+            "name": "Menu de Seguros (Salto Quebrado)",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_broken_navigation",
+          "title": "Menu de Seguros (Salto Quebrado)",
+          "conditions": "#seguros",
+          "parent": null,
+          "previous_sibling": "node_legacy_campaign",
+          "next_step": {
+            "behavior": "jump_to",
+            "selector": "body",
+            "dialog_node": "node_insurance_quotes_uuid_404"
+          }
+        }
+      },
+      "node_anything_else": {
+        "uuid": "node_anything_else",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Fallback Geral",
+        "status": "active",
+        "condition": "anything_else",
+        "path": [
+          {
+            "uuid": "node_anything_else",
+            "name": "Fallback Geral",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_anything_else",
+          "title": "Fallback Geral",
+          "conditions": "anything_else",
+          "parent": null,
+          "previous_sibling": "node_broken_navigation",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Desculpe, não entendi o que você precisa. Poderia explicar com outras palavras?"
+                  },
+                  {
+                    "text": "Ainda estou aprendendo e não compreendi sua dúvida. Pode tentar de outro jeito?"
+                  }
+                ]
+              }
+            ]
+          },
+          "digress_in": "does_not_return"
+        }
+      }
+    }
+  },
+  "candidate": {
+    "summary": {
+      "issues": 5,
+      "issues_by_category": {
+        "semantic": 4,
+        "syntactic": 1
+      },
+      "issues_by_code": {
+        "context_spel_unclosed_parenthesis": 1,
+        "missing_root_anything_else": 1,
+        "previous_sibling_has_multiple_successors": 2,
+        "unresolved_previous_sibling": 1
+      },
+      "issues_by_severity": {
+        "error": 4,
+        "warning": 1
+      }
+    },
+    "actionable_issues": [
+      {
+        "category": "semantic",
+        "code": "unresolved_previous_sibling",
+        "severity": "error",
+        "node": "node_anything_else",
+        "field": "previous_sibling",
+        "value": "node_broken_navigation",
+        "message": "O irmão anterior node_broken_navigation não existe."
+      },
+      {
+        "category": "semantic",
+        "code": "previous_sibling_has_multiple_successors",
+        "severity": "error",
+        "node": "node_credit_limit",
+        "field": "previous_sibling",
+        "value": "node_card_invoice",
+        "message": "Mais de um nó aponta para o irmão anterior node_card_invoice."
+      },
+      {
+        "category": "semantic",
+        "code": "previous_sibling_has_multiple_successors",
+        "severity": "error",
+        "node": "node_investments_cdb",
+        "field": "previous_sibling",
+        "value": "node_card_invoice",
+        "message": "Mais de um nó aponta para o irmão anterior node_card_invoice."
+      },
+      {
+        "category": "syntactic",
+        "code": "context_spel_unclosed_parenthesis",
+        "severity": "error",
+        "node": "node_pix_frame",
+        "field": "context[\"fraud_prevention_status\"]",
+        "value": "($pix_amount > 5000 && !user_authenticated ? 'block' : 'allow'",
+        "message": "Há um parêntese aberto sem fechamento correspondente."
+      },
+      {
+        "category": "semantic",
+        "code": "missing_root_anything_else",
+        "severity": "warning",
+        "node": "root",
+        "field": "nos",
+        "value": null,
+        "message": "Não há um nó raiz com a condição anything_else."
+      }
+    ],
+    "total_info_count": 0,
+    "nodes": {
+      "node_welcome": {
+        "uuid": "node_welcome",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Boas-vindas & Menu Principal",
+        "status": "active",
+        "condition": "welcome",
+        "path": [
+          {
+            "uuid": "node_welcome",
+            "name": "Boas-vindas & Menu Principal",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_welcome",
+          "title": "Boas-vindas & Menu Principal",
+          "conditions": "welcome",
+          "parent": null,
+          "previous_sibling": null,
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Olá! Seja bem-vindo ao Banco Digital tare.tools. Como posso te ajudar hoje?"
+                  }
+                ]
+              },
+              {
+                "response_type": "option",
+                "title": "Ações Rápidas:",
+                "options": [
+                  {
+                    "label": "Fazer Transferência PIX",
+                    "value": {
+                      "input": {
+                        "text": "quero fazer pix"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Consultar Fatura do Cartão",
+                    "value": {
+                      "input": {
+                        "text": "consultar fatura"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Pedir Aumento de Limite",
+                    "value": {
+                      "input": {
+                        "text": "aumentar limite"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Falar com Atendente",
+                    "value": {
+                      "input": {
+                        "text": "falar com humano"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Investir em CDB (115% CDI)",
+                    "value": {
+                      "input": {
+                        "text": "quero investir em cdb"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "context": {
+            "session_start": "<? now() ?>",
+            "user_authenticated": false,
+            "channel": "whatsapp",
+            "bot_version": "2.5.0-candidate"
+          },
+          "digress_in": "does_not_return",
+          "digress_out": "allow_all"
+        }
+      },
+      "node_pix_frame": {
+        "uuid": "node_pix_frame",
+        "kind": "frame",
+        "parent_id": null,
+        "name": "Transferência PIX (Frame Multi-turn)",
+        "status": "active",
+        "condition": "#fazer_pix || @operacao:pix",
+        "path": [
+          {
+            "uuid": "node_pix_frame",
+            "name": "Transferência PIX (Frame Multi-turn)",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_pix_frame",
+          "title": "Transferência PIX (Frame Multi-turn)",
+          "conditions": "#fazer_pix || @operacao:pix",
+          "parent": null,
+          "previous_sibling": "node_welcome",
+          "type": "frame",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Perfeito! Transferência de R$ <? $pix_amount ?> para <? $pix_key ?> concluída com sucesso!"
+                  }
+                ]
+              },
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Notificação enviada por SMS e push."
+                  }
+                ]
+              }
+            ]
+          },
+          "next_step": {
+            "behavior": "jump_to",
+            "selector": "body",
+            "dialog_node": "node_pix_receipt"
+          },
+          "digress_out": "allow_all",
+          "context": {
+            "fraud_prevention_status": "<? ($pix_amount > 5000 && !user_authenticated ? 'block' : 'allow' ?>"
+          }
+        }
+      },
+      "slot_pix_key": {
+        "uuid": "slot_pix_key",
+        "kind": "slot",
+        "parent_id": "node_pix_frame",
+        "name": "Slot: Chave PIX",
+        "status": "active",
+        "condition": "@chave_pix || @sys-email || @sys-phone || @sys-number",
+        "path": [
+          {
+            "uuid": "slot_pix_key",
+            "name": "Slot: Chave PIX",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "slot_pix_key",
+          "title": "Slot: Chave PIX",
+          "parent": "node_pix_frame",
+          "previous_sibling": null,
+          "type": "slot",
+          "variable": "$pix_key",
+          "conditions": "@chave_pix || @sys-email || @sys-phone || @sys-number",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Por favor, digite a chave PIX de destino (CPF, e-mail, telefone ou chave aleatória):"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "slot_pix_amount": {
+        "uuid": "slot_pix_amount",
+        "kind": "slot",
+        "parent_id": "node_pix_frame",
+        "name": "Slot: Valor do PIX",
+        "status": "active",
+        "condition": "@sys-number",
+        "path": [
+          {
+            "uuid": "slot_pix_amount",
+            "name": "Slot: Valor do PIX",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "slot_pix_amount",
+          "title": "Slot: Valor do PIX",
+          "parent": "node_pix_frame",
+          "previous_sibling": "slot_pix_key",
+          "type": "slot",
+          "variable": "$pix_amount",
+          "conditions": "@sys-number",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Qual o valor da transferência? (Digite 0 para cancelar o envio)"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "slot_pix_description": {
+        "uuid": "slot_pix_description",
+        "kind": "slot",
+        "parent_id": "node_pix_frame",
+        "name": "Slot: Descrição do Comprovante",
+        "status": "active",
+        "condition": "input.text",
+        "path": [
+          {
+            "uuid": "slot_pix_description",
+            "name": "Slot: Descrição do Comprovante",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "slot_pix_description",
+          "title": "Slot: Descrição do Comprovante",
+          "parent": "node_pix_frame",
+          "previous_sibling": "slot_pix_amount",
+          "type": "slot",
+          "variable": "$pix_desc",
+          "conditions": "input.text",
+          "enable_condition": "$pix_amount > 0",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Deseja adicionar uma mensagem para o recebedor?"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "node_pix_receipt": {
+        "uuid": "node_pix_receipt",
+        "kind": "dialog_node",
+        "parent_id": "node_pix_frame",
+        "name": "Comprovante PIX",
+        "status": "active",
+        "condition": "true",
+        "path": [
+          {
+            "uuid": "node_pix_receipt",
+            "name": "Comprovante PIX",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_pix_receipt",
+          "title": "Comprovante PIX",
+          "conditions": "true",
+          "parent": "node_pix_frame",
+          "previous_sibling": "slot_pix_description",
+          "output": {
+            "generic": [
+              {
+                "response_type": "image",
+                "source": "https://cdn.tare.tools/receipt.png",
+                "title": "Comprovante de Autenticação Digital"
+              },
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Comprovante emitido em <? now() ?>. Código de controle: <? random() ?>"
+                  }
+                ]
+              }
+            ]
+          },
+          "context": {
+            "last_transaction": "pix",
+            "last_value": "<? $pix_amount ?>"
+          }
+        }
+      },
+      "node_card_invoice": {
+        "uuid": "node_card_invoice",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Fatura do Cartão de Crédito",
+        "status": "active",
+        "condition": "#consultar_fatura || @produto:cartao",
+        "path": [
+          {
+            "uuid": "node_card_invoice",
+            "name": "Fatura do Cartão de Crédito",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_card_invoice",
+          "title": "Fatura do Cartão de Crédito",
+          "conditions": "#consultar_fatura || @produto:cartao",
+          "parent": null,
+          "previous_sibling": "node_pix_frame",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "channel": "whatsapp",
+                "values": [
+                  {
+                    "text": "📄 *Fatura do Cartão Platinum*
+Valor Total: *R$ 2.340,50*
+Vencimento: *10/10*
+Linha Digitável: `23793.38128 60000.123456 7 89010000234050`"
+                  }
+                ]
+              },
+              {
+                "response_type": "text",
+                "channel": "web_chat",
+                "values": [
+                  {
+                    "text": "Sua fatura fechada é de **R$ 2.340,50** com vencimento em **10/10**."
+                  }
+                ]
+              },
+              {
+                "response_type": "option",
+                "channel": "web_chat",
+                "title": "Como deseja proceder?",
+                "options": [
+                  {
+                    "label": "Pagar com PIX",
+                    "value": {
+                      "input": {
+                        "text": "pagar fatura no pix"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Parcelar Fatura",
+                    "value": {
+                      "input": {
+                        "text": "parcelar fatura"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Baixar PDF",
+                    "value": {
+                      "input": {
+                        "text": "baixar pdf"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "digress_in": "returns",
+          "digress_out": "allow_all"
+        }
+      },
+      "node_investments_cdb": {
+        "uuid": "node_investments_cdb",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Investimentos Renda Fixa (CDB 115% CDI)",
+        "status": "active",
+        "condition": "#investimentos || @produto:investimento",
+        "path": [
+          {
+            "uuid": "node_investments_cdb",
+            "name": "Investimentos Renda Fixa (CDB 115% CDI)",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_investments_cdb",
+          "title": "Investimentos Renda Fixa (CDB 115% CDI)",
+          "conditions": "#investimentos || @produto:investimento",
+          "parent": null,
+          "previous_sibling": "node_card_invoice",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Nosso **CDB Liquidez Diária** rende **115% do CDI** com liquidez imediata e proteção do FGC."
+                  }
+                ]
+              },
+              {
+                "response_type": "option",
+                "title": "Opções de Investimento:",
+                "options": [
+                  {
+                    "label": "Simular R$ 5.000 em 12 meses",
+                    "value": {
+                      "input": {
+                        "text": "simular 5000 reais"
+                      }
+                    }
+                  },
+                  {
+                    "label": "Falar com Assessor de Investimentos",
+                    "value": {
+                      "input": {
+                        "text": "assessor de investimentos"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "context": {
+            "cdi_rate_annual": 0.105,
+            "cdb_multiplier": 1.15
+          },
+          "digress_in": "returns",
+          "digress_out": "allow_all"
+        }
+      },
+      "node_credit_limit": {
+        "uuid": "node_credit_limit",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Solicitação de Aumento de Limite",
+        "status": "active",
+        "condition": "#aumentar_limite",
+        "path": [
+          {
+            "uuid": "node_credit_limit",
+            "name": "Solicitação de Aumento de Limite",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_credit_limit",
+          "title": "Solicitação de Aumento de Limite",
+          "conditions": "#aumentar_limite",
+          "parent": null,
+          "previous_sibling": "node_card_invoice",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Avaliando seu perfil financeiro em tempo real..."
+                  }
+                ]
+              }
+            ]
+          },
+          "context": {
+            "limit_evaluation": "<? ($user_score >= 750 && $account_months > 6) ? 'approved' : 'analysis' ?>"
+          },
+          "next_step": {
+            "behavior": "jump_to",
+            "selector": "condition",
+            "dialog_node": "node_limit_decision"
+          }
+        }
+      },
+      "node_limit_decision": {
+        "uuid": "node_limit_decision",
+        "kind": "dialog_node",
+        "parent_id": "node_credit_limit",
+        "name": "Decisão de Limite",
+        "status": "active",
+        "condition": "$limit_evaluation == 'approved'",
+        "path": [
+          {
+            "uuid": "node_limit_decision",
+            "name": "Decisão de Limite",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_limit_decision",
+          "title": "Decisão de Limite",
+          "conditions": "$limit_evaluation == 'approved'",
+          "parent": "node_credit_limit",
+          "previous_sibling": null,
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "🎉 Parabéns! Seu limite foi aumentado automaticamente para **R$ 8.000,00**."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "node_help_faq": {
+        "uuid": "node_help_faq",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Ajuda & Dúvidas Globais (Digressão)",
+        "status": "active",
+        "condition": "#ajuda || #duvidas",
+        "path": [
+          {
+            "uuid": "node_help_faq",
+            "name": "Ajuda & Dúvidas Globais (Digressão)",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_help_faq",
+          "title": "Ajuda & Dúvidas Globais (Digressão)",
+          "conditions": "#ajuda || #duvidas",
+          "parent": null,
+          "previous_sibling": "node_credit_limit",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Você pode consultar faturas, fazer PIX, solicitar limites ou falar com nosso suporte a qualquer momento."
+                  }
+                ]
+              }
+            ]
+          },
+          "digress_in": "returns",
+          "digress_out": "allow_all"
+        }
+      },
+      "node_human_handoff": {
+        "uuid": "node_human_handoff",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Transbordo para Atendente Humano",
+        "status": "active",
+        "condition": "#falar_atendente || #humano",
+        "path": [
+          {
+            "uuid": "node_human_handoff",
+            "name": "Transbordo para Atendente Humano",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_human_handoff",
+          "title": "Transbordo para Atendente Humano",
+          "conditions": "#falar_atendente || #humano",
+          "parent": null,
+          "previous_sibling": "node_help_faq",
+          "output": {
+            "generic": [
+              {
+                "response_type": "connect_to_agent",
+                "message_to_human_agent": "Cliente solicitou suporte humano após consulta de limite.",
+                "agent_available": {
+                  "generic": [
+                    {
+                      "response_type": "text",
+                      "values": [
+                        {
+                          "text": "Conectando com um especialista. Aguarde alguns instantes..."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "agent_unavailable": {
+                  "generic": [
+                    {
+                      "response_type": "text",
+                      "values": [
+                        {
+                          "text": "Nossa equipe está indisponível no momento. Por favor, deixe sua mensagem."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "context": {
+            "queue": "suporte_financeiro"
+          }
+        }
+      },
+      "node_anything_else": {
+        "uuid": "node_anything_else",
+        "kind": "dialog_node",
+        "parent_id": null,
+        "name": "Fallback Geral",
+        "status": "active",
+        "condition": "anything_else",
+        "path": [
+          {
+            "uuid": "node_anything_else",
+            "name": "Fallback Geral",
+            "kind": "dialog_node"
+          }
+        ],
+        "raw_json": {
+          "dialog_node": "node_anything_else",
+          "title": "Fallback Geral",
+          "conditions": "anything_else",
+          "parent": null,
+          "previous_sibling": "node_broken_navigation",
+          "output": {
+            "generic": [
+              {
+                "response_type": "text",
+                "values": [
+                  {
+                    "text": "Desculpe, não entendi o que você precisa. Poderia explicar com outras palavras?"
+                  },
+                  {
+                    "text": "Ainda estou aprendendo e não compreendi sua dúvida. Pode tentar de outro jeito?"
+                  }
+                ]
+              }
+            ]
+          },
+          "digress_in": "does_not_return"
+        }
+      }
+    }
+  }
+}
+</script>
 
   <script>
     /* ==========================================================================

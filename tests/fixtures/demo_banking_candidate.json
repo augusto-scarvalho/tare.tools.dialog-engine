@@ -1,0 +1,591 @@
+{
+  "name": "Assistente Bancário Inteligente — Demo Corporativa (Candidate v2.5)",
+  "description": "Assistente virtual multicanal atualizado com módulo de investimentos CDB e correções de slots.",
+  "intents": [
+    {
+      "intent": "fazer_pix",
+      "examples": [
+        {
+          "text": "quero transferir pix"
+        },
+        {
+          "text": "fazer pix"
+        },
+        {
+          "text": "mandar dinheiro"
+        }
+      ]
+    },
+    {
+      "intent": "consultar_fatura",
+      "examples": [
+        {
+          "text": "ver fatura"
+        },
+        {
+          "text": "fatura do cartao"
+        },
+        {
+          "text": "qual meu saldo devedor"
+        }
+      ]
+    },
+    {
+      "intent": "aumentar_limite",
+      "examples": [
+        {
+          "text": "quero mais limite"
+        },
+        {
+          "text": "aumentar limite do cartao"
+        },
+        {
+          "text": "liberar mais credito"
+        }
+      ]
+    },
+    {
+      "intent": "ajuda",
+      "examples": [
+        {
+          "text": "preciso de ajuda"
+        },
+        {
+          "text": "como funciona"
+        },
+        {
+          "text": "menu"
+        }
+      ]
+    },
+    {
+      "intent": "falar_atendente",
+      "examples": [
+        {
+          "text": "falar com atendente"
+        },
+        {
+          "text": "chamar humano"
+        },
+        {
+          "text": "suporte especializado"
+        }
+      ]
+    },
+    {
+      "intent": "seguros",
+      "examples": [
+        {
+          "text": "quero contratar seguro"
+        },
+        {
+          "text": "seguro de vida"
+        }
+      ]
+    },
+    {
+      "intent": "investimentos",
+      "examples": [
+        {
+          "text": "quero investir"
+        },
+        {
+          "text": "rendimento cdb"
+        },
+        {
+          "text": "simular aplicacao"
+        }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "entity": "operacao",
+      "values": [
+        {
+          "value": "pix",
+          "synonyms": [
+            "transferencia",
+            "chave pix",
+            "pagar no pix"
+          ]
+        }
+      ]
+    },
+    {
+      "entity": "produto",
+      "values": [
+        {
+          "value": "cartao",
+          "synonyms": [
+            "cartao de credito",
+            "fatura",
+            "cartao platinum"
+          ]
+        },
+        {
+          "value": "limite",
+          "synonyms": [
+            "credito",
+            "limite total",
+            "aumento"
+          ]
+        },
+        {
+          "value": "investimento",
+          "synonyms": [
+            "cdb",
+            "lci",
+            "tesouro",
+            "fundos"
+          ]
+        }
+      ]
+    }
+  ],
+  "dialog_nodes": [
+    {
+      "dialog_node": "node_welcome",
+      "title": "Boas-vindas & Menu Principal",
+      "conditions": "welcome",
+      "parent": null,
+      "previous_sibling": null,
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Olá! Seja bem-vindo ao Banco Digital tare.tools. Como posso te ajudar hoje?"
+              }
+            ]
+          },
+          {
+            "response_type": "option",
+            "title": "Ações Rápidas:",
+            "options": [
+              {
+                "label": "Fazer Transferência PIX",
+                "value": {
+                  "input": {
+                    "text": "quero fazer pix"
+                  }
+                }
+              },
+              {
+                "label": "Consultar Fatura do Cartão",
+                "value": {
+                  "input": {
+                    "text": "consultar fatura"
+                  }
+                }
+              },
+              {
+                "label": "Pedir Aumento de Limite",
+                "value": {
+                  "input": {
+                    "text": "aumentar limite"
+                  }
+                }
+              },
+              {
+                "label": "Falar com Atendente",
+                "value": {
+                  "input": {
+                    "text": "falar com humano"
+                  }
+                }
+              },
+              {
+                "label": "Investir em CDB (115% CDI)",
+                "value": {
+                  "input": {
+                    "text": "quero investir em cdb"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "session_start": "<? now() ?>",
+        "user_authenticated": false,
+        "channel": "whatsapp",
+        "bot_version": "2.5.0-candidate"
+      },
+      "digress_in": "does_not_return",
+      "digress_out": "allow_all"
+    },
+    {
+      "dialog_node": "node_pix_frame",
+      "title": "Transferência PIX (Frame Multi-turn)",
+      "conditions": "#fazer_pix || @operacao:pix",
+      "parent": null,
+      "previous_sibling": "node_welcome",
+      "type": "frame",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Perfeito! Transferência de R$ <? $pix_amount ?> para <? $pix_key ?> concluída com sucesso!"
+              }
+            ]
+          },
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Notificação enviada por SMS e push."
+              }
+            ]
+          }
+        ]
+      },
+      "next_step": {
+        "behavior": "jump_to",
+        "selector": "body",
+        "dialog_node": "node_pix_receipt"
+      },
+      "digress_out": "allow_all",
+      "context": {
+        "fraud_prevention_status": "<? ($pix_amount > 5000 && !user_authenticated ? 'block' : 'allow' ?>"
+      }
+    },
+    {
+      "dialog_node": "slot_pix_key",
+      "title": "Slot: Chave PIX",
+      "parent": "node_pix_frame",
+      "previous_sibling": null,
+      "type": "slot",
+      "variable": "$pix_key",
+      "conditions": "@chave_pix || @sys-email || @sys-phone || @sys-number",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Por favor, digite a chave PIX de destino (CPF, e-mail, telefone ou chave aleatória):"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "dialog_node": "slot_pix_amount",
+      "title": "Slot: Valor do PIX",
+      "parent": "node_pix_frame",
+      "previous_sibling": "slot_pix_key",
+      "type": "slot",
+      "variable": "$pix_amount",
+      "conditions": "@sys-number",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Qual o valor da transferência? (Digite 0 para cancelar o envio)"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "dialog_node": "slot_pix_description",
+      "title": "Slot: Descrição do Comprovante",
+      "parent": "node_pix_frame",
+      "previous_sibling": "slot_pix_amount",
+      "type": "slot",
+      "variable": "$pix_desc",
+      "conditions": "input.text",
+      "enable_condition": "$pix_amount > 0",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Deseja adicionar uma mensagem para o recebedor?"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "dialog_node": "node_pix_receipt",
+      "title": "Comprovante PIX",
+      "conditions": "true",
+      "parent": "node_pix_frame",
+      "previous_sibling": "slot_pix_description",
+      "output": {
+        "generic": [
+          {
+            "response_type": "image",
+            "source": "https://cdn.tare.tools/receipt.png",
+            "title": "Comprovante de Autenticação Digital"
+          },
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Comprovante emitido em <? now() ?>. Código de controle: <? random() ?>"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "last_transaction": "pix",
+        "last_value": "<? $pix_amount ?>"
+      }
+    },
+    {
+      "dialog_node": "node_card_invoice",
+      "title": "Fatura do Cartão de Crédito",
+      "conditions": "#consultar_fatura || @produto:cartao",
+      "parent": null,
+      "previous_sibling": "node_pix_frame",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "channel": "whatsapp",
+            "values": [
+              {
+                "text": "📄 *Fatura do Cartão Platinum*\nValor Total: *R$ 2.340,50*\nVencimento: *10/10*\nLinha Digitável: `23793.38128 60000.123456 7 89010000234050`"
+              }
+            ]
+          },
+          {
+            "response_type": "text",
+            "channel": "web_chat",
+            "values": [
+              {
+                "text": "Sua fatura fechada é de **R$ 2.340,50** com vencimento em **10/10**."
+              }
+            ]
+          },
+          {
+            "response_type": "option",
+            "channel": "web_chat",
+            "title": "Como deseja proceder?",
+            "options": [
+              {
+                "label": "Pagar com PIX",
+                "value": {
+                  "input": {
+                    "text": "pagar fatura no pix"
+                  }
+                }
+              },
+              {
+                "label": "Parcelar Fatura",
+                "value": {
+                  "input": {
+                    "text": "parcelar fatura"
+                  }
+                }
+              },
+              {
+                "label": "Baixar PDF",
+                "value": {
+                  "input": {
+                    "text": "baixar pdf"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "digress_in": "returns",
+      "digress_out": "allow_all"
+    },
+    {
+      "dialog_node": "node_investments_cdb",
+      "title": "Investimentos Renda Fixa (CDB 115% CDI)",
+      "conditions": "#investimentos || @produto:investimento",
+      "parent": null,
+      "previous_sibling": "node_card_invoice",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Nosso **CDB Liquidez Diária** rende **115% do CDI** com liquidez imediata e proteção do FGC."
+              }
+            ]
+          },
+          {
+            "response_type": "option",
+            "title": "Opções de Investimento:",
+            "options": [
+              {
+                "label": "Simular R$ 5.000 em 12 meses",
+                "value": {
+                  "input": {
+                    "text": "simular 5000 reais"
+                  }
+                }
+              },
+              {
+                "label": "Falar com Assessor de Investimentos",
+                "value": {
+                  "input": {
+                    "text": "assessor de investimentos"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "cdi_rate_annual": 0.105,
+        "cdb_multiplier": 1.15
+      },
+      "digress_in": "returns",
+      "digress_out": "allow_all"
+    },
+    {
+      "dialog_node": "node_credit_limit",
+      "title": "Solicitação de Aumento de Limite",
+      "conditions": "#aumentar_limite",
+      "parent": null,
+      "previous_sibling": "node_card_invoice",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Avaliando seu perfil financeiro em tempo real..."
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "limit_evaluation": "<? ($user_score >= 750 && $account_months > 6) ? 'approved' : 'analysis' ?>"
+      },
+      "next_step": {
+        "behavior": "jump_to",
+        "selector": "condition",
+        "dialog_node": "node_limit_decision"
+      }
+    },
+    {
+      "dialog_node": "node_limit_decision",
+      "title": "Decisão de Limite",
+      "conditions": "$limit_evaluation == 'approved'",
+      "parent": "node_credit_limit",
+      "previous_sibling": null,
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "🎉 Parabéns! Seu limite foi aumentado automaticamente para **R$ 8.000,00**."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "dialog_node": "node_help_faq",
+      "title": "Ajuda & Dúvidas Globais (Digressão)",
+      "conditions": "#ajuda || #duvidas",
+      "parent": null,
+      "previous_sibling": "node_credit_limit",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Você pode consultar faturas, fazer PIX, solicitar limites ou falar com nosso suporte a qualquer momento."
+              }
+            ]
+          }
+        ]
+      },
+      "digress_in": "returns",
+      "digress_out": "allow_all"
+    },
+    {
+      "dialog_node": "node_human_handoff",
+      "title": "Transbordo para Atendente Humano",
+      "conditions": "#falar_atendente || #humano",
+      "parent": null,
+      "previous_sibling": "node_help_faq",
+      "output": {
+        "generic": [
+          {
+            "response_type": "connect_to_agent",
+            "message_to_human_agent": "Cliente solicitou suporte humano após consulta de limite.",
+            "agent_available": {
+              "generic": [
+                {
+                  "response_type": "text",
+                  "values": [
+                    {
+                      "text": "Conectando com um especialista. Aguarde alguns instantes..."
+                    }
+                  ]
+                }
+              ]
+            },
+            "agent_unavailable": {
+              "generic": [
+                {
+                  "response_type": "text",
+                  "values": [
+                    {
+                      "text": "Nossa equipe está indisponível no momento. Por favor, deixe sua mensagem."
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "context": {
+        "queue": "suporte_financeiro"
+      }
+    },
+    {
+      "dialog_node": "node_anything_else",
+      "title": "Fallback Geral",
+      "conditions": "anything_else",
+      "parent": null,
+      "previous_sibling": "node_broken_navigation",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              {
+                "text": "Desculpe, não entendi o que você precisa. Poderia explicar com outras palavras?"
+              },
+              {
+                "text": "Ainda estou aprendendo e não compreendi sua dúvida. Pode tentar de outro jeito?"
+              }
+            ]
+          }
+        ]
+      },
+      "digress_in": "does_not_return"
+    }
+  ]
+}
