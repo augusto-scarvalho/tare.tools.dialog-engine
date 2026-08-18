@@ -41,9 +41,12 @@ class MutationOperator(str, Enum):
     SUBSUMPTION_DROP = "SUBSUMPTION_DROP"
 
 
+from tare_dialog.schema_adapter import DEFAULT_BINDING, SchemaBinding
+
+
 @dataclass
 class RuleMutant:
-    """Represents a mutated business rule variant with risk tier and audit telemetry."""
+    """Represents an injected business rule defect with audit tracking."""
 
     mutation_id: str
     node_id: str
@@ -67,76 +70,40 @@ class RuleMutant:
 
 
 class SemanticRuleMutator:
-    """Generates classified business rule mutations across dialog trees."""
+    """Generates classified business rule mutations across arbitrary dialog trees and state machines."""
 
-    def __init__(self) -> None:
+    def __init__(self, binding: SchemaBinding | None = None) -> None:
         self._counter = 0
+        self.binding = binding
 
     def _next_id(self, prefix: str) -> str:
         self._counter += 1
         return f"MUT-{prefix}-{self._counter:04d}"
 
-    def generate_rule_mutants(self, document: dict[str, Any]) -> list[RuleMutant]:
-        """Discover and mutate operational guards in document."""
+    def generate_rule_mutants(self, document: dict[str, Any], binding: SchemaBinding | None = None) -> list[RuleMutant]:
+        """Discover and mutate operational guards in document using decoupled SchemaBinding."""
+        b = binding or self.binding or SchemaBinding.discover(document)
         mutants: list[RuleMutant] = []
-
-        def collect_nodes(raw_nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
-            flat: list[dict[str, Any]] = []
-            for n in raw_nodes:
-                if not isinstance(n, dict):
-                    continue
-                flat.append(n)
-                for slot in n.get("slots") or []:
-                    if isinstance(slot, dict):
-                        flat.append(slot)
-                        flat.extend(collect_nodes(slot.get("filhos") or []))
-                flat.extend(collect_nodes(n.get("filhos") or []))
-            return flat
-
-        root_nodes = document.get("dialog_nodes") or document.get("nos") or []
-        all_nodes = collect_nodes(root_nodes) if "nos" in document else [n for n in root_nodes if isinstance(n, dict)]
+        all_nodes = list(b.iter_all_nodes(document))
 
         def make_mutated_doc(target_id: str, new_cond: str | None = None, new_ctx_key: str | None = None, new_ctx_val: Any = None) -> dict[str, Any]:
             m_doc = copy.deepcopy(document)
-
-            def apply(nodes: list[dict[str, Any]]) -> bool:
-                for n in nodes:
-                    if not isinstance(n, dict):
-                        continue
-                    curr_id = str(n.get("dialog_node") or n.get("uuid") or "")
-                    if curr_id == target_id:
-                        if new_cond is not None:
-                            if "conditions" in n:
-                                n["conditions"] = new_cond
-                            else:
-                                n["condicao"] = new_cond
-                        if new_ctx_key is not None:
-                            ctx = n.get("context") if "context" in n else n.get("contexto", {})
-                            if isinstance(ctx, dict):
-                                ctx[new_ctx_key] = new_ctx_val
-                        return True
-                    for slot in n.get("slots") or []:
-                        if isinstance(slot, dict):
-                            slot_id = str(slot.get("uuid") or slot.get("identificador") or "")
-                            if slot_id == target_id:
-                                if new_cond is not None:
-                                    slot["condicao"] = new_cond
-                                return True
-                            if apply(slot.get("filhos") or []):
-                                return True
-                    if apply(n.get("filhos") or []):
-                        return True
-                return False
-
-            raw_nodes = m_doc.get("dialog_nodes") or m_doc.get("nos") or []
-            apply(raw_nodes)
+            for n in b.iter_all_nodes(m_doc):
+                if b.get_id(n) == target_id:
+                    if new_cond is not None:
+                        b.set_condition(n, new_cond)
+                    if new_ctx_key is not None:
+                        b.set_context_variable(n, new_ctx_key, new_ctx_val)
+                    break
             return m_doc
 
         for node in all_nodes:
-            node_id = str(node.get("dialog_node") or node.get("uuid") or "")
-            node_title = str(node.get("title") or node.get("nome") or node_id)
-            cond = str(node.get("conditions") or node.get("condicao") or "")
-            ctx = node.get("context") or node.get("contexto") or {}
+            node_id = b.get_id(node)
+            if not node_id:
+                continue
+            node_title = b.get_title(node)
+            cond = b.get_condition(node)
+            ctx = b.get_context(node)
 
             # ----------------------------------------------------------
             # 1. SECURITY CRITICAL: Authentication & Authorization Guards

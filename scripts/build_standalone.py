@@ -25,6 +25,7 @@ CORE_MODULES = [
     "validator.py",
     "diff_engine.py",
     "explorer.py",
+    "schema_adapter.py",
     "mutator.py",
     "rule_mutator.py",
 ]

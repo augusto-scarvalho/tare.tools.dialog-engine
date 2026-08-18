@@ -41,6 +41,7 @@ from tare_dialog.rule_mutator import (
     generate_audit_manifest,
     synthesize_counterexample_scenario,
 )
+from tare_dialog.schema_adapter import DEFAULT_BINDING, KeyMapping, SchemaBinding
 from tare_dialog.spel import UNKNOWN, SpelError, evaluate_condition, syntax_diagnostics
 from tare_dialog.test_runner import normalize_document, run_scenario
 from tare_dialog.validator import validate
@@ -48,11 +49,14 @@ from tare_dialog.validator import validate
 __version__ = "1.0.0"
 
 __all__ = [
+    "DEFAULT_BINDING",
     "DEFAULT_IGNORED_FIELDS",
     "DEFAULT_MAX_INPUT_BYTES",
+    "KeyMapping",
     "MutationOperator",
     "RiskTier",
     "RuleMutant",
+    "SchemaBinding",
     "SemanticRuleMutator",
     "evaluate_rules_against_scenarios",
     "generate_audit_manifest",
