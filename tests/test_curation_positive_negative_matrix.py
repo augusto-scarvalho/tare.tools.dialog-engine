@@ -2,7 +2,6 @@
 
 import unittest
 from tare_dialog.validator import validate
-from tare_dialog.spel import evaluate, parse
 
 
 class CurationPositiveNegativeMatrixTests(unittest.TestCase):

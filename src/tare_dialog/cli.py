@@ -32,15 +32,14 @@ from tare_dialog.diff_engine import (
     summarize,
 )
 from tare_dialog.explorer import (
-    detect_dialog_format,
     explore_document,
     introspect_primitives,
     to_nested_format,
     to_v1_format,
 )
-from tare_dialog.graph import build_graph, dot, render_dot
+from tare_dialog.graph import build_graph, render_dot
 from tare_dialog.mutator import DialogTreeMutator, calculate_mutation_score
-from tare_dialog.spel import UNKNOWN, evaluate_condition, syntax_diagnostics
+from tare_dialog.test_runner import run_scenario
 from tare_dialog.validator import validate
 
 

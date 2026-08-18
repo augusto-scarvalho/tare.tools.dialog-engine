@@ -8,9 +8,7 @@ Produces two distinct distributions:
 
 from __future__ import annotations
 
-import os
 import re
-import sys
 import zipapp
 from pathlib import Path
 
@@ -277,7 +275,7 @@ def build_standalone_script() -> Path:
     """Combine all core engine modules into a single monolithic Python file."""
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     out_file = DIST_DIR / "dialog_engine_standalone.py"
-    
+
     sections = [HEADER]
     for mod_name in CORE_MODULES:
         mod_path = SRC_DIR / mod_name
@@ -300,10 +298,10 @@ def build_zipapp_distribution(standalone_script: Path) -> Path:
     """Package standalone script as a standard Python .pyz zipapp."""
     app_dir = DIST_DIR / "_zipapp_staging"
     app_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Copy as __main__.py
     (app_dir / "__main__.py").write_text(standalone_script.read_text(encoding="utf-8"), encoding="utf-8")
-    
+
     pyz_file = DIST_DIR / "dialog_engine.pyz"
     zipapp.create_archive(
         source=app_dir,
@@ -311,7 +309,7 @@ def build_zipapp_distribution(standalone_script: Path) -> Path:
         interpreter="/usr/bin/env python3",
         compressed=True,
     )
-    
+
     # Clean staging
     import shutil
     shutil.rmtree(app_dir, ignore_errors=True)

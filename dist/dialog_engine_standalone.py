@@ -4631,7 +4631,6 @@ injections, and metamorphic relation testing for dialog trees and AI agent state
 
 
 import copy
-import json
 import random
 import sys
 from dataclasses import dataclass
@@ -4814,7 +4813,7 @@ class DialogTreeMutator:
     # ------------------------------------------------------------------
     def mutate_metamorphic_neutral(self, tree: dict[str, Any]) -> Mutant:
         """Apply non-operational changes (whitespace, key ordering, metadata tags).
-        
+
         A sound validator MUST NOT report any new validation issues on this mutant.
         """
         mutant_tree = copy.deepcopy(tree)
