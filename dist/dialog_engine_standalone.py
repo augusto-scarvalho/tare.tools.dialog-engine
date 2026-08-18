@@ -4936,13 +4936,11 @@ testing blindspots, dead predicates, and unverified edge cases.
 
 
 import copy
-import json
-import re
 import sys
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 
@@ -5109,7 +5107,7 @@ def evaluate_rules_against_scenarios(
     mutator: SemanticRuleMutator | None = None,
 ) -> dict[str, Any]:
     """Execute scenario test suite against baseline and all rule mutants.
-    
+
     A mutant is KILLED if at least one scenario behaves differently or fails assertions.
     A mutant SURVIVES if all test scenarios produce the identical output (Blindspot!).
     """

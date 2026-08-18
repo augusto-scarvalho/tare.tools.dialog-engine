@@ -40,7 +40,6 @@ from tare_dialog.explorer import (
 from tare_dialog.graph import build_graph, render_dot
 from tare_dialog.mutator import DialogTreeMutator, calculate_mutation_score
 from tare_dialog.rule_mutator import (
-    SemanticRuleMutator,
     evaluate_rules_against_scenarios,
     generate_audit_manifest,
     synthesize_counterexample_scenario,
