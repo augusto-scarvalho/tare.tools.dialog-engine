@@ -37,6 +37,8 @@ from tare_dialog.explorer import (
     to_nested_format,
     to_v1_format,
 )
+from tare_dialog.generate_diff_tests import generate_from_diff
+from tare_dialog.generate_test import generate
 from tare_dialog.graph import build_graph, render_dot
 from tare_dialog.mutator import DialogTreeMutator, calculate_mutation_score
 from tare_dialog.rule_mutator import (
@@ -140,6 +142,18 @@ def main() -> None:
     audit_parser.add_argument("--audit-out", "-o", type=Path, help="Optional output JSON audit manifest")
     audit_parser.add_argument("--synthesize-gaps", action="store_true", help="Synthesize gap test scenarios for surviving mutants")
     audit_parser.add_argument("--gaps-out-dir", type=Path, help="Directory to save synthesized gap scenarios")
+
+    # 8. Generate Tests (Synthetic Conversational Test Generator)
+    gen_parser = subparsers.add_parser("generate-tests", help="Generate synthetic conversational test scenario to reach a target node")
+    gen_parser.add_argument("document", type=Path, help="Target dialog JSON document")
+    gen_parser.add_argument("node", help="Target node ID / UUID to reach")
+    gen_parser.add_argument("--output", "-o", type=Path, help="Output JSON scenario file")
+
+    # 9. Generate Diff Tests (Targeted Test Generator for Modified / Added Nodes)
+    gendiff_parser = subparsers.add_parser("generate-diff-tests", help="Generate targeted test scenarios for nodes changed/added between two versions")
+    gendiff_parser.add_argument("current", type=Path, help="Current baseline dialog JSON document")
+    gendiff_parser.add_argument("candidate", type=Path, help="Candidate modified dialog JSON document")
+    gendiff_parser.add_argument("--output", "-o", type=Path, help="Output JSON scenarios file")
 
     args = parser.parse_args()
     if not args.command:
@@ -396,6 +410,29 @@ def main() -> None:
                 console.print(Panel(panel_text, title="[bold]Test Suite Health & Protection Rating[/bold]", expand=False))
             else:
                 print(json.dumps(manifest, indent=2, ensure_ascii=False))
+
+        elif args.command == "generate-tests":
+            doc = load_json(args.document)
+            scenario = generate(doc, args.node)
+            out = json.dumps(scenario, indent=2, ensure_ascii=False)
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(out, encoding="utf-8")
+                print(f"Generated scenario written to: {args.output}")
+            else:
+                print(out)
+
+        elif args.command == "generate-diff-tests":
+            cur_doc = load_json(args.current)
+            cand_doc = load_json(args.candidate)
+            result = generate_from_diff(cur_doc, cand_doc)
+            out = json.dumps(result, indent=2, ensure_ascii=False)
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(out, encoding="utf-8")
+                print(f"Generated diff scenarios written to: {args.output}")
+            else:
+                print(out)
 
     except Exception as err:
         sys.stderr.write(f"Error: {err}\n")
