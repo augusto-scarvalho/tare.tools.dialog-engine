@@ -1,6 +1,7 @@
-# Watson Assistant Dialog Diff & Tooling Suite
+# tare.tools.dialog-engine
+*(Watson Assistant Dialog Diff & Tooling Suite)*
 
-Semantic comparator, validator, test runner, graph engine, and triage console for Watson Assistant Dialog exports. Collections identified by `uuid` are compared by unique identifier, ensuring that key reordering produces no false positives.
+**Deterministic Dialog AST, semantic diff engine, SpEL condition evaluator, scenario generator, and triage console for conversational AI systems.** Collections identified by `uuid` are compared by unique identifier, ensuring that key reordering produces no false positives.
 
 ## Structure
 

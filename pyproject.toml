@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tare-tools-dialog-engine"
+version = "1.0.0"
+description = "Deterministic Dialog AST, semantic diff engine, SpEL condition evaluator, scenario generator, and triage console for conversational AI systems (Watson Assistant and Dialog Trees)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Augusto Carvalho", email = "augustosc4rvalho@gmail.com" }
+]
+keywords = [
+    "dialog",
+    "conversational-ai",
+    "watson-assistant",
+    "ast",
+    "diff",
+    "spel",
+    "graph",
+    "validation",
+    "tare-tools"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Testing",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "playwright>=1.40.0"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["."]
+omit = ["tests/*", "generate_*.py"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80

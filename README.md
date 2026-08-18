@@ -1,4 +1,6 @@
-# Watson Assistant Dialog Diff
+# tare.tools.dialog-engine
+
+**Deterministic Dialog AST, semantic diff engine, SpEL condition evaluator, scenario generator, and triage console for conversational AI systems.**
 
 Comparador semântico para exports JSON do Watson Assistant Dialog. As coleções
 identificadas por `uuid` são comparadas pelo identificador, portanto uma troca
