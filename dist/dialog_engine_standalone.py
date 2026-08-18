@@ -2083,6 +2083,32 @@ def main() -> int:
     return 0
 
 
+try:
+    import networkx as nx
+    HAS_NETWORKX = True
+except ImportError:
+    nx = None
+    HAS_NETWORKX = False
+
+
+def to_networkx(graph_dict: dict[str, Any]) -> Any:
+    """Convert dialog graph dictionary to a NetworkX DiGraph for advanced graph algorithms."""
+    if not HAS_NETWORKX:
+        raise ImportError("networkx is required for to_networkx(). Run: pip install networkx")
+    G = nx.DiGraph()
+    for v in graph_dict.get("vertices", []):
+        G.add_node(v["id"], **v)
+    for e in graph_dict.get("edges", []):
+        G.add_edge(e["node"], e["target"], edge_type=e.get("type"))
+    return G
+
+
+def find_graph_cycles(graph_dict: dict[str, Any]) -> list[list[str]]:
+    """Detect circular jump loops using NetworkX cycle detection."""
+    if not HAS_NETWORKX:
+        return []
+    G = to_networkx(graph_dict)
+    return list(nx.simple_cycles(G))
 
 # ------------------------------------------------------------------------------
 # Module: validator.py
@@ -2750,6 +2776,13 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+try:
+    import orjson
+    HAS_ORJSON = True
+except ImportError:
+    orjson = None
+    HAS_ORJSON = False
+
 
 
 DEFAULT_IGNORED_FIELDS = {"dataCriacao", "dataModificacao"}
@@ -2773,17 +2806,20 @@ def configure_utf8_output() -> None:
 
 def load_json(path: Path, max_bytes: int | None = None) -> dict[str, Any]:
     max_bytes = resolve_max_input_bytes(max_bytes)
+    if max_bytes > 0 and path.exists():
+        file_size = path.stat().st_size
+        if file_size > max_bytes:
+            raise ValueError(
+                f"Arquivo {path} ({file_size} bytes) excede o limite configurado de {max_bytes} bytes. "
+                f"Use --max-input-bytes para aumentar o limite se necessário."
+            )
     try:
-        if max_bytes > 0 and path.exists():
-            file_size = path.stat().st_size
-            if file_size > max_bytes:
-                raise ValueError(
-                    f"Arquivo {path} ({file_size} bytes) excede o limite configurado de {max_bytes} bytes. "
-                    f"Use --max-input-bytes para aumentar o limite se necessário."
-                )
-        with path.open(encoding="utf-8") as file:
-            document = json.load(file)
-    except (OSError, json.JSONDecodeError) as error:
+        if HAS_ORJSON:
+            document = orjson.loads(path.read_bytes())
+        else:
+            with path.open(encoding="utf-8") as file:
+                document = json.load(file)
+    except (OSError, ValueError, json.JSONDecodeError if not HAS_ORJSON else Exception) as error:
         raise ValueError(f"Não foi possível ler {path}: {error}") from error
     if not isinstance(document, dict):
         raise ValueError(f"{path} deve conter um objeto JSON na raiz.")

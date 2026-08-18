@@ -294,3 +294,30 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+try:
+    import networkx as nx
+    HAS_NETWORKX = True
+except ImportError:
+    nx = None
+    HAS_NETWORKX = False
+
+
+def to_networkx(graph_dict: dict[str, Any]) -> Any:
+    """Convert dialog graph dictionary to a NetworkX DiGraph for advanced graph algorithms."""
+    if not HAS_NETWORKX:
+        raise ImportError("networkx is required for to_networkx(). Run: pip install networkx")
+    G = nx.DiGraph()
+    for v in graph_dict.get("vertices", []):
+        G.add_node(v["id"], **v)
+    for e in graph_dict.get("edges", []):
+        G.add_edge(e["node"], e["target"], edge_type=e.get("type"))
+    return G
+
+
+def find_graph_cycles(graph_dict: dict[str, Any]) -> list[list[str]]:
+    """Detect circular jump loops using NetworkX cycle detection."""
+    if not HAS_NETWORKX:
+        return []
+    G = to_networkx(graph_dict)
+    return list(nx.simple_cycles(G))

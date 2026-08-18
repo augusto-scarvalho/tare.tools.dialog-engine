@@ -17,6 +17,13 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+try:
+    import orjson
+    HAS_ORJSON = True
+except ImportError:
+    orjson = None
+    HAS_ORJSON = False
+
 from tare_dialog.resources import DEFAULT_MAX_INPUT_BYTES, ResourceBudget, resolve_jobs, resolve_max_input_bytes
 
 
@@ -41,17 +48,20 @@ def configure_utf8_output() -> None:
 
 def load_json(path: Path, max_bytes: int | None = None) -> dict[str, Any]:
     max_bytes = resolve_max_input_bytes(max_bytes)
+    if max_bytes > 0 and path.exists():
+        file_size = path.stat().st_size
+        if file_size > max_bytes:
+            raise ValueError(
+                f"Arquivo {path} ({file_size} bytes) excede o limite configurado de {max_bytes} bytes. "
+                f"Use --max-input-bytes para aumentar o limite se necessário."
+            )
     try:
-        if max_bytes > 0 and path.exists():
-            file_size = path.stat().st_size
-            if file_size > max_bytes:
-                raise ValueError(
-                    f"Arquivo {path} ({file_size} bytes) excede o limite configurado de {max_bytes} bytes. "
-                    f"Use --max-input-bytes para aumentar o limite se necessário."
-                )
-        with path.open(encoding="utf-8") as file:
-            document = json.load(file)
-    except (OSError, json.JSONDecodeError) as error:
+        if HAS_ORJSON:
+            document = orjson.loads(path.read_bytes())
+        else:
+            with path.open(encoding="utf-8") as file:
+                document = json.load(file)
+    except (OSError, ValueError, json.JSONDecodeError if not HAS_ORJSON else Exception) as error:
         raise ValueError(f"Não foi possível ler {path}: {error}") from error
     if not isinstance(document, dict):
         raise ValueError(f"{path} deve conter um objeto JSON na raiz.")
