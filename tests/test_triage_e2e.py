@@ -2,7 +2,11 @@
 import unittest
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright
+    HAS_PLAYWRIGHT = True
+except ImportError:
+    HAS_PLAYWRIGHT = False
 
 ROOT = Path(__file__).resolve().parent.parent
 HTML_URI = (ROOT / "triage_viewer.html").as_uri()
@@ -11,9 +15,13 @@ HTML_URI = (ROOT / "triage_viewer.html").as_uri()
 class TriageConsoleE2ETests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.playwright = sync_playwright().start()
-        # Launch Chromium headless
-        cls.browser = cls.playwright.chromium.launch(headless=True)
+        if not HAS_PLAYWRIGHT:
+            raise unittest.SkipTest("Playwright not installed")
+        try:
+            cls.playwright = sync_playwright().start()
+            cls.browser = cls.playwright.chromium.launch(headless=True)
+        except Exception as e:
+            raise unittest.SkipTest(f"Playwright browser launch failed: {e}")
 
     @classmethod
     def tearDownClass(cls) -> None:

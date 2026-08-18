@@ -6,9 +6,9 @@ Scenario Generator, and Mission Control Triage Console for Enterprise Dialog Sys
 
 from __future__ import annotations
 
+from tare_dialog.resources import DEFAULT_MAX_INPUT_BYTES
 from tare_dialog.diff_engine import (
     DEFAULT_IGNORED_FIELDS,
-    DEFAULT_MAX_INPUT_BYTES,
     configure_utf8_output,
     diff_dialogs,
     load_json,
