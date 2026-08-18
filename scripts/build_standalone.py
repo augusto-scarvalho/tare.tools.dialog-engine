@@ -248,6 +248,8 @@ def clean_module_code(content: str) -> str:
             continue
         if stripped.startswith("from __future__ import"):
             continue
+        if "_src_dir = str(Path(__file__)" in stripped or "if _src_dir not in sys.path:" in stripped or "sys.path.insert(0, _src_dir)" in stripped or "Ensure src/ is on sys.path" in stripped:
+            continue
         if re.match(r"^from (watson_\w+|tare_dialog\.\w+) import", stripped) or re.match(r"^import (watson_\w+|tare_dialog\.\w+)", stripped):
             continue
         if stripped == 'if __name__ == "__main__":':

@@ -51,10 +51,6 @@ process.  Optional psutil support improves telemetry but is not required.
 import sys
 from pathlib import Path
 
-# Ensure src/ is on sys.path when invoked directly
-_src_dir = str(Path(__file__).resolve().parent.parent)
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
 
 
 import os
@@ -128,7 +124,7 @@ class ResourceBudget:
     max_jobs_cap: int
 
     @classmethod
-    def detect(cls, temp_dir: Path | None = None) -> "ResourceBudget":
+    def detect(cls, temp_dir: Path | None = None) -> ResourceBudget:
         usable_cpus = _usable_cpu_count()
         env_cap = os.environ.get("WATSON_DIALOG_MAX_JOBS", "")
         # Keep a conservative default ceiling for subprocess-heavy work, but
@@ -216,10 +212,6 @@ reflection, or arbitrary Python/Java method execution is permitted.
 import sys
 from pathlib import Path
 
-# Ensure src/ is on sys.path when invoked directly
-_src_dir = str(Path(__file__).resolve().parent.parent)
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
 
 
 import functools
@@ -738,10 +730,6 @@ def evaluate_condition(expression: str, environment: dict[str, Any]) -> bool | _
 import sys
 from pathlib import Path
 
-# Ensure src/ is on sys.path when invoked directly
-_src_dir = str(Path(__file__).resolve().parent.parent)
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
 
 
 import argparse
@@ -752,7 +740,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
+    configure_utf8_output,
+    load_json,
+)
 
 MAX_TERMS = 256
 INTENT_PATTERN = re.compile(r"(?<![\w#])#([\w.-]+)")
@@ -1211,10 +1201,6 @@ def main() -> int:
 import sys
 from pathlib import Path
 
-# Ensure src/ is on sys.path when invoked directly
-_src_dir = str(Path(__file__).resolve().parent.parent)
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
 
 
 import argparse
@@ -1224,7 +1210,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
+    configure_utf8_output,
+    load_json,
+)
 
 SCHEMA_VERSION = 2
 ROOT_GROUP = "root"
@@ -1849,10 +1837,6 @@ def main() -> int:
 import sys
 from pathlib import Path
 
-# Ensure src/ is on sys.path when invoked directly
-_src_dir = str(Path(__file__).resolve().parent.parent)
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
 
 
 import argparse
@@ -1861,7 +1845,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
+    configure_utf8_output,
+    load_json,
+)
 
 GRAPH_SCHEMA_VERSION = 1
 
@@ -2183,10 +2169,6 @@ parser subset as invalid Watson syntax.
 import sys
 from pathlib import Path
 
-# Ensure src/ is on sys.path when invoked directly
-_src_dir = str(Path(__file__).resolve().parent.parent)
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
 
 
 import argparse
@@ -2194,10 +2176,13 @@ import json
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
-
+    configure_utf8_output,
+    load_json,
+)
 
 SCHEMA_VERSION = 1
 MAX_CONDITION_LENGTH = 2048
@@ -2777,7 +2762,7 @@ def validate(document: dict[str, Any], check_variables: bool = False, summary_on
     by_category = {category: sum(item["category"] == category for item in issues) for category in sorted({item["category"] for item in issues})}
     by_code = {code: sum(item["code"] == code for item in issues) for code in sorted({item["code"] for item in issues})}
     by_severity = {severity: sum(item["severity"] == severity for item in issues) for severity in sorted({item["severity"] for item in issues})}
-    
+
     total_issues = len(issues)
     reported_issues = [] if summary_only else (issues[:max_issues] if max_issues is not None and max_issues >= 0 else issues)
 
@@ -2837,10 +2822,6 @@ appear as a change in the report.
 import sys
 from pathlib import Path
 
-# Ensure src/ is on sys.path when invoked directly
-_src_dir = str(Path(__file__).resolve().parent.parent)
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
 
 
 import argparse
@@ -2858,7 +2839,6 @@ try:
 except ImportError:
     orjson = None
     HAS_ORJSON = False
-
 
 
 DEFAULT_IGNORED_FIELDS = {"dataCriacao", "dataModificacao"}
@@ -3730,16 +3710,13 @@ Provides automatic introspection, extraction, and bidirectional normalization fo
 import sys
 from pathlib import Path
 
-# Ensure src/ is on sys.path when invoked directly
-_src_dir = str(Path(__file__).resolve().parent.parent)
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
 
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 
 @dataclass
@@ -3935,7 +3912,7 @@ def _extract_rich_responses_v1(output_dict: dict[str, Any]) -> list[DialogRespon
         return []
     responses: list[DialogResponse] = []
     generic_list = output_dict.get("generic") or []
-    
+
     # 1. Process output.generic
     if isinstance(generic_list, list):
         for idx, item in enumerate(generic_list):
@@ -4148,7 +4125,7 @@ def _parse_watson_v1_flat(raw_document: dict[str, Any], doc: UniversalDialogDocu
                 jump = DialogJump(target_id=str(target), selector=selector, behavior=behavior)
 
         responses = _extract_rich_responses_v1(item.get("output") or {})
-        
+
         node = DialogNode(
             id=node_id,
             title=str(title) if title else None,
@@ -4247,7 +4224,7 @@ def _parse_enterprise_nested(raw_document: dict[str, Any], doc: UniversalDialogD
         title = item.get("nome") or item.get("title") or item.get("name")
         cond = item.get("condicao") or item.get("conditions")
         folder = bool(item.get("folder", False))
-        
+
         # Extract jump
         jump = None
         target = item.get("uuidEnviarPara") or item.get("jump_to") or item.get("target")
@@ -4256,7 +4233,7 @@ def _parse_enterprise_nested(raw_document: dict[str, Any], doc: UniversalDialogD
             jump = DialogJump(target_id=str(target), selector=selector, behavior="jump_to")
 
         responses = _extract_rich_responses_nested(item.get("respostas") or item.get("responses") or [])
-        
+
         # Slots
         slots: list[DialogSlot] = []
         for s in item.get("slots") or []:
@@ -4324,7 +4301,7 @@ def _parse_enterprise_nested(raw_document: dict[str, Any], doc: UniversalDialogD
 def introspect_primitives(raw_document: dict[str, Any]) -> dict[str, Any]:
     """Deeply inspect and discover all Watson primitives and features inside a JSON."""
     doc = explore_document(raw_document)
-    
+
     channels = set()
     response_types = set()
     has_media = False
@@ -4565,6 +4542,7 @@ def main() -> None:
     import argparse
     import sys
 
+
     configure_utf8_output()
     parser = argparse.ArgumentParser(description="Universal Dialog AST Explorer for Watson Assistant and Enterprise Dialogs.")
     parser.add_argument("input", type=Path, help="Path to Watson Assistant JSON export.")
@@ -4624,7 +4602,7 @@ def main() -> None:
     # Default / --introspect
     intro = introspect_primitives(raw_doc)
     print("=================================================================")
-    print(f"  tare.tools — Dialog AST Explorer & Schema Discovery")
+    print("  tare.tools — Dialog AST Explorer & Schema Discovery")
     print("=================================================================")
     print(f"  Format Detected:      {intro['format_detected']}")
     print(f"  Total Dialog Nodes:   {intro['total_nodes']} (Root: {intro['root_nodes']})")
