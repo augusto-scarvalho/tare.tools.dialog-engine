@@ -12,6 +12,8 @@ if _src_dir not in sys.path:
 
 
 from pathlib import Path
+from typing import Any
+
 from tare_dialog.test_runner import normalize_document
 from tare_dialog.validator import validate
 
