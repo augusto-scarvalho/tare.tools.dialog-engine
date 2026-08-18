@@ -60,8 +60,8 @@ def load_json(path: Path, max_bytes: int | None = None) -> dict[str, Any]:
         file_size = path.stat().st_size
         if file_size > max_bytes:
             raise ValueError(
-                f"Arquivo {path} ({file_size} bytes) excede o limite configurado de {max_bytes} bytes. "
-                f"Use --max-input-bytes para aumentar o limite se necessário."
+                f"File {path} ({file_size} bytes) exceeds configured limit of {max_bytes} bytes. "
+                f"Use --max-input-bytes to increase limit if necessary."
             )
     try:
         if HAS_ORJSON:
@@ -70,19 +70,19 @@ def load_json(path: Path, max_bytes: int | None = None) -> dict[str, Any]:
             with path.open(encoding="utf-8") as file:
                 document = json.load(file)
     except (OSError, ValueError, json.JSONDecodeError if not HAS_ORJSON else Exception) as error:
-        raise ValueError(f"Não foi possível ler {path}: {error}") from error
+        raise ValueError(f"Could not read {path}: {error}") from error
     if not isinstance(document, dict):
-        raise ValueError(f"{path} deve conter um objeto JSON na raiz.")
+        raise ValueError(f"{path} must contain a JSON object at root.")
     return document
 
 
 def item_label(item: Any) -> str:
     if not isinstance(item, dict):
         return str(item)
-    for field in ("nome", "textoTema", "textoAcao", "textoObjeto", "variavelContexto"):
+    for field in ("title", "name", "nome", "textoTema", "textoAcao", "textoObjeto", "variavelContexto"):
         if item.get(field):
             return str(item[field])
-    return item.get("uuid", "(sem nome)")
+    return item.get("uuid", item.get("id", item.get("dialog_node", "(unnamed)")))
 
 
 def keyed_by_uuid(value: Any) -> dict[str, Any] | None:
@@ -822,31 +822,31 @@ def markdown(report: dict[str, Any], max_changes: int) -> str:
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Diff semântico de exports do Watson Assistant Dialog.")
-    parser.add_argument("current", type=Path, help="arquivo da versão atual")
-    parser.add_argument("candidate", type=Path, help="arquivo da versão candidata")
+    parser = argparse.ArgumentParser(description="Semantic diff of dialog state machine exports.")
+    parser.add_argument("current", type=Path, help="baseline export JSON file")
+    parser.add_argument("candidate", type=Path, help="candidate export JSON file")
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
-    parser.add_argument("--output", type=Path, help="grava o relatório neste arquivo; padrão: stdout")
-    parser.add_argument("--include-timestamps", action="store_true", help="inclui dataCriacao e dataModificacao")
-    parser.add_argument("--max-changes", type=int, default=20, help="máximo de campos mostrados por item no Markdown")
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
-    parser.add_argument("--summary-only", action="store_true", help="emite apenas sumário consolidado de contagens")
+    parser.add_argument("--output", type=Path, help="write report to this file; default: stdout")
+    parser.add_argument("--include-timestamps", action="store_true", help="include creation/modification timestamps")
+    parser.add_argument("--max-changes", type=int, default=20, help="maximum changes displayed per item in Markdown")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emit only consolidated count summary")
     parser.add_argument(
         "--engine",
         choices=("auto", "dom", "external"),
         default="auto",
-        help="auto usa external para exports >= 16 MiB; dom força json.load; external força índice source-backed legacy/V1",
+        help="auto selects external for large exports; dom forces in-memory DOM; external forces source-backed streaming",
     )
     parser.add_argument(
         "--jobs",
         default="auto",
-        help="workers do diff detalhado external: auto ou inteiro positivo",
+        help="external diff parallel workers: auto or positive integer",
     )
     parser.add_argument(
         "--index-backend",
         choices=("auto", "mmap", "transient"),
         default="auto",
-        help="backend do índice external: auto escolhe transient quando um DOM por vez cabe com folga; mmap força bounded-memory estrito",
+        help="external index backend: auto selects transient when memory fits; mmap enforces strict bounded memory",
     )
     args = parser.parse_args()
     if args.max_changes < 1:

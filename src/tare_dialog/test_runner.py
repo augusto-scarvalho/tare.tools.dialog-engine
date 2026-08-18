@@ -69,7 +69,7 @@ def normalize_document(document: dict[str, Any]) -> dict[str, Any]:
         return document
     raw_nodes = document.get("dialog_nodes")
     if not isinstance(raw_nodes, list):
-        raise ValueError("O diálogo precisa conter nos (legado) ou dialog_nodes (API V1).")
+        raise ValueError("Dialog must contain 'nos' (legacy) or 'dialog_nodes' (V1 API).")
     by_id = {str(node["dialog_node"]): node for node in raw_nodes if isinstance(node, dict) and node.get("dialog_node") is not None}
     children: dict[str | None, list[str]] = {}
     for node_id, node in by_id.items():
@@ -610,12 +610,12 @@ def run_scenarios(document: dict[str, Any], scenarios: list[tuple[dict[str, Any]
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Executa sessões determinísticas de teste de um Dialog Watson.")
+    parser = argparse.ArgumentParser(description="Executes deterministic test scenarios against a dialog state machine.")
     parser.add_argument("dialog", type=Path)
     parser.add_argument("scenarios", type=Path, nargs="+")
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
-    parser.add_argument("--summary-only", action="store_true", help="emite apenas sumário consolidado de execução")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emits only consolidated execution summary")
     args = parser.parse_args()
     try:
         doc = load_json(args.dialog, max_bytes=args.max_input_bytes)
@@ -628,7 +628,7 @@ def main() -> int:
                 "results": [{"name": r["name"], "source": r["source"], "passed": r["passed"]} for r in report["results"]],
             }
     except (ValueError, KeyError) as error:
-        print(f"Erro: {error}", file=sys.stderr)
+        print(f"Error: {error}", file=sys.stderr)
         return 2
     output = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if args.output:

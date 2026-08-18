@@ -361,14 +361,14 @@ def analyze_conditions(document: dict[str, Any], check_variables: bool = False, 
         formula = formula_by_node[node]
         if not formula["is_satisfiable"]:
             if formula["has_explicit_false"]:
-                add("disabled_condition_false", "info", node, "A condição contém `false` explícito e mantém o ramo deliberadamente desabilitado no fluxo normal.", condition)
+                add("disabled_condition_false", "info", node, "Condition contains explicit 'false' deliberately disabling branch in normal flow.", condition)
             else:
-                add("unsatisfiable_condition", "warning", node, "A condição é logicamente impossível sem um `false` explícito de desabilitação.", condition)
+                add("unsatisfiable_condition", "warning", node, "Condition is logically unsatisfiable without an explicit 'false' disablement.", condition)
         if INVALID_ENTITY_SHORTHAND_MEMBER.search(condition):
-            add("invalid_spel_entity_shorthand_member", "error", node, "Um atalho @entidade:(valor) já retorna booleano e não pode acessar uma propriedade como .literal.", condition)
+            add("invalid_spel_entity_shorthand_member", "error", node, "Shorthand @entity:(val) already returns boolean and cannot access property like .literal.", condition)
         invalid_called_entities = set(INVALID_ENTITY_CALL_NAME.findall(condition))
         if invalid_called_entities:
-            add("invalid_spel_entity_call", "error", node, "Entidades não são funções; a sintaxe @entidade(...) é inválida.", condition)
+            add("invalid_spel_entity_call", "error", node, "Entities are not functions; syntax @entity(...) is invalid.", condition)
 
         owner = node.split(":")[1] if node.startswith("response:") else (node.removeprefix("slot:") if node.startswith("slot:") else node)
         is_dormant = node in dormant_nodes or owner in dormant_nodes
@@ -376,16 +376,16 @@ def analyze_conditions(document: dict[str, Any], check_variables: bool = False, 
 
         for intent in condition_references(condition)["intents"]:
             if intent not in intents:
-                add("unknown_intent", ref_severity, node, f"Intent não definida: #{intent}.", condition)
+                add("unknown_intent", ref_severity, node, f"Undefined intent: #{intent}.", condition)
         for entity in condition_references(condition)["entities"]:
             if entity in invalid_called_entities:
                 continue
             if entity not in entities and not entity.startswith("sys-"):
-                add("unknown_entity", ref_severity, node, f"Entidade não definida: @{entity}.", condition)
+                add("unknown_entity", ref_severity, node, f"Undefined entity: @{entity}.", condition)
         if check_variables:
             for variable in condition_references(condition)["variables"]:
                 if variable not in variables and variable not in {"integrations", "skills"}:
-                    add("unknown_variable", "info", node, f"Variável de contexto não declarada: ${variable}.", condition)
+                    add("unknown_variable", "info", node, f"Undeclared context variable: ${variable}.", condition)
     for _group, siblings in iter_groups(document.get("nos") or []):
         # Do not invent a UUID tie-break and then report reachability from it.
         # Duplicate/missing legacy sequence values make relative order an
@@ -409,12 +409,12 @@ def analyze_conditions(document: dict[str, Any], check_variables: bool = False, 
                 always_true_id, always_true_index = always_true
                 interval = {str(item.get("uuid") or "(sem_uuid)") for item in siblings[always_true_index + 1:index + 1] if isinstance(item, dict)}
                 if not (interval & jump_targets):
-                    add("shadowed_by_always_true", "warning", node_id, f"Um nó anterior ({always_true_id}) com condição true impede a avaliação deste irmão no fluxo normal, sem entrada Jump observada no intervalo.", condition)
+                    add("shadowed_by_always_true", "warning", node_id, f"A prior sibling ({always_true_id}) with condition true prevents evaluation of this sibling in normal flow, with no observed Jump entrance in interval.", condition)
             elif formula["normalized"] in seen and formula["is_satisfiable"]:
                 prior_id, prior_index = seen[formula["normalized"]]
                 interval = {str(item.get("uuid") or "(sem_uuid)") for item in siblings[prior_index + 1:index + 1] if isinstance(item, dict)}
                 if not (interval & jump_targets):
-                    add("duplicate_sibling_condition", "info", node_id, f"Condição idêntica à do irmão anterior {prior_id}, sem entrada Jump observada no intervalo.", condition)
+                    add("duplicate_sibling_condition", "info", node_id, f"Condition is identical to prior sibling {prior_id}, with no observed Jump entrance in interval.", condition)
             if formula["is_always_true"]:
                 always_true = (node_id, index)
             seen.setdefault(formula["normalized"], (node_id, index))
@@ -447,13 +447,13 @@ def evaluate_document_conditions(document: dict[str, Any], environment: dict[str
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Analisa alcançabilidade e referências em condições do Watson Assistant Dialog.")
-    parser.add_argument("input", type=Path, help="export JSON do Watson Assistant")
-    parser.add_argument("--output", type=Path, help="arquivo de saída; padrão: stdout")
-    parser.add_argument("--check-variables", action="store_true", help="também valida variáveis fora de variaveisContexto; pode gerar avisos para integrações externas")
-    parser.add_argument("--scenario", type=Path, help="JSON com input, context, intents e entities para avaliar as condições")
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
-    parser.add_argument("--summary-only", action="store_true", help="emite apenas sumário consolidado de contagens")
+    parser = argparse.ArgumentParser(description="Analyzes reachability and symbol references in dialog conditions.")
+    parser.add_argument("input", type=Path, help="dialog JSON export")
+    parser.add_argument("--output", type=Path, help="output file path; default: stdout")
+    parser.add_argument("--check-variables", action="store_true", help="also validate context variables against catalog")
+    parser.add_argument("--scenario", type=Path, help="JSON scenario with input, context, intents, and entities")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emits only consolidated count summary")
     args = parser.parse_args()
     try:
         doc = load_json(args.input, max_bytes=args.max_input_bytes)
@@ -462,7 +462,7 @@ def main() -> int:
             scenario_data = load_json(args.scenario, max_bytes=args.max_input_bytes)
             report["evaluation"] = evaluate_document_conditions(doc, scenario_data, summary_only=args.summary_only)
     except (ValueError, KeyError) as error:
-        print(f"Erro: {error}", file=sys.stderr)
+        print(f"Error: {error}", file=sys.stderr)
         return 2
     output = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if args.output:

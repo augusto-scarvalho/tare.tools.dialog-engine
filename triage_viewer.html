@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -751,29 +751,29 @@
       </select>
 
       <nav class="nav-tabs" id="global-tabs">
-        <button class="nav-tab-btn active" data-tab="view-triage" id="tab-btn-triage" data-i18n="tab_triage">🔬 Painel de Triagem</button>
-        <button class="nav-tab-btn" data-tab="view-triage-guide" id="tab-btn-guide" data-i18n="tab_guide">🎯 Guia de Triagem</button>
-        <button class="nav-tab-btn" data-tab="view-manual" id="tab-btn-manual" data-i18n="tab_manual">📖 Manual CLI</button>
-        <button class="nav-tab-btn" data-tab="view-ibm-rules" id="tab-btn-rules" data-i18n="tab_rules">📚 Regras IBM</button>
-        <button class="nav-tab-btn" data-tab="view-arch" id="tab-btn-arch" data-i18n="tab_arch">📐 Arquitetura</button>
+        <button class="nav-tab-btn active" data-tab="view-triage" id="tab-btn-triage" data-i18n="tab_triage">🔬 Triage Workspace</button>
+        <button class="nav-tab-btn" data-tab="view-triage-guide" id="tab-btn-guide" data-i18n="tab_guide">🎯 Triage Guide</button>
+        <button class="nav-tab-btn" data-tab="view-manual" id="tab-btn-manual" data-i18n="tab_manual">📖 CLI Manual</button>
+        <button class="nav-tab-btn" data-tab="view-ibm-rules" id="tab-btn-rules" data-i18n="tab_rules">📚 IBM Rules</button>
+        <button class="nav-tab-btn" data-tab="view-arch" id="tab-btn-arch" data-i18n="tab_arch">📐 Architecture</button>
       </nav>
     </div>
 
     <div class="header-actions">
       <!-- Language Switcher -->
       <div class="lang-switcher" id="lang-selector">
-        <button class="active" data-lang="pt-BR" id="btn-lang-pt">PT</button>
-        <button data-lang="en-US" id="btn-lang-en">EN</button>
+        <button data-lang="pt-BR" id="btn-lang-pt">PT</button>
+        <button class="active" data-lang="en-US" id="btn-lang-en">EN</button>
       </div>
 
       <div class="segmented-control" id="dataset-selector">
         <button class="active" data-corpus="current" id="btn-corpus-current">CURRENT</button>
         <button data-corpus="candidate" id="btn-corpus-candidate">CANDIDATE</button>
       </div>
-      <button class="btn btn-sm" id="btn-import" title="Importar JSON / Import JSON" data-i18n="btn_import">📥 Importar</button>
+      <button class="btn btn-sm" id="btn-import" title="Import JSON" data-i18n="btn_import">📥 Import</button>
       <input type="file" id="file-importer" accept=".json" style="display: none;">
-      <button class="btn btn-sm btn-primary" id="btn-export-json" title="Exportar JSON / Export JSON" data-i18n="btn_export_json">📤 Exportar JSON</button>
-      <button class="btn btn-sm" id="btn-export-md" title="Exportar MD / Export MD" data-i18n="btn_export_md">📄 Exportar MD</button>
+      <button class="btn btn-sm btn-primary" id="btn-export-json" title="Export JSON" data-i18n="btn_export_json">📤 Export JSON</button>
+      <button class="btn btn-sm" id="btn-export-md" title="Export MD" data-i18n="btn_export_md">📄 Export MD</button>
     </div>
   </header>
 
@@ -4519,7 +4519,7 @@ input/current.json input/candidate.json \
 
     const RAW_DATA = JSON.parse(document.getElementById('triage-data').textContent);
     let currentCorpus = 'current';
-    let currentLang = localStorage.getItem('watson_dialog_lang') || 'pt-BR';
+    let currentLang = localStorage.getItem('watson_dialog_lang') || 'en-US';
     let triageDecisions = JSON.parse(localStorage.getItem('watson_dialog_triage_decisions') || '{}');
     
     let activeFilters = {

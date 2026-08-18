@@ -100,10 +100,10 @@ def generate_slot(document: dict[str, Any], target: str) -> dict[str, Any]:
     document = normalize_document(document)
     owner, slot = slots_by_id(document).get(target, (None, None))
     if owner is None or slot is None:
-        raise ValueError(f"UUID de slot não encontrado: {target}")
+        raise ValueError(f"Slot UUID not found: {target}")
     path = index_paths(document).get(str(owner["uuid"]))
     if not path:
-        raise ValueError(f"UUID do nó pai do slot não encontrado: {owner['uuid']}")
+        raise ValueError(f"Slot owner node UUID not found: {owner['uuid']}")
     context: dict[str, Any] = {}
     issues: list[str] = []
     executable_path = [node for node in path if not node.get("folder")]
@@ -115,7 +115,7 @@ def generate_slot(document: dict[str, Any], target: str) -> dict[str, Any]:
     owner_slots = owner.get("slots") or []
     target_position = next((position for position, value in enumerate(owner_slots) if str(value["uuid"]) == target), None)
     if target_position is None:
-        raise ValueError(f"Slot {target} não pertence ao nó {owner['uuid']}")
+        raise ValueError(f"Slot {target} does not belong to node {owner['uuid']}")
     for required_slot in owner_slots[:target_position + 1]:
         slot_turn, slot_issues = turn_for(str(required_slot.get("condicao") or "true"), context)
         turns.append(slot_turn)
@@ -133,7 +133,7 @@ def generate_slot(document: dict[str, Any], target: str) -> dict[str, Any]:
         for turn in validation["turns"]
         for event in turn["trace"]
     )
-    scenario["generated"]["runner_passed"] = validation["passed"] and slot_filled
+    scenario["generated"]["runner_passed"] = validation.get("passed", False) and slot_filled
     scenario["generated"]["actual_selected_nodes"] = [turn["selected"]["node"] if turn["selected"] else None for turn in validation["turns"]]
     scenario["generated"]["slot_filled"] = slot_filled
     return scenario
@@ -188,19 +188,19 @@ def generate_topology(document: dict[str, Any], topology: dict[str, Any]) -> dic
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Gera cenário de teste até um nó Watson Dialog.")
+    parser = argparse.ArgumentParser(description="Generates test scenario reaching a target dialog node.")
     parser.add_argument("dialog", type=Path)
     parser.add_argument("node", nargs="?")
-    parser.add_argument("--topology", type=Path, help="JSON produzido por watson_dialog_topology.py")
+    parser.add_argument("--topology", type=Path, help="JSON produced by topology analyzer")
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
     args = parser.parse_args()
     if bool(args.node) == bool(args.topology):
-        parser.error("Informe exatamente NODE ou --topology TOPOLOGY.json.")
+        parser.error("Specify exactly NODE or --topology TOPOLOGY.json.")
     try:
         scenario = generate_topology(load_json(args.dialog, max_bytes=args.max_input_bytes), load_json(args.topology, max_bytes=args.max_input_bytes)) if args.topology else generate(load_json(args.dialog, max_bytes=args.max_input_bytes), args.node)
     except (ValueError, KeyError) as error:
-        print(f"Erro: {error}", file=sys.stderr)
+        print(f"Error: {error}", file=sys.stderr)
         return 2
     output = json.dumps(scenario, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if args.output:

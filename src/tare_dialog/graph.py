@@ -167,7 +167,7 @@ def build_graph(document: dict[str, Any], summary_only: bool = False) -> dict[st
         node_id = str(node["uuid"])
         kind = "event_handler" if node.get("event_name") else "slot_child" if node.get("uuidSlot") else "dialog_node"
         if node_id in vertices:
-            raise ValueError(f"UUID de nó duplicado: {node_id}")
+            raise ValueError(f"Duplicate node UUID: {node_id}")
         vertices[node_id] = node_metadata(node, kind)
         if parent and edge_type:
             add_edge(parent, node_id, edge_type)
@@ -175,7 +175,7 @@ def build_graph(document: dict[str, Any], summary_only: bool = False) -> dict[st
         for slot in sorted(node.get("slots") or [], key=lambda value: str(value["uuid"])):
             slot_id = f"slot:{slot['uuid']}"
             if slot_id in vertices:
-                raise ValueError(f"UUID de slot duplicado: {slot['uuid']}")
+                raise ValueError(f"Duplicate slot UUID: {slot['uuid']}")
             vertices[slot_id] = slot_metadata(slot)
             add_edge(node_id, slot_id, "contains_slot")
             children = slot.get("filhos") or []
@@ -260,8 +260,13 @@ def build_graph(document: dict[str, Any], summary_only: bool = False) -> dict[st
 
 
 def dot(graph: dict[str, Any]) -> str:
-    colors = {"dialog_node": "#DCEEFF", "slot_child": "#FFF1CC", "event_handler": "#FFE2B8", "slot": "#E5D8FF"}
-    lines = ["digraph watson_dialog {", "  rankdir=LR;", "  node [shape=box, style=rounded, fontname=Arial];"]
+    lines = ["digraph WatsonDialog {", "  rankdir=LR;", '  node [fontname="Helvetica", fontsize=10];', '  edge [fontname="Helvetica", fontsize=8];']
+    colors = {
+        "dialog_node": "#E8F0FE",
+        "slot_child": "#FEF7E0",
+        "event_handler": "#FCE8E6",
+        "slot": "#F1F3F4",
+    }
     for vertex in graph.get("vertices", []):
         label = vertex.get("name") or vertex["id"]
         if vertex.get("folder"):
@@ -283,17 +288,17 @@ render_dot = dot
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Gera um grafo direcionado de um export Watson Assistant Dialog.")
-    parser.add_argument("input", type=Path, help="export JSON do Watson Assistant")
+    parser = argparse.ArgumentParser(description="Generates a directed graph from a dialog export.")
+    parser.add_argument("input", type=Path, help="JSON dialog export")
     parser.add_argument("--format", choices=("json", "dot"), default="json")
-    parser.add_argument("--output", type=Path, help="arquivo de saída; padrão: stdout")
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
-    parser.add_argument("--summary-only", action="store_true", help="emite apenas contagens consolidadas do grafo")
+    parser.add_argument("--output", type=Path, help="output file path; default: stdout")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emits only consolidated graph counts")
     args = parser.parse_args()
     try:
         graph = build_graph(load_json(args.input, max_bytes=args.max_input_bytes), summary_only=args.summary_only)
     except (ValueError, KeyError) as error:
-        print(f"Erro: {error}", file=sys.stderr)
+        print(f"Error: {error}", file=sys.stderr)
         return 2
     output = json.dumps(graph, ensure_ascii=False, indent=2, sort_keys=True) + "\n" if args.format == "json" else dot(graph)
     if args.output:

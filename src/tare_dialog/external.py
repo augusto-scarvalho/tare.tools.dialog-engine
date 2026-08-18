@@ -300,13 +300,13 @@ class DialogSourceIndex:
         ignored_fields: Iterable[str] | None = None,
     ) -> DialogSourceIndex:
         if not path.exists():
-            raise ValueError(f"Arquivo não encontrado: {path}")
+            raise ValueError(f"File not found: {path}")
         max_bytes = resolve_max_input_bytes(max_bytes)
         size = path.stat().st_size
         if max_bytes and max_bytes > 0 and size > max_bytes:
             raise ValueError(
-                f"Arquivo {path} ({size} bytes) excede o limite configurado de {max_bytes} bytes. "
-                "Use --max-input-bytes para aumentar o limite se necessário."
+                f"File {path} ({size} bytes) exceeds configured limit of {max_bytes} bytes. "
+                "Use --max-input-bytes to increase limit if necessary."
             )
         mapped = _MappedJson(path)
         try:
@@ -509,7 +509,7 @@ class DialogSourceIndex:
                 if name in root_fields:
                     self.top_level_counts[name] = sum(1 for _ in mm.array_items(*root_fields[name]))
         else:
-            raise ValueError("O diálogo precisa conter nos (legado) ou dialog_nodes (API V1).")
+            raise ValueError("Dialog must contain 'nos' (legacy) or 'dialog_nodes' (V1 API).")
 
     def _index_legacy_array_stream(self, start: int, parent_id: str | None) -> int:
         """Index a legacy node array while consuming each subtree once.
@@ -521,12 +521,12 @@ class DialogSourceIndex:
         mm = self._mapped
         pos = mm.skip_ws(start)
         if pos >= len(mm.mm) or mm.mm[pos] != 91:  # '['
-            raise JsonStructureError(f"Array JSON esperado em byte {pos}")
+            raise JsonStructureError(f"Expected JSON array at byte {pos}")
         pos += 1
         while True:
             pos = mm.skip_ws(pos)
             if pos >= len(mm.mm):
-                raise JsonStructureError("Array JSON legado não terminado")
+                raise JsonStructureError("Unterminated legacy JSON array")
             if mm.mm[pos] == 93:  # ']'
                 return pos + 1
             if mm.mm[pos] == 123:  # '{'
@@ -541,18 +541,18 @@ class DialogSourceIndex:
                 continue
             if pos < len(mm.mm) and mm.mm[pos] == 93:
                 return pos + 1
-            raise JsonStructureError("Separador inválido em array legado")
+            raise JsonStructureError("Invalid separator in legacy array")
 
     def _index_legacy_slots_stream(self, start: int, owner_id: str) -> int:
         mm = self._mapped
         pos = mm.skip_ws(start)
         if pos >= len(mm.mm) or mm.mm[pos] != 91:
-            raise JsonStructureError(f"Array JSON esperado em byte {pos}")
+            raise JsonStructureError(f"Expected JSON array at byte {pos}")
         pos += 1
         while True:
             pos = mm.skip_ws(pos)
             if pos >= len(mm.mm):
-                raise JsonStructureError("Array de slots não terminado")
+                raise JsonStructureError("Unterminated slots array")
             if mm.mm[pos] == 93:
                 return pos + 1
             if mm.mm[pos] == 123:
@@ -565,13 +565,13 @@ class DialogSourceIndex:
                 continue
             if pos < len(mm.mm) and mm.mm[pos] == 93:
                 return pos + 1
-            raise JsonStructureError("Separador inválido em array de slots")
+            raise JsonStructureError("Invalid separator in slots array")
 
     def _index_legacy_node_stream(self, start: int, parent_id: str | None) -> int:
         mm = self._mapped
         pos = mm.skip_ws(start)
         if pos >= len(mm.mm) or mm.mm[pos] != 123:
-            raise JsonStructureError(f"Objeto de nó legado esperado em byte {pos}")
+            raise JsonStructureError(f"Expected legacy node object at byte {pos}")
         pos += 1
         fields: dict[str, tuple[int, int]] = {}
         node_id: str | None = None
@@ -580,7 +580,7 @@ class DialogSourceIndex:
         while True:
             pos = mm.skip_ws(pos)
             if pos >= len(mm.mm):
-                raise JsonStructureError("Nó legado não terminado")
+                raise JsonStructureError("Unterminated legacy node")
             if mm.mm[pos] == 125:
                 object_end = pos + 1
                 break
@@ -590,7 +590,7 @@ class DialogSourceIndex:
             key = str(mm.decode(key_start, key_end))
             pos = mm.skip_ws(key_end)
             if pos >= len(mm.mm) or mm.mm[pos] != 58:
-                raise JsonStructureError(f"':' esperado após chave {key!r}")
+                raise JsonStructureError(f"Expected ':' after key {key!r}")
             value_start = mm.skip_ws(pos + 1)
 
             if key in {"filhos", "slots"} and node_id is not None:
@@ -616,10 +616,10 @@ class DialogSourceIndex:
             if pos < len(mm.mm) and mm.mm[pos] == 125:
                 object_end = pos + 1
                 break
-            raise JsonStructureError(f"Separador inválido após chave {key!r}")
+            raise JsonStructureError(f"Invalid separator after key {key!r}")
 
         if node_id is None:
-            raise ValueError(f"Nó legado sem uuid em bytes {start}:{object_end}")
+            raise ValueError(f"Legacy node missing uuid at bytes {start}:{object_end}")
 
         # JSON object order is not normative.  If a nested container appeared
         # before uuid we had to skip it once to discover the later identifier;
@@ -745,7 +745,7 @@ class DialogSourceIndex:
         fields = {key: (vstart, vend) for key, vstart, vend in self._mapped.object_fields(start, end)}
         uuid = self._decoded_field(fields, "uuid")
         if uuid in (None, ""):
-            raise ValueError(f"Nó legado sem uuid em bytes {start}:{end}")
+            raise ValueError(f"Legacy node missing uuid at bytes {start}:{end}")
         node_id = str(uuid)
         ref = RecordRef(
             record_id=node_id,
@@ -1141,13 +1141,13 @@ class DialogTransientIndex:
         ignored_fields: Iterable[str] | None = None,
     ) -> DialogTransientIndex:
         if not path.exists():
-            raise ValueError(f"Arquivo não encontrado: {path}")
+            raise ValueError(f"File not found: {path}")
         max_bytes = resolve_max_input_bytes(max_bytes)
         size = path.stat().st_size
         if max_bytes and max_bytes > 0 and size > max_bytes:
             raise ValueError(
-                f"Arquivo {path} ({size} bytes) excede o limite configurado de {max_bytes} bytes. "
-                "Use --max-input-bytes para aumentar o limite se necessário."
+                f"File {path} ({size} bytes) exceeds configured limit of {max_bytes} bytes. "
+                "Use --max-input-bytes to increase limit if necessary."
             )
         index = cls(path, capture_details=capture_details, ignored_fields=ignored_fields)
         try:
@@ -1264,12 +1264,12 @@ class DialogTransientIndex:
             self.format_type = "legacy"
             nodes = document.get("nos")
             if not isinstance(nodes, list):
-                raise ValueError("nos deve ser um array")
+                raise ValueError("nos must be an array")
             self._index_legacy_array_value(nodes, parent_id=None)
         elif "dialog_nodes" in document:
             self.format_type = "v1"
         else:
-            raise ValueError("O diálogo precisa conter nos (legado) ou dialog_nodes (API V1).")
+            raise ValueError("Dialog must contain 'nos' (legacy) or 'dialog_nodes' (V1 API).")
 
         for name, value in document.items():
             if name == "nos" and self.format_type == "legacy":
@@ -1287,7 +1287,7 @@ class DialogTransientIndex:
                 for item in value:
                     item_id = str(item["uuid"])
                     if item_id in indexed:
-                        raise ValueError(f"Identificador duplicado em {name}: {item_id}")
+                        raise ValueError(f"Duplicate identifier in {name}: {item_id}")
                     payload = self._encode(item)
                     start, end = self._write(payload)
                     indexed[item_id] = CollectionItemRef(
@@ -1315,7 +1315,7 @@ class DialogTransientIndex:
     def _index_legacy_node_value(self, node: dict[str, Any], parent_id: str | None) -> None:
         raw_uuid = node.get("uuid")
         if raw_uuid in (None, ""):
-            raise ValueError("Nó legado sem uuid")
+            raise ValueError("Legacy node missing uuid")
         node_id = str(raw_uuid)
         local = {key: value for key, value in node.items() if key not in {"filhos", "slots"}}
         payload = self._encode(local)

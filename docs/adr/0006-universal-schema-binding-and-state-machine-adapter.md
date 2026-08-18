@@ -1,77 +1,74 @@
-# ADR-0006: Adaptador Universal de Esquemas, Desacoplamento Semântico e Mutação sob Demanda
+# ADR-0006: Universal Schema Binding, Semantic Decoupling, and On-Demand Mutation
 
 ## Status
-**Aceito (Accepted)** — Implementado em `src/tare_dialog/schema_adapter.py` e integrado a todos os módulos do Dialog Engine.
+**ACCEPTED** — Implemented in `src/tare_dialog/schema_adapter.py` and integrated across all Dialog Engine modules.
 
 ---
 
-## Contexto e Problema
+## Context & Problem
 
-Sistemas de IA Conversacional corporativos utilizam uma grande variedade de esquemas JSON e formatos de exportação:
-1. **IBM Watson Assistant V1 Classic:** Lista linear flat de `dialog_nodes` com ponteiros relacionais (`parent`, `previous_sibling`) e condições SpEL (`conditions`).
-2. **IBM Watson Assistant V2 Actions:** Estruturas baseadas em `actions`, `steps` e `handlers`.
-3. **Árvores Corporativas Aninhadas e Customizadas:** Estruturas hierárquicas profundas com nomes em português (`nos`, `filhos`, `condicao`, `contexto`, `variaveisContexto`, `slots`).
-4. **Outros Frameworks de Estado (Rasa, Botpress, Dialogflow, Autômatos Genéricos):** Esquemas com `states`, `guards`, `transitions`, `memory`, `branches`.
+Enterprise conversational AI platforms utilize a wide variety of JSON schemas and export structures:
+1. **IBM Watson Assistant V1 Classic:** Flat lists of `dialog_nodes` with pointer topologies (`parent`, `previous_sibling`) and SpEL expressions (`conditions`).
+2. **IBM Watson Assistant V2 Actions:** Action-oriented representations with `actions`, `steps`, and `handlers`.
+3. **Enterprise Nested & Custom Dialog Trees:** Deep hierarchical trees with localized property names (`nos`, `filhos`, `condicao`, `contexto`, `slots`).
+4. **Alternative State Frameworks (Rasa, Botpress, Dialogflow, Generic Automata):** Formats utilizing `states`, `guards`, `transitions`, `memory`, `branches`.
 
-### O Risco de Acoplamento
-Se ferramentas de análise (diff semântico, mutadores, validadores, analisadores de grafos) utilizarem nomes de campos literais fixos (`node.get("condicao")` ou `node.get("filhos")`), o motor torna-se acoplado a um dialeto específico, perdendo sua universalidade e quebrando diante de variações de esquema.
+### The Risk of Schema Coupling
+If analysis tools (semantic diff, rule mutators, static validators, graph analyzers) rely on hardcoded property names (`node.get("condicao")` or `node.get("filhos")`), the engine becomes tightly coupled to a single vendor dialect, breaking portability across heterogeneous systems.
 
-Além disso, em árvores corporativas de escala massiva (mais de 28.000 nós e 80 MB de JSON), operações ingênuas de clonagem antecipada (`deepcopy`) para dezenas de milhares de mutantes resultam em gigabytes de alocação desnecessária de memória RAM.
-
----
-
-## Decisão de Arquitetura
-
-Implementamos uma **camada de adaptação e desacoplamento semântico** baseada em três pilares fundamentais:
-
-### 1. `SchemaBinding` & `KeyMapping` Agnósticos
-Criamos uma abstração declarativa que traduz qualquer esquema de entrada para as primitivas da **Árvore de Sintaxe Abstrata (AST) Universal**:
-- **Identificador:** `get_id(node)` ➔ mapeia `dialog_node`, `uuid`, `id`, `state_id`, etc.
-- **Título / Nome:** `get_title(node)` ➔ mapeia `title`, `nome`, `name`, `label`.
-- **Condição / Guarda:** `get_condition(node)` & `set_condition(node, val)` ➔ mapeia `conditions`, `condicao`, `guard`, `when`.
-- **Contexto / Memória:** `get_context(node)` & `set_context_variable(node, k, v)` ➔ mapeia `context`, `contexto`, `variables`, `state`.
-- **Hierarquia e Filhos:** `get_children(node)` ➔ mapeia `children`, `filhos`, `branches`, `steps`.
-- **Captura e Slots:** `get_slots(node)` ➔ mapeia `slots`, `quadros`, `parameters`.
-
-### 2. Auto-Descoberta de Esquema com Pontuação de Confiança (`SchemaBinding.discover`)
-O motor examina as chaves do documento e infere dinamicamente o alinhamento com a AST Canônica, calculando uma pontuação de confiança e permitindo sobreposição explícita do usuário via configuração.
-
-### 3. Materialização de Mutantes sob Demanda (*Lazy On-Demand Mutation*)
-Em vez de clonar o documento inteiro na fase de descoberta, cada `RuleMutant` armazena apenas a mutação delta (`node_id`, `new_cond`, `new_ctx_key`, `new_ctx_val`). O documento mutado completo só é materializado sob demanda no momento em que um cenário de teste é executado contra ele, reduzindo o tempo de geração de 29.000 mutantes para menos de **0.6 segundos**.
+Furthermore, on massive enterprise trees (28,000+ nodes and 80+ MB JSON exports), eager deep-cloning (`deepcopy`) for tens of thousands of mutant variants exhausts available memory.
 
 ---
 
-## Diagrama da Arquitetura
+## Architectural Decision
+
+We implement a **decoupled semantic adaptation layer** based on three core architectural tenets:
+
+### 1. Vendor-Agnostic `SchemaBinding` & `KeyMapping`
+A declarative abstraction translating arbitrary JSON formats into canonical **Universal Abstract Syntax Tree (UniversalDialogAST)** primitives:
+- **Node Identifier:** `get_id(node)` ➔ maps `dialog_node`, `uuid`, `id`, `state_id`, `name`, `key`.
+- **Title / Name:** `get_title(node)` ➔ maps `title`, `nome`, `name`, `label`.
+- **Condition / Guard:** `get_condition(node)` & `set_condition(node, val)` ➔ maps `conditions`, `condicao`, `guard`, `when`.
+- **Context / Memory:** `get_context(node)` & `set_context_variable(node, k, v)` ➔ maps `context`, `contexto`, `variables`, `state`.
+- **Hierarchy & Children:** `get_children(node)` ➔ maps `children`, `filhos`, `branches`, `steps`.
+- **Captures & Slots:** `get_slots(node)` ➔ maps `slots`, `parameters`, `entities_capture`.
+
+### 2. Automatic Schema Discovery with Confidence Scoring (`SchemaBinding.discover`)
+The engine inspects structural keys across the document and dynamically infers alignment to the canonical AST, calculating a confidence score and allowing user overrides via declarative `KeyMapping`.
+
+### 3. Lazy On-Demand Mutant Materialization
+Instead of cloning the entire baseline document upfront during discovery, each `RuleMutant` stores only its mutation delta (`node_id`, `new_cond`, `new_ctx_key`, `new_ctx_val`). The complete mutated document is generated lazily on demand when a test scenario is executed against it. This reduces discovery time for 29,000+ mutants to less than **0.6 seconds**.
+
+---
+
+## Architecture Diagram
 
 ```text
   ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ FORMATO DE ENTRADA DESCONHECIDO (Watson V1, V2, Rasa, Árvores Aninhadas)   │
+  │ UNKNOWN INPUT FORMAT (Watson V1, V2, Rasa, Nested Enterprise Trees)        │
   └─────────────────────────────────────────────────────────────────────────────┘
                                          │
                                          ▼
   ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ 🧭 MOTOR DE AUTO-DESCOBERTA & BINDING (SchemaBinding.discover)              │
-  │    • Inspeciona chaves estruturais e calcula matriz de alinhamento          │
-  │    • Suporta configuração declarativa (KeyMapping) ou inferência automática │
+  │ 🧭 SCHEMA AUTO-DISCOVERY & BINDING (SchemaBinding.discover)                 │
+  │    • Inspects structural keys and computes alignment matrix                 │
+  │    • Supports declarative custom bindings (KeyMapping) or auto-inference   │
   └─────────────────────────────────────────────────────────────────────────────┘
                                          │
                                          ▼
   ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ 💎 AST CANÔNICA UNIVERSAL (UniversalDialogAST & Invariantes Formais)        │
-  │    • Todos os módulos operam EXCLUSIVAMENTE sobre accessors universais:     │
-  │      [Diff] • [Validador 12-Fases] • [Mutator AST] • [Rule Mutator]         │
+  │ 💎 UNIVERSAL CANONICAL AST (UniversalDialogAST & Formal Invariants)         │
+  │    • All modules operate EXCLUSIVELY upon canonical accessors:              │
+  │      [Diff Engine] • [12-Phase Validator] • [AST Mutator] • [Rule Mutator] │
   └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Consequências e Benefícios
+## Consequences & Benefits
 
-### Positivas
-- **100% Desacoplado:** O motor opera sobre qualquer JSON de diálogo corporativo sem alteração no código fonte.
-- **Suporte a Novas Plataformas:** Integração trivial com novos assistentes (Rasa, Botpress, LangGraph) apenas declarando um `KeyMapping`.
-- **Desempenho Extremo:** 36.135 nós navegados em 0.10s e 29.202 mutantes gerados em 0.56s em árvores de 83 MB.
-- **Auditabilidade e Curadoria:** O manifesto de auditoria (`audit_manifest.json`) rastreia o alinhamento e as decisões de curadores de forma independente do formato do fornecedor.
-
-### Neutras / Compensações
-- Documentos completamente atípicos sem nenhuma correspondência com termos comuns de autômatos podem exigir a definição manual de um `KeyMapping`.
+### Positive
+- **100% Decoupled:** Operates across arbitrary enterprise conversational JSONs without source code modifications;
+- **Extensible:** Integration with new platforms (Rasa, Botpress, LangGraph) requires only specifying a `KeyMapping`;
+- **High Performance:** 36,135 nodes navigated in 0.10s and 29,202 mutants generated in 0.56s on 83 MB trees;
+- **Auditability:** Audit manifests (`audit_manifest.json`) track schema alignment and curator decisions independently of vendor formats.

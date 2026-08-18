@@ -2,93 +2,97 @@
 
 # tare.tools — Dialog Engine
 
-**Árvore de Sintaxe Abstrata (AST) Conversacional Determinística, Motor de Diff Semântico, Avaliador SpEL Seguro, Analisador de Grafos Topológicos, Fuzzer Simbólico por Mutação, Adaptador de Esquemas Desacoplado e Console Mission Control de Triagem para Diálogos e Árvores de Conversação Corporativas.**
+**Deterministic Conversational AST, Semantic Diff Engine, Hardened SpEL Evaluator, Topological Graph Analyzer, Symbolic Mutation Fuzzer, Decoupled Schema Binding Adapter, and Mission Control Triage Console for Enterprise Dialog Systems.**
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://python.org)
-[![High Performance](https://img.shields.io/badge/Accelerated-orjson%20%7C%20networkx%20%7C%20rich-purple.svg)](#performance-e-arquitetura)
-[![Tests](https://img.shields.io/badge/Tests-151%20Passed%20(100%25)-success.svg)](#testes-automatizados)
-[![Dual Distribution](https://img.shields.io/badge/Dual%20Dist-Modular%20%2B%20Ephemeral%20ADA-orange.svg)](#estratégia-de-distribuição-dupla)
+[![High Performance](https://img.shields.io/badge/Accelerated-orjson%20%7C%20networkx%20%7C%20rich-purple.svg)](#performance-and-architecture)
+[![Tests](https://img.shields.io/badge/Tests-151%20Passed%20(100%25)-success.svg)](#automated-testing)
+[![Dual Distribution](https://img.shields.io/badge/Dual%20Dist-Modular%20%2B%20Ephemeral%20ADA-orange.svg)](#dual-distribution-strategy)
 [![Live Web Console](https://img.shields.io/badge/Web%20Console-SIGNAL%20Live-blueviolet.svg)](https://augusto-scarvalho.github.io/tare.tools.dialog-engine/)
 
 <p align="center">
-  <a href="#por-que-o-dialog-engine">Por que o Dialog Engine?</a> •
-  <a href="#adaptador-universal-de-esquemas--desacoplamento-total">Adaptador Universal</a> •
-  <a href="#exemplos-práticos-do-mundo-real-o-que-resolvemos">Exemplos do Mundo Real</a> •
-  <a href="#geração-automática-de-testes--curadoria">Geração de Testes & Curadoria</a> •
-  <a href="#catálogo-de-funcionalidades--benefícios">Funcionalidades</a> •
-  <a href="#taxonomia-de-validação-em-12-fases">Taxonomia de Validação</a> •
-  <a href="#referência-de-comandos-cli">Referência da CLI</a> •
-  <a href="#api-da-biblioteca-python">API Python</a> •
-  <a href="#console-mission-control-html">Console SIGNAL</a>
+  🌐 <b>Languages:</b> <b>🇺🇸 English (en-US)</b> | <a href="README.pt-BR.md">🇧🇷 Português (pt-BR)</a>
+</p>
+
+<p align="center">
+  <a href="#why-dialog-engine-the-paradigm-shift">Why Dialog Engine?</a> •
+  <a href="#universal-schema-binding--total-decoupling">Universal Schema Adapter</a> •
+  <a href="#real-world-practical-examples-what-we-solve">Real-World Examples</a> •
+  <a href="#automated-test-generation--curation">Test Generation & Curation</a> •
+  <a href="#feature-catalog--benefits">Features & Benefits</a> •
+  <a href="#the-12-phase-validation-taxonomy">Validation Taxonomy</a> •
+  <a href="#cli-command-reference">CLI Reference</a> •
+  <a href="#python-library-api">Python API</a> •
+  <a href="#mission-control-html-console">SIGNAL Console</a>
 </p>
 
 </div>
 
 ---
 
-## Por que o Dialog Engine? (A Mudança de Paradigma)
+## Why Dialog Engine? (The Paradigm Shift)
 
-Sistemas de IA Conversacional corporativos (IBM Watson Assistant, árvores de diálogo legadas e grafos de agentes) são máquinas de estado não lineares e profundamente aninhadas, contendo milhares de nós, condições dinâmicas em *Spring Expression Language* (SpEL), slots multi-turnos e digressões recursivas.
+Enterprise conversational AI systems (IBM Watson Assistant, legacy dialog trees, and agentic conversational state graphs) are deeply nested, non-linear state machines containing thousands of nodes, dynamic Spring Expression Language (SpEL) conditions, multi-turn slot frames, and recursive digressions.
 
-Ferramentas tradicionais de diff baseadas em texto (`git diff`) e comparadores de JSON ingênuos falham catastroficamente por três motivos estruturais:
+Traditional text-based diff tools (`git diff`) and naive JSON comparators fail completely due to three systemic limitations:
 
-1. **Ruído de Falsos Positivos:** A simples reordenação de chaves JSON ou movimentação de nós irmãos gera milhares de linhas de conflitos falsos.
-2. **Cegueira para Expressões SpEL Dinâmicas:** Erros de sintaxe, branches inalcançáveis, contradições de tipo e condições sombreadas passam despercebidos até o momento da execução em produção.
-3. **Escala e Colapso de Digressão:** Árvores corporativas massivas (mais de 28.000 nós, JSONs de 80 MB+) esgotam a memória RAM durante o parsing DOM ingênuo, enquanto digressões recursivas corrompem o estado da conversa.
+1. **False-Positive Diff Chaos:** Trivial JSON key reordering or sibling movement generates thousands of lines of spurious conflicts.
+2. **Blindness to Dynamic SpEL Expressions:** Syntactic anomalies, unreachable branches, type contradictions, and shadowed conditions remain undetected until runtime failures in production.
+3. **Scale & Digression Exhaustion:** Massive enterprise trees (28,000+ nodes, 80+ MB JSON exports) trigger out-of-memory crashes during naive DOM parsing, while recursive digressions corrupt conversation stack state.
 
 ```text
-DIFF TRADICIONAL INGÊNUO (Ruído de Chaves & Falsos Positivos)
-[Nó A (linha 40)] <--- Caos de Diffs ---> [Nó A (linha 1200)]  [!] Reordenação de chaves cria conflitos inexistentes.
+TRADITIONAL NAIVE DIFF (Spurious Key Noise & False Conflicts)
+[Node A (line 40)] <--- Diff Chaos ---> [Node A (line 1200)]  [!] Key reordering creates false conflicts.
 
-MOTOR DE AST DETERMINÍSTICO DO DIALOG ENGINE (Preservação de Invariantes Semânticos)
-   +---> [Intent: #transferencia] ---> [Slot: $valor (@sys-number)] ---> [Condição: $valor > 0]
-   |                                                                                │
-[Raiz da Árvore] ----------------- (Binding por UUID Determinístico) -------------> [Nó de Sucesso]
-   |                                                                                ▲
-   +---> [Digressão: #ajuda] --------> (Preservação de Pilha / Retorno) ------------+
+DETERMINISTIC DIALOG AST ENGINE (Semantic Invariant Preservation)
+   +---> [Intent: #transfer] ---> [Slot: $amount (@sys-number)] ---> [Condition: $amount > 0]
+   |                                                                          │
+[Root Tree] -------------------- (Deterministic UUID Binding) -------------> [Success Node]
+   |                                                                          ▲
+   +---> [Digression: #help] ---> (Stack Preservation / Return) --------------+
 ```
 
 ---
 
-## Adaptador Universal de Esquemas & Desacoplamento Total (`SchemaBinding`)
+## Universal Schema Binding & Total Decoupling (`SchemaBinding`)
 
-O Dialog Engine é **100% agnóstico de formatos proprietários e nomes de chaves JSON**. Através do módulo `tare_dialog.schema_adapter` ([ADR-0006](docs/adr/0006-universal-schema-binding-and-state-machine-adapter.md)), o motor descobre e alinha dinamicamente qualquer máquina de estados conversacional para a **Árvore de Sintaxe Abstrata (AST) Canônica**:
+The Dialog Engine is **100% agnostic to vendor-specific key names and proprietary JSON schemas**. Powered by `tare_dialog.schema_adapter` ([ADR-0006](docs/adr/0006-universal-schema-binding-and-state-machine-adapter.md)), the engine dynamically discovers and binds any conversational state machine into the canonical **Universal Abstract Syntax Tree (UniversalDialogAST)**:
 
 ```text
   ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ QUALQUER MÁQUINA DE ESTADOS / DIÁLOGO JSON / GRAFO                          │
+  │ ANY STATE MACHINE / DIALOG TREE JSON / AGENTIC GRAPH                        │
   │ • Watson V1 Flat (dialog_nodes, conditions, context, parent)                │
   │ • Watson V2 Actions (actions, steps, handlers, variables)                   │
-  │ • Árvore Aninhada / Customizada (nos, filhos, condicao, contexto, slots)    │
-  │ • Rasa / Botpress / Formato Próprio (states, guard, transitions, variables) │
+  │ • Nested / Enterprise Hierarchical (nos, filhos, condicao, contexto, slots) │
+  │ • Rasa / Botpress / Custom Schema (states, guard, transitions, variables)   │
   └─────────────────────────────────────────────────────────────────────────────┘
                                          │
                                          ▼
   ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ 🧭 MOTOR DE AUTO-DESCOBERTA & BINDING SEMÂNTICO (tare_dialog.schema_adapter)│
-  │    • Inspeciona as chaves estruturais e calcula a matriz de alinhamento     │
-  │    • Permite binding automático ou customizado pelo usuário (KeyMapping)   │
+  │ 🧭 SCHEMA AUTO-DISCOVERY & BINDING ADAPTER (tare_dialog.schema_adapter)     │
+  │    • Automatically inspects structural keys and computes alignment matrix   │
+  │    • Supports declarative custom bindings (KeyMapping) or auto-inference   │
   └─────────────────────────────────────────────────────────────────────────────┘
                                          │
                                          ▼
   ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ 💎 AST CANÔNICA UNIVERSAL (UniversalDialogAST & Invariantes de Autômatos)   │
-  │    Todas as ferramentas operam EXCLUSIVAMENTE sobre primitivas universais:  │
+  │ 💎 UNIVERSAL CANONICAL AST (UniversalDialogAST & Automata Invariants)       │
+  │    All engine tools operate EXCLUSIVELY upon canonical primitives:          │
   │    [Mutator] • [Rule Mutator] • [Diff Engine] • [Validator] • [Graph]       │
   └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Auto-Descoberta Semântica em Código:
+### Auto-Discovery in Code:
 ```python
 from tare_dialog import SchemaBinding
 
-# 1. Descoberta Automática de Esquema com Pontuação de Confiança
-binding = SchemaBinding.discover(meu_json_desconhecido)
-print(f"Esquema: {binding.schema_name} (Confiança: {binding.confidence_score * 100}%)")
+# 1. Automatic Schema Discovery with Confidence Scoring
+binding = SchemaBinding.discover(unknown_document)
+print(f"Schema: {binding.schema_name} (Confidence: {binding.confidence_score * 100}%)")
 
-# 2. Navegação Agnóstica de Nós (Nenhum campo hardcoded!)
-for node in binding.iter_all_nodes(meu_json_desconhecido):
+# 2. Agnostic Node Iteration (Zero hardcoded keys!)
+for node in binding.iter_all_nodes(unknown_document):
     node_id = binding.get_id(node)
     cond = binding.get_condition(node)
     ctx = binding.get_context(node)
@@ -96,16 +100,16 @@ for node in binding.iter_all_nodes(meu_json_desconhecido):
 
 ---
 
-## Exemplos Práticos do Mundo Real (O que Resolvemos)
+## Real-World Practical Examples (What We Solve)
 
-Para entender como o **Dialog Engine** protege assistentes em bancos, seguradoras e telecomunicações, veja **5 casos reais** onde ferramentas comuns falham e como o nosso motor atua:
+To understand how **Dialog Engine** protects high-stakes conversational agents in banking, insurance, and telecommunications, consider **5 real-world production cases** where generic tools fail:
 
 ---
 
-### 🚨 Exemplo 1: O "Bug Silencioso" de Limite de Crédito (Mutação & Ponto Cego)
+### 🚨 Example 1: The "Silent Bug" in Credit Underwriting (Rule Mutation & Test Blindspots)
 
-* **O Cenário:** Um bot bancário analisa score para aprovar aumento de limite de cartão.
-* **O Código no Nó de Diálogo:**
+* **The Scenario:** A banking assistant evaluates user credit scores to approve credit card limit increases.
+* **The Code in Dialog Node:**
   ```json
   {
     "dialog_node": "node_credit_underwriting",
@@ -114,21 +118,21 @@ Para entender como o **Dialog Engine** protege assistentes em bancos, seguradora
     }
   }
   ```
-* **A Falsa Segurança dos Testes:** O time de QA tem 5 testes automatizados (consultar saldo, ver fatura, pedir ajuda). Todos passam (100% verde).
-* **O que o Mutador de Regras (`dialog-engine audit-rules`) faz:**
-  1. O motor **inverte a lógica** do nó: muda `>= 750` para `< 750` (negando o bom pagador e aprovando o mau pagador!).
-  2. Roda a suíte de testes do cliente contra o bot mutado.
-  3. **Resultado:** Todos os 5 testes continuam passando!
-  4. **O Alerta do Engine:** 
-     `[🔴 RISCO FINANCEIRO] Ponto Cego Detectado: Nenhum teste existente valida a regra de crédito em node_credit_underwriting!`
-* **A Solução Automática:** Com a flag `--synthesize-gaps`, o engine **gera sozinho o arquivo de teste que faltava**:
+* **The False Sense of Security:** The QA team has 5 automated tests (check balance, view invoices, request help). All pass with 100% success.
+* **What the Rule Mutator (`dialog-engine audit-rules`) does:**
+  1. The engine **inverts the business logic**: flips `>= 750` to `< 750` (denying good credit and approving bad debtors!).
+  2. Runs the existing test scenarios against the mutated bot.
+  3. **Result:** All 5 tests still pass with 100% green!
+  4. **The Engine Alert:** 
+     `[🔴 FINANCIAL RISK] Test Blindspot Detected: No existing test validates the credit underwriting threshold in node_credit_underwriting!`
+* **The Automatic Solution:** Using `--synthesize-gaps`, the engine **synthesizes the missing JSON test scenario automatically**:
   ```json
   {
     "id": "gap_test_credit_score_high",
-    "name": "[Auto-Synthesized] Validar Aprovação de Limite com Score Alto",
+    "name": "[Auto-Synthesized] Verify Credit Approval for High Score",
     "turns": [
       {
-        "input": {"text": "quero aumentar meu limite", "context": {"user_score": 800, "account_months": 12}},
+        "input": {"text": "I want to increase my limit", "context": {"user_score": 800, "account_months": 12}},
         "expected": {"node": "node_credit_underwriting"}
       }
     ]
@@ -137,43 +141,43 @@ Para entender como o **Dialog Engine** protege assistentes em bancos, seguradora
 
 ---
 
-### 🚨 Exemplo 2: A Pegadinha do Slot com Número Zero (Validação Estática 12-Fases)
+### 🚨 Example 2: The Number Slot "Zero" Trap (12-Phase Static Validation)
 
-* **O Cenário:** O bot de pesquisa de satisfação pergunta ao cliente:
-  > *"Em uma escala de 0 a 10, qual a chance de você nos indicar?"*
-* **A Condição configurada no Slot:**
+* **The Scenario:** A customer satisfaction prompt asks:
+  > *"On a scale from 0 to 10, how likely are you to recommend us?"*
+* **The Slot Configuration in the Bot:**
   ```json
   {
     "variable": "$nps_score",
     "conditions": "@sys-number > 0"
   }
   ```
-* **O Problema em Produção:** O texto do prompt aceita `0`, mas a condição de captura `@sys-number > 0` **ignora o número zero**.
-  - Quando o cliente insatisfeito digita `0`, o bot entra em loop repetindo: *"Desculpe, não entendi. Digite de 0 a 10"*. O cliente se irrita e desiste.
-* **Como o Dialog Engine resolve:**
-  A **Fase 4** (`sys_number_zero_not_captured`) audita simultaneamente o prompt em linguagem natural e a AST de condições, emitindo o alerta antes do deploy:
+* **The Production Failure:** The prompt explicitly accepts `0`, but the slot condition `@sys-number > 0` **discards zero**.
+  - When an unsatisfied customer enters `0`, the bot loops: *"Sorry, I didn't understand. Enter a number from 0 to 10"*. The user abandons the chat.
+* **How Dialog Engine catches it:**
+  **Phase 4** (`sys_number_zero_not_captured`) audits both the natural language prompt and the SpEL AST condition, flagging the contradiction prior to deployment:
   ```text
-  [⚠️ SEMANTIC WARNING] slot_nps_rating: O prompt inclui zero no domínio ("0 a 10"), 
-  mas a condição de captura (@sys-number > 0) descarta o zero!
+  [⚠️ SEMANTIC WARNING] slot_nps_rating: The prompt includes zero in its domain ("0 to 10"),
+  but the capture condition (@sys-number > 0) rejects zero!
   ```
 
 ---
 
-### 🚨 Exemplo 3: O "Diff Fantasma" de 3.000 Linhas (Diff Semântico AST)
+### 🚨 Example 3: The 3,000-Line "Ghost Diff" (Semantic AST Diff)
 
-* **O Cenário:** Um curador apenas renomeou o título de um nó de *"Menu Principal"* para *"Menu Inicial"* na interface web. A ferramenta visual salvou o JSON reordenando as propriedades.
-* **No `git diff` Tradicional:**
+* **The Scenario:** A conversational curator merely updated a node title from *"Main Menu"* to *"Start Menu"* in a visual web studio. The visual tool exported the JSON with reordered object keys.
+* **In Traditional `git diff`:**
   ```diff
-  - "title": "Menu Principal",
+  - "title": "Main Menu",
   - "conditions": "#menu",
   - "responses": [ ... ],
   + "conditions": "#menu",
   + "responses": [ ... ],
-  + "title": "Menu Inicial"
-  @@ ... 3.200 linhas de falso conflito no PR ... @@
+  + "title": "Start Menu"
+  @@ ... 3,200 lines of spurious conflict in Pull Request ... @@
   ```
-  *(Revisão de PR inviável — ninguém consegue achar o que realmente mudou).*
-* **No `dialog-engine diff`:**
+  *(PR reviews become impossible — reviewers cannot find the actual change).*
+* **In `dialog-engine diff`:**
   ```text
   ============================================================
     tare.tools — Semantic AST Diff Report
@@ -182,23 +186,23 @@ Para entender como o **Dialog Engine** protege assistentes em bancos, seguradora
   Nodes Removed: 0
   Nodes Changed: 1
 
-  ~ [node_main_menu] Menu Principal -> Menu Inicial
-    • title: "Menu Principal" -> "Menu Inicial"
+  ~ [node_main_menu] Main Menu -> Start Menu
+    • title: "Main Menu" -> "Start Menu"
   ============================================================
   ```
-  *(Identificação cirúrgica em milissegundos, com 0 linhas de ruído).*
+  *(Instant surgical identification with zero noise).*
 
 ---
 
-### 🚨 Exemplo 4: O Loop Infinito Oculto em Digressão (Grafo Topológico)
+### 🚨 Example 4: The Hidden Infinite Loop in Digression (Topological Graph)
 
-* **O Cenário:**
-  1. O nó `BoasVindas` pula para `VerificaAutenticacao`.
-  2. `VerificaAutenticacao` pula para `MenuOpcoes`.
-  3. Em uma manutenção posterior, alguém adicionou um jump de fallback em `MenuOpcoes` voltando para `BoasVindas`.
-* **O Problema:** O usuário digita "olá" e o assistente entra em **loop infinito de 50 execuções por turno**, travando o backend e estourando a conta de requisições de API.
-* **Como o Dialog Engine resolve:**
-  O módulo `dialog-engine graph` constrói o dígrafo de saltos (`networkx.DiGraph`) e aponta o ciclo no CI/CD:
+* **The Scenario:**
+  1. Node `Welcome` jumps to `CheckAuthentication`.
+  2. `CheckAuthentication` jumps to `OptionsMenu`.
+  3. During later maintenance, a fallback jump was added to `OptionsMenu` pointing back to `Welcome`.
+* **The Production Failure:** The user types "hello" and the assistant enters an **infinite loop of 50 turns per execution**, exhausting backend resources and API quotas.
+* **How Dialog Engine catches it:**
+  The `dialog-engine graph` module constructs a directed graph (`networkx.DiGraph`) and blocks the CI/CD pipeline:
   ```text
   [🔴 GRAPH CYCLE DETECTED] Infinite loop found:
   node_welcome -> node_auth_check -> node_menu_options -> node_welcome
@@ -206,256 +210,256 @@ Para entender como o **Dialog Engine** protege assistentes em bancos, seguradora
 
 ---
 
-### 🚨 Exemplo 5: O Parêntese SpEL Esquecido (Hardened SpEL Sandbox)
+### 🚨 Example 5: The Unclosed SpEL Parenthesis (Hardened SpEL Sandbox)
 
-* **O Cenário:** Um curador escreveu uma condição composta com erro de digitação:
+* **The Scenario:** A curator typed a compound SpEL condition with a typo:
   ```json
-  "conditions": "#consultar_fatura && ($canal == 'whatsapp' || ($tipo_cliente == 'pj'"
+  "conditions": "#invoice_query && ($channel == 'whatsapp' || ($client_type == 'corp'"
   ```
-  *(Falta fechar o parêntese `)` no final).*
-* **O Problema em Produção:** No Watson Assistant ou Copilot, quando o usuário aciona essa rota, o motor de expressão falha e o bot exibe a mensagem de crash padrão do sistema: *"Ops, ocorreu um erro inesperado."*
-* **Como o Dialog Engine resolve:**
-  O lexer estático `tare_dialog.spel` audita a expressão antes da publicação sem executar código:
+  *(Missing the closing parenthesis `)` at the end).*
+* **The Production Failure:** In Watson Assistant or Copilot Studio, when a user triggers this route, the engine crashes and outputs the system fallback error: *"Sorry, an unexpected error occurred."*
+* **How Dialog Engine catches it:**
+  The static lexer `tare_dialog.spel` audits expressions without executing arbitrary code:
   ```text
   [❌ SYNTACTIC ERROR] node_invoice_query: context_spel_unclosed_parenthesis
-  Expressão: ($canal == 'whatsapp' || ($tipo_cliente == 'pj'
-  Erro: Há um parêntese aberto no caractere 36 sem fechamento correspondente.
+  Expression: ($channel == 'whatsapp' || ($client_type == 'corp'
+  Error: Unclosed parenthesis detected at character index 36.
   ```
 
 ---
 
-## Geração Automática de Testes & Curadoria
+## Automated Test Generation & Curation
 
-Mesmo que seu projeto não tenha nenhum teste hoje, o **Dialog Engine constrói e executa sua suíte de testes automaticamente**:
+Even if your project has zero tests today, **Dialog Engine automatically synthesizes and runs your full test suite**:
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 1. GERAÇÃO POR NÓ / ROTA (`dialog-engine generate-tests`)                                   │
-│    Calcula a topologia da raiz até o nó desejado e sintetiza o teste JSON de ponta a ponta. │
+│ 1. TOPOLOGY-DRIVEN TEST SYNTHESIS (`dialog-engine generate-tests`)                          │
+│    Computes the full path from root to destination and generates the end-to-end test JSON.  │
 ├─────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 2. GERAÇÃO FOCADA NO DIFF (`dialog-engine generate-diff-tests`)                             │
-│    Gera testes direcionados exclusivamente para os nós que foram alterados ou adicionados.  │
+│ 2. DIFF-FOCUSED TEST SYNTHESIS (`dialog-engine generate-diff-tests`)                        │
+│    Synthesizes targeted test scenarios exclusively for modified and added nodes.            │
 ├─────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 3. SÍNTESE DE PONTOS CEGOS (`dialog-engine audit-rules --synthesize-gaps`)                  │
-│    Descobre regras de negócio desprotegidas e escreve os testes JSON que faltavam.          │
+│ 3. BLINDSPOT GAP SYNTHESIS (`dialog-engine audit-rules --synthesize-gaps`)                  │
+│    Discovers unprotected business rules and writes the missing test scenarios.              │
 ├─────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 4. RUNNER DETERMINÍSTICO EM MEMÓRIA (`dialog-engine test`)                                  │
-│    Executa cenários em milissegundos sem precisar de rede ou servidor conectado.            │
+│ 4. DETERMINISTIC IN-MEMORY RUNNER (`dialog-engine test`)                                    │
+│    Executes test scenarios in milliseconds without network or live Watson server.           │
 └─────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Catálogo de Funcionalidades & Benefícios
+## Feature Catalog & Benefits
 
-| Módulo / CLI | Capacidade Chave | Benefício Real de Engenharia |
+| Module / CLI | Key Capability | Tangible Engineering Benefit |
 |---|---|---|
-| **`schema_adapter`** | Adaptador Universal & Auto-Descoberta | Desacoplamento total de formatos proprietários e mapeamento semântico automático. |
-| **`generate-tests`** | Geração Automática de Testes | Criação automática de cenários de teste conversacionais a partir da topologia da árvore. |
-| **`generate-diff-tests`** | Geração de Testes por Diff | Criação de testes direcionados exclusivamente para nós modificados ou novos. |
-| **`audit-rules`** | Auditoria de Regras & Pontos Cegos | Injeta falhas de negócio e gera automaticamente os testes JSON que faltavam. |
-| **`mutate`** | Mutação Simbólica de AST & Autômatos | 7 operadores formais e teste metamórfico provando 100% de detecção e 0 falsos alarmes. |
-| **`diff`** | Diff Semântico AST sem Ruído | Identificação de nós por UUID imutável, eliminando falsos conflitos de chaves JSON. |
-| **`validate`** | Validador Estático em 12 Fases | Contrato único de qualidade cobrindo SpEL, topologia, slots, transbordo e causalidade. |
-| **`spel`** | Sandbox e Lexer SpEL Seguro | Validação de sintaxe e avaliação fail-closed com cache LRU e bloqueio de injeções. |
-| **`graph`** | Grafo Topológico & Análise de Ciclos | Detecção antecipada de loops infinitos e exportação para JSON e Graphviz DOT. |
-| **`explore`** | Descoberta Universal de Esquemas | Normalização bidirecional entre Watson V1 flat e formatos aninhados corporativos. |
-| **Console SIGNAL** | Interface Web de Triagem (HTML) | Console visual ao vivo com 14 temas de engenharia, busca e drawer de inspeção. |
+| **`schema_adapter`** | Universal Schema Binding & Discovery | Complete decoupling from vendor JSON names with automatic semantic alignment. |
+| **`generate-tests`** | Automated Test Generation | Automatic synthesis of conversational test scenarios from node topology. |
+| **`generate-diff-tests`** | Diff-Driven Test Synthesis | Targeted test generation exclusively for changed/added nodes. |
+| **`audit-rules`** | Business Rule Audit & Test Blindspots | Injects business faults and automatically synthesizes missing JSON test scenarios. |
+| **`mutate`** | Symbolic AST & Automata Mutation | 7 formal operators and metamorphic testing proving 100% detection and 0 false alarms. |
+| **`diff`** | Noise-Free Semantic AST Diff | Node matching by immutable UUID, eliminating false conflicts from JSON key ordering. |
+| **`validate`** | 12-Phase Static Validator | Single quality contract covering SpEL syntax, topology, slots, handoffs, and causality. |
+| **`spel`** | Hardened SpEL Lexer & Sandbox | Static syntax auditing and fail-closed evaluation with LRU caching and dunder protection. |
+| **`graph`** | Topological Graph & Cycle Detection | Early discovery of infinite loops with export to JSON and Graphviz DOT. |
+| **`explore`** | Universal Schema Introspection | Lossless bidirectional normalization between Watson V1 flat and enterprise nested schemas. |
+| **SIGNAL Console** | Web Triage Console (HTML) | Zero-install web application with 14 engineering themes, instant search, and curation drawer. |
 
 ---
 
-## Pilares Arquiteturais
+## Architectural Pillars
 
 ```text
-                                ARQUITETURA DO TARE.TOOLS DIALOG ENGINE
-                                
+                             TARE.TOOLS DIALOG ENGINE ARCHITECTURE
+                             
    ┌───────────────────────┐     ┌────────────────────────┐     ┌───────────────────────┐
-   │  Adaptador Universal  │ ──► │  Lexer AST SpEL Seguro │ ──► │ Grafo Topológico &    │
-   │  de Esquemas (Binding)│     │  com Cache LRU         │     │ Detecção de Ciclos    │
-   │  (schema_adapter.py)  │     │  (tare_dialog.spel)    │     │ (tare_dialog.graph)   │
+   │  Universal Schema &   │ ──► │  Hardened SpEL AST     │ ──► │  Topological Graph &  │
+   │  Binding Adapter      │     │  Lexer with LRU Cache  │     │  Cycle Detection      │
+   │  (schema_adapter.py)  │     │  (tare_dialog.spel)    │     │  (tare_dialog.graph)  │
    └───────────────────────┘     └────────────────────────┘     └───────────────────────┘
                │                             │                              │
                ▼                             ▼                              ▼
    ┌───────────────────────┐     ┌────────────────────────┐     ┌───────────────────────┐
-   │ Motor de Diff AST     │     │ Validador em 12 Fases  │     │ Mutação Simbólica &   │
-   │ Semântico com orjson  │     │ com Contrato Único     │     │ Gerador de Testes     │
+   │ Semantic AST Diff     │     │ 12-Phase Validation    │     │ Symbolic Mutation &   │
+   │ Engine with orjson    │     │ Single Issue Contract  │     │ Test Generator Engine │
    │ (tare_dialog.diff)    │     │ (tare_dialog.validator)│     │ (tare_dialog.mutator) │
    └───────────────────────┘     └────────────────────────┘     └───────────────────────┘
 ```
 
 ---
 
-## Estratégia de Distribuição Dupla
+## Dual Distribution Strategy
 
-O projeto é disponibilizado em **duas distribuições distintas** ([ADR-0004](docs/adr/0004-dual-distribution-strategy-modular-and-ephemeral.md)):
+The project provides **two distinct distributions** ([ADR-0004](docs/adr/0004-dual-distribution-strategy-modular-and-ephemeral.md)):
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ 📦 DISTRIBUIÇÃO A — PACOTE MODULAR (Ambientes de Engenharia, Servidores, CI)│
-│    - Pacote moderno src/tare_dialog com orjson, networkx, pydantic e rich.   │
-│    - Suporte a mutate, audit-rules, generate-tests com renderização rica.   │
-│    - Console interativo SIGNAL Mission Control (HTML).                      │
-│    - Suíte de 151 testes automatizados (pytest).                            │
+│ 📦 DISTRIBUTION A — MODULAR PACKAGE (Engineering Workstations, Servers, CI) │
+│    - Full src/tare_dialog package with orjson, networkx, pydantic, and rich. │
+│    - CLI commands for mutate, audit-rules, and generate-tests.              │
+│    - Interactive SIGNAL Mission Control Console (HTML).                     │
+│    - 151 automated unit & integration tests (pytest).                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ ⚡ DISTRIBUIÇÃO B — STANDALONE EFÊMERO (ChatGPT ADA & M365 Copilot Sandbox) │
-│    - Arquivo único zero-install: dist/dialog_engine_standalone.py (~255 KB) │
-│    - Executável portátil ZipApp: dist/dialog_engine.pyz (~59 KB)             │
-│    - Suba diretamente no Code Interpreter / Sandbox sem precisar de pip!    │
+│ ⚡ DISTRIBUTION B — EPHEMERAL STANDALONE (ChatGPT ADA & Copilot Sandboxes)   │
+│    - Zero-install single file: dist/dialog_engine_standalone.py (~255 KB)   │
+│    - Portable ZipApp executable: dist/dialog_engine.pyz (~59 KB)            │
+│    - Upload directly to Code Interpreter / Sandboxes without pip!           │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Taxonomia de Validação em 12 Fases
+## The 12-Phase Validation Taxonomy
 
-O validador estático unificado (`tare_dialog.validator`) opera sob um **contrato único de issues** classificado em 12 fases progressivas:
+The unified static validator (`tare_dialog.validator`) operates under a **Single Issue Contract** across 12 progressive phases:
 
-| Fase | Código de Regra | Descrição do Invariante Semântico |
+| Phase | Rule Code | Semantic Invariant Description |
 |---|---|---|
-| **Fase 1** | `disabled_condition_false` | Detecta nós desativados inalcançáveis com condição literal `false`. |
-| **Fase 2** | `invalid_spel_syntax` | Audita sintaxe estática SpEL (parênteses desbalanceados, aspas abertas). |
-| **Fase 3** | `unresolved_jump_target` | Identifica jumps que apontam para UUIDs inexistentes. |
-| **Fase 4** | `sys_number_zero_not_captured` | Previne falha onde prompt aceita 0 mas captura `@sys-number` não trata zero. |
-| **Fase 5** | `unsatisfiable_slot_enable` | Alerta contradições lógicas em condições de habilitação de slots (`$var && $var == false`). |
-| **Fase 6** | `slot_type_contradiction` | Identifica incompatibilidade entre entidade de captura e tipo de entrada. |
-| **Fase 7** | `slot_depends_on_later_slot` | Detecta slot cuja condição depende de variável preenchida posteriormente. |
-| **Fase 8** | `slot_depends_on_optional_slot`| Alerta dependência de variável capturada por slot anterior opcional. |
-| **Fase 9** | `digression_blocked_by_transition` | Audita nós com digressão de saída bloqueados por transição forçada. |
-| **Fase 10** | `multiple_first_siblings` | Identifica grupos de nós irmãos com múltiplos nós marcados como primeiro. |
-| **Fase 11** | `missing_root_anything_else` | Alerta ausência de nó raiz de fallback com condição `anything_else`. |
-| **Fase 12** | `too_many_response_types` | Valida o limite de componentes por bloco de resposta condicional. |
+| **Phase 1** | `disabled_condition_false` | Flags intentionally disabled branches with explicit `false` conditions. |
+| **Phase 2** | `invalid_spel_syntax` | Audits static SpEL syntax (unclosed parentheses, unclosed quotes). |
+| **Phase 3** | `unresolved_jump_target` | Identifies jumps targeting nonexistent node UUIDs. |
+| **Phase 4** | `sys_number_zero_not_captured` | Prevents bugs where prompts include 0 but capturing condition ignores zero. |
+| **Phase 5** | `unsatisfiable_slot_enable` | Detects contradictory slot-enable conditions (`$var && $var == false`). |
+| **Phase 6** | `slot_type_contradiction` | Identifies mismatches between capture conditions and processed input types. |
+| **Phase 7** | `slot_depends_on_later_slot` | Detects slot conditions depending on variables filled by subsequent slots. |
+| **Phase 8** | `slot_depends_on_optional_slot`| Warns on slot dependencies requiring variables from optional prior slots. |
+| **Phase 9** | `digression_blocked_by_transition` | Audits digression nodes blocked by forced jump transitions. |
+| **Phase 10** | `multiple_first_siblings` | Catches broken sibling groups with multiple initial sibling nodes. |
+| **Phase 11** | `missing_root_anything_else` | Warns if root dialog level lacks a fallback `anything_else` node. |
+| **Phase 12** | `too_many_response_types` | Validates element limits per conditional response block. |
 
 ---
 
-## Instalação e Quickstart
+## Installation & Quickstart
 
-### Instalação como Pacote Python
+### Python Package Installation
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone https://github.com/augusto-scarvalho/tare.tools.dialog-engine.git
 cd tare.tools.dialog-engine
 
-# Instalar dependências de alta performance
+# Install high-performance dependencies
 pip install -e .
 ```
 
-### Executar a Suíte de Testes (151 Testes)
+### Run Test Suite (151 Automated Tests)
 ```bash
 python -m pytest
 ```
 
 ---
 
-## Referência de Comandos CLI
+## CLI Command Reference
 
-A CLI `dialog-engine` (ou `tare-dialog`) oferece suporte nativo a terminal rico (`rich`):
+The `dialog-engine` (or `tare-dialog`) CLI provides native `rich` terminal output:
 
-### 1. Geração Automática de Testes (`generate-tests` & `generate-diff-tests`)
+### 1. Automated Test Generation (`generate-tests` & `generate-diff-tests`)
 ```bash
-# Gerar teste conversacional para alcançar um nó específico
-dialog-engine generate-tests input/skill.json node_card_invoice --output tests/test_fatura.json
+# Synthesize conversational test scenario reaching a target node
+dialog-engine generate-tests input/skill.json node_card_invoice --output tests/test_invoice.json
 
-# Gerar testes automáticos focados nas mudanças entre duas versões
+# Synthesize targeted tests for changes between two versions
 dialog-engine generate-diff-tests current.json candidate.json --output tests/diff_tests.json
 
-# Executar cenário de teste no runner determinístico em memória
-dialog-engine test input/skill.json tests/test_fatura.json
+# Execute scenario in deterministic in-memory runner
+dialog-engine test input/skill.json tests/test_invoice.json
 ```
 
-### 2. Auditoria de Regras de Negócio & Pontos Cegos (`audit-rules`)
+### 2. Business Rule Audit & Test Blindspots (`audit-rules`)
 ```bash
-# Auditar cobertura de regras contra suíte de cenários de teste
+# Audit business rules against test scenarios
 dialog-engine audit-rules input/skill.json --scenarios tests/scenarios.json
 
-# Gerar manifesto auditável e sintetizar automaticamente os testes que faltavam
+# Generate compliance manifest and auto-synthesize missing test scenarios
 dialog-engine audit-rules input/skill.json \
   --scenarios tests/scenarios.json \
   --audit-out dist/audit_manifest.json \
   --synthesize-gaps \
-  --gaps-out-dir dist/novos_testes/
+  --gaps-out-dir dist/synthesized_tests/
 ```
 
-### 3. Análise de Mutação Simbólica de AST (`mutate`)
+### 3. Symbolic AST Mutation Analysis (`mutate`)
 ```bash
-# Executar mutação formal de AST e calcular Mutation Score
+# Execute formal mutation testing and compute Mutation Score
 dialog-engine mutate input/skill.json
 
-# Exportar variantes mutantes JSON para testes externos
+# Export mutated JSON variants for external fuzzing
 dialog-engine mutate input/skill.json --output-dir dist/mutants/
 ```
 
-### 4. Diff Semântico AST (`diff`)
+### 4. Semantic AST Diff (`diff`)
 ```bash
-# Diff visual com terminal formatado em cores
+# Rich formatted terminal diff
 dialog-engine diff input/current.json input/candidate.json --format rich
 
-# Gerar relatório de diff em Markdown
+# Generate Markdown diff report
 dialog-engine diff input/current.json input/candidate.json --format markdown --output output/diff.md
 
-# Gerar diff estruturado em JSON
+# Generate structured JSON diff
 dialog-engine diff input/current.json input/candidate.json --format json --output output/diff.json
 ```
 
-### 5. Validação Estática com Contrato Único (`validate`)
+### 5. Static Validation (`validate`)
 ```bash
-# Validação rica no terminal com tabela de issues
+# Rich terminal validation table
 dialog-engine validate input/skill.json --rich
 
-# Exportar relatório completo de validação em JSON
+# Export full validation report in JSON
 dialog-engine validate input/skill.json --output output/validation_report.json
 ```
 
-### 6. Grafo de Fluxo e Detecção de Ciclos (`graph`)
+### 6. Flow Graph & Cycle Detection (`graph`)
 ```bash
-# Gerar grafo topológico e estatísticas de alcance
+# Generate topological graph and reachability telemetry
 dialog-engine graph input/skill.json --output-json output/graph.json
 
-# Exportar visualização Graphviz DOT
+# Export Graphviz DOT visualization
 dialog-engine graph input/skill.json --output-dot output/graph.dot
 ```
 
 ---
 
-## API da Biblioteca Python
+## Python Library API
 
 ```python
 import tare_dialog as td
 
-# 1. Carregamento com auto-descoberta semântica (SchemaBinding)
+# 1. High-speed document loading with auto-discovered schema
 doc = td.load_json("input/skill.json")
 binding = td.SchemaBinding.discover(doc)
-print(f"Esquema: {binding.schema_name} (Confiança: {binding.confidence_score * 100}%)")
+print(f"Schema: {binding.schema_name} (Confidence: {binding.confidence_score * 100}%)")
 
-# 2. Executar auditoria de regras contra cenários de teste
+# 2. Audit business rules against test scenarios
 scenarios = td.load_json("tests/scenarios.json")
 report = td.evaluate_rules_against_scenarios(doc, scenarios, binding=binding)
-print(f"Taxa de Proteção por Testes: {report['summary']['test_mutation_score_pct']}%")
+print(f"Test Suite Protection Rate: {report['summary']['test_mutation_score_pct']}%")
 
-# 3. Executar validação estática em 12 fases
-relatorio = td.validate(doc)
-print(f"Total de issues encontradas: {relatorio['summary']['issues']}")
+# 3. Execute 12-phase static validation
+val_report = td.validate(doc)
+print(f"Total issues found: {val_report['summary']['issues']}")
 
-# 4. Calcular diff semântico entre duas versões
+# 4. Semantic AST diff between two versions
 diff = td.summarize(doc_v1, doc_v2, td.DEFAULT_IGNORED_FIELDS)
-print(f"Mudanças: +{diff['summary']['added']} ~{diff['summary']['changed']} -{diff['summary']['removed']}")
+print(f"Changes: +{diff['summary']['added']} ~{diff['summary']['changed']} -{diff['summary']['removed']}")
 
-# 5. Avaliar expressão SpEL com sandbox seguro
-resultado = td.evaluate_condition("$valor > 100 && #confirmar", context={"valor": 150}, intents=["confirmar"])
-assert resultado is True
+# 5. Safe SpEL condition evaluation
+result = td.evaluate_condition("$balance > 100 && #confirm", context={"balance": 150}, intents=["confirm"])
+assert result is True
 ```
 
 ---
 
-## Console Mission Control (HTML)
+## Mission Control HTML Console
 
-O projeto inclui o console visual interativo [`triage_viewer.html`](triage_viewer.html), hospedado ao vivo em [GitHub Pages](https://augusto-scarvalho.github.io/tare.tools.dialog-engine/), oferecendo:
-- **14 Temas Visuais de Engenharia** (NASA Deep Space, Tokyo Night, Monokai Pro, Synthwave, etc.).
-- **Filtros Avançados:** Filtragem por severidade, fase de auditoria, UUID do nó e status de regressão.
-- **Painel de Inspeção Profunda:** Visualização do JSON bruto do nó, árvore hierárquica e histórico de mudanças.
-- **Curadoria Interativa:** Botões de aprovação/rejeição de mutantes e exportação de manifestos assinados.
+The project includes [`triage_viewer.html`](triage_viewer.html), hosted live on [GitHub Pages](https://augusto-scarvalho.github.io/tare.tools.dialog-engine/):
+- **14 Engineering Themes** (NASA Deep Space, Tokyo Night, Monokai Pro, Synthwave, etc.).
+- **Advanced Filtering:** Filter by severity, audit phase, node UUID, and regression status.
+- **Deep Inspection Drawer:** Side-by-side node JSON inspection, AST hierarchy, and mutation gap details.
+- **Interactive Curation:** Approve/reject mutants and export signed compliance manifests with 1-click.
 
 ---
 
-## Licença
+## License
 
-Distribuído sob a licença **Apache-2.0**. Consulte o arquivo [LICENSE](LICENSE) e [NOTICE](NOTICE) para obter detalhes completos.
+Distributed under the **Apache-2.0** License. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for complete details.

@@ -65,19 +65,19 @@ def preflight_check(path: Path, max_bytes: int | None = None) -> PreflightMetada
     """Inspect the export without materializing the complete JSON document."""
     resolved_max = resolve_max_input_bytes(max_bytes)
     if not path.exists():
-        raise ValueError(f"Arquivo não encontrado: {path}")
+        raise ValueError(f"File not found: {path}")
 
     file_size = path.stat().st_size
     if resolved_max > 0 and file_size > resolved_max:
         raise ValueError(
-            f"Arquivo {path} ({file_size} bytes) excede o limite configurado de {resolved_max} bytes."
+            f"File {path} ({file_size} bytes) exceeds configured limit of {resolved_max} bytes."
         )
 
     warnings: list[str] = []
     if file_size > 10 * 1024 * 1024:
         warnings.append(
-            f"Export de tamanho elevado ({file_size / (1024*1024):.1f} MiB). "
-            "Use operações source-backed/summary quando disponíveis."
+            f"Large export file size ({file_size / (1024*1024):.1f} MiB). "
+            "Use source-backed / summary operations when available."
         )
 
     with DialogSourceIndex.open(path, max_bytes=resolved_max) as source_index:

@@ -1076,14 +1076,14 @@ def analyze_conditions(document: dict[str, Any], check_variables: bool = False, 
         formula = formula_by_node[node]
         if not formula["is_satisfiable"]:
             if formula["has_explicit_false"]:
-                add("disabled_condition_false", "info", node, "A condição contém `false` explícito e mantém o ramo deliberadamente desabilitado no fluxo normal.", condition)
+                add("disabled_condition_false", "info", node, "Condition contains explicit 'false' deliberately disabling branch in normal flow.", condition)
             else:
-                add("unsatisfiable_condition", "warning", node, "A condição é logicamente impossível sem um `false` explícito de desabilitação.", condition)
+                add("unsatisfiable_condition", "warning", node, "Condition is logically unsatisfiable without an explicit 'false' disablement.", condition)
         if INVALID_ENTITY_SHORTHAND_MEMBER.search(condition):
-            add("invalid_spel_entity_shorthand_member", "error", node, "Um atalho @entidade:(valor) já retorna booleano e não pode acessar uma propriedade como .literal.", condition)
+            add("invalid_spel_entity_shorthand_member", "error", node, "Shorthand @entity:(val) already returns boolean and cannot access property like .literal.", condition)
         invalid_called_entities = set(INVALID_ENTITY_CALL_NAME.findall(condition))
         if invalid_called_entities:
-            add("invalid_spel_entity_call", "error", node, "Entidades não são funções; a sintaxe @entidade(...) é inválida.", condition)
+            add("invalid_spel_entity_call", "error", node, "Entities are not functions; syntax @entity(...) is invalid.", condition)
 
         owner = node.split(":")[1] if node.startswith("response:") else (node.removeprefix("slot:") if node.startswith("slot:") else node)
         is_dormant = node in dormant_nodes or owner in dormant_nodes
@@ -1091,16 +1091,16 @@ def analyze_conditions(document: dict[str, Any], check_variables: bool = False, 
 
         for intent in condition_references(condition)["intents"]:
             if intent not in intents:
-                add("unknown_intent", ref_severity, node, f"Intent não definida: #{intent}.", condition)
+                add("unknown_intent", ref_severity, node, f"Undefined intent: #{intent}.", condition)
         for entity in condition_references(condition)["entities"]:
             if entity in invalid_called_entities:
                 continue
             if entity not in entities and not entity.startswith("sys-"):
-                add("unknown_entity", ref_severity, node, f"Entidade não definida: @{entity}.", condition)
+                add("unknown_entity", ref_severity, node, f"Undefined entity: @{entity}.", condition)
         if check_variables:
             for variable in condition_references(condition)["variables"]:
                 if variable not in variables and variable not in {"integrations", "skills"}:
-                    add("unknown_variable", "info", node, f"Variável de contexto não declarada: ${variable}.", condition)
+                    add("unknown_variable", "info", node, f"Undeclared context variable: ${variable}.", condition)
     for _group, siblings in iter_groups(document.get("nos") or []):
         # Do not invent a UUID tie-break and then report reachability from it.
         # Duplicate/missing legacy sequence values make relative order an
@@ -1124,12 +1124,12 @@ def analyze_conditions(document: dict[str, Any], check_variables: bool = False, 
                 always_true_id, always_true_index = always_true
                 interval = {str(item.get("uuid") or "(sem_uuid)") for item in siblings[always_true_index + 1:index + 1] if isinstance(item, dict)}
                 if not (interval & jump_targets):
-                    add("shadowed_by_always_true", "warning", node_id, f"Um nó anterior ({always_true_id}) com condição true impede a avaliação deste irmão no fluxo normal, sem entrada Jump observada no intervalo.", condition)
+                    add("shadowed_by_always_true", "warning", node_id, f"A prior sibling ({always_true_id}) with condition true prevents evaluation of this sibling in normal flow, with no observed Jump entrance in interval.", condition)
             elif formula["normalized"] in seen and formula["is_satisfiable"]:
                 prior_id, prior_index = seen[formula["normalized"]]
                 interval = {str(item.get("uuid") or "(sem_uuid)") for item in siblings[prior_index + 1:index + 1] if isinstance(item, dict)}
                 if not (interval & jump_targets):
-                    add("duplicate_sibling_condition", "info", node_id, f"Condição idêntica à do irmão anterior {prior_id}, sem entrada Jump observada no intervalo.", condition)
+                    add("duplicate_sibling_condition", "info", node_id, f"Condition is identical to prior sibling {prior_id}, with no observed Jump entrance in interval.", condition)
             if formula["is_always_true"]:
                 always_true = (node_id, index)
             seen.setdefault(formula["normalized"], (node_id, index))
@@ -1162,13 +1162,13 @@ def evaluate_document_conditions(document: dict[str, Any], environment: dict[str
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Analisa alcançabilidade e referências em condições do Watson Assistant Dialog.")
-    parser.add_argument("input", type=Path, help="export JSON do Watson Assistant")
-    parser.add_argument("--output", type=Path, help="arquivo de saída; padrão: stdout")
-    parser.add_argument("--check-variables", action="store_true", help="também valida variáveis fora de variaveisContexto; pode gerar avisos para integrações externas")
-    parser.add_argument("--scenario", type=Path, help="JSON com input, context, intents e entities para avaliar as condições")
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
-    parser.add_argument("--summary-only", action="store_true", help="emite apenas sumário consolidado de contagens")
+    parser = argparse.ArgumentParser(description="Analyzes reachability and symbol references in dialog conditions.")
+    parser.add_argument("input", type=Path, help="dialog JSON export")
+    parser.add_argument("--output", type=Path, help="output file path; default: stdout")
+    parser.add_argument("--check-variables", action="store_true", help="also validate context variables against catalog")
+    parser.add_argument("--scenario", type=Path, help="JSON scenario with input, context, intents, and entities")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emits only consolidated count summary")
     args = parser.parse_args()
     try:
         doc = load_json(args.input, max_bytes=args.max_input_bytes)
@@ -1177,7 +1177,7 @@ def main() -> int:
             scenario_data = load_json(args.scenario, max_bytes=args.max_input_bytes)
             report["evaluation"] = evaluate_document_conditions(doc, scenario_data, summary_only=args.summary_only)
     except (ValueError, KeyError) as error:
-        print(f"Erro: {error}", file=sys.stderr)
+        print(f"Error: {error}", file=sys.stderr)
         return 2
     output = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if args.output:
@@ -1251,7 +1251,7 @@ def normalize_document(document: dict[str, Any]) -> dict[str, Any]:
         return document
     raw_nodes = document.get("dialog_nodes")
     if not isinstance(raw_nodes, list):
-        raise ValueError("O diálogo precisa conter nos (legado) ou dialog_nodes (API V1).")
+        raise ValueError("Dialog must contain 'nos' (legacy) or 'dialog_nodes' (V1 API).")
     by_id = {str(node["dialog_node"]): node for node in raw_nodes if isinstance(node, dict) and node.get("dialog_node") is not None}
     children: dict[str | None, list[str]] = {}
     for node_id, node in by_id.items():
@@ -1792,12 +1792,12 @@ def run_scenarios(document: dict[str, Any], scenarios: list[tuple[dict[str, Any]
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Executa sessões determinísticas de teste de um Dialog Watson.")
+    parser = argparse.ArgumentParser(description="Executes deterministic test scenarios against a dialog state machine.")
     parser.add_argument("dialog", type=Path)
     parser.add_argument("scenarios", type=Path, nargs="+")
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
-    parser.add_argument("--summary-only", action="store_true", help="emite apenas sumário consolidado de execução")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emits only consolidated execution summary")
     args = parser.parse_args()
     try:
         doc = load_json(args.dialog, max_bytes=args.max_input_bytes)
@@ -1810,7 +1810,7 @@ def main() -> int:
                 "results": [{"name": r["name"], "source": r["source"], "passed": r["passed"]} for r in report["results"]],
             }
     except (ValueError, KeyError) as error:
-        print(f"Erro: {error}", file=sys.stderr)
+        print(f"Error: {error}", file=sys.stderr)
         return 2
     output = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if args.output:
@@ -1982,7 +1982,7 @@ def build_graph(document: dict[str, Any], summary_only: bool = False) -> dict[st
         node_id = str(node["uuid"])
         kind = "event_handler" if node.get("event_name") else "slot_child" if node.get("uuidSlot") else "dialog_node"
         if node_id in vertices:
-            raise ValueError(f"UUID de nó duplicado: {node_id}")
+            raise ValueError(f"Duplicate node UUID: {node_id}")
         vertices[node_id] = node_metadata(node, kind)
         if parent and edge_type:
             add_edge(parent, node_id, edge_type)
@@ -1990,7 +1990,7 @@ def build_graph(document: dict[str, Any], summary_only: bool = False) -> dict[st
         for slot in sorted(node.get("slots") or [], key=lambda value: str(value["uuid"])):
             slot_id = f"slot:{slot['uuid']}"
             if slot_id in vertices:
-                raise ValueError(f"UUID de slot duplicado: {slot['uuid']}")
+                raise ValueError(f"Duplicate slot UUID: {slot['uuid']}")
             vertices[slot_id] = slot_metadata(slot)
             add_edge(node_id, slot_id, "contains_slot")
             children = slot.get("filhos") or []
@@ -2075,8 +2075,13 @@ def build_graph(document: dict[str, Any], summary_only: bool = False) -> dict[st
 
 
 def dot(graph: dict[str, Any]) -> str:
-    colors = {"dialog_node": "#DCEEFF", "slot_child": "#FFF1CC", "event_handler": "#FFE2B8", "slot": "#E5D8FF"}
-    lines = ["digraph watson_dialog {", "  rankdir=LR;", "  node [shape=box, style=rounded, fontname=Arial];"]
+    lines = ["digraph WatsonDialog {", "  rankdir=LR;", '  node [fontname="Helvetica", fontsize=10];', '  edge [fontname="Helvetica", fontsize=8];']
+    colors = {
+        "dialog_node": "#E8F0FE",
+        "slot_child": "#FEF7E0",
+        "event_handler": "#FCE8E6",
+        "slot": "#F1F3F4",
+    }
     for vertex in graph.get("vertices", []):
         label = vertex.get("name") or vertex["id"]
         if vertex.get("folder"):
@@ -2098,17 +2103,17 @@ render_dot = dot
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Gera um grafo direcionado de um export Watson Assistant Dialog.")
-    parser.add_argument("input", type=Path, help="export JSON do Watson Assistant")
+    parser = argparse.ArgumentParser(description="Generates a directed graph from a dialog export.")
+    parser.add_argument("input", type=Path, help="JSON dialog export")
     parser.add_argument("--format", choices=("json", "dot"), default="json")
-    parser.add_argument("--output", type=Path, help="arquivo de saída; padrão: stdout")
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
-    parser.add_argument("--summary-only", action="store_true", help="emite apenas contagens consolidadas do grafo")
+    parser.add_argument("--output", type=Path, help="output file path; default: stdout")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emits only consolidated graph counts")
     args = parser.parse_args()
     try:
         graph = build_graph(load_json(args.input, max_bytes=args.max_input_bytes), summary_only=args.summary_only)
     except (ValueError, KeyError) as error:
-        print(f"Erro: {error}", file=sys.stderr)
+        print(f"Error: {error}", file=sys.stderr)
         return 2
     output = json.dumps(graph, ensure_ascii=False, indent=2, sort_keys=True) + "\n" if args.format == "json" else dot(graph)
     if args.output:
@@ -2406,7 +2411,7 @@ def validate_v1_structure(document: dict[str, Any], issues: list[dict[str, Any]]
     for node_data in nodes:
         node_id = str(node_data["dialog_node"])
         if node_id in by_id:
-            issues.append(issue("semantic", "duplicate_dialog_node_id", "error", node_id, "dialog_node", node_id, f"O ID {node_id} é duplicado na API V1."))
+            issues.append(issue("semantic", "duplicate_dialog_node_id", "error", node_id, "dialog_node", node_id, f"The ID {node_id} is duplicated in V1 API."))
         else:
             by_id[node_id] = node_data
 
@@ -2417,14 +2422,14 @@ def validate_v1_structure(document: dict[str, Any], issues: list[dict[str, Any]]
         parent_id = str(parent) if parent not in (None, "") else None
         children[parent_id].append(node_id)
         if parent_id and parent_id not in by_id:
-            issues.append(issue("semantic", "unresolved_parent", "error", node_id, "parent", parent, f"O parent {parent_id} não existe."))
+            issues.append(issue("semantic", "unresolved_parent", "error", node_id, "parent", parent, f"Parent node {parent_id} does not exist."))
         if parent_id == node_id:
-            issues.append(issue("semantic", "self_parent", "error", node_id, "parent", parent, "Um nó não pode ser pai de si mesmo."))
+            issues.append(issue("semantic", "self_parent", "error", node_id, "parent", parent, "A node cannot be its own parent."))
         ancestor = parent_id
         seen: set[str] = set()
         while ancestor in parents and ancestor not in seen:
             if ancestor == node_id:
-                issues.append(issue("semantic", "parent_is_descendant", "error", node_id, "parent", parent, "O parent não pode ser descendente do nó."))
+                issues.append(issue("semantic", "parent_is_descendant", "error", node_id, "parent", parent, "Parent cannot be a descendant of the node."))
                 break
             seen.add(ancestor)
             ancestor = parents[ancestor]
@@ -2433,57 +2438,57 @@ def validate_v1_structure(document: dict[str, Any], issues: list[dict[str, Any]]
     for node_id, node_data in by_id.items():
         node_type = str(node_data.get("type") or "standard")
         if node_type not in V1_NODE_TYPES:
-            issues.append(issue("syntactic", "unknown_dialog_node_type", "error", node_id, "type", node_type, f"Tipo de nó V1 não suportado: {node_type}."))
+            issues.append(issue("syntactic", "unknown_dialog_node_type", "error", node_id, "type", node_type, f"Unsupported V1 node type: {node_type}."))
         previous = node_data.get("previous_sibling")
         if previous not in (None, ""):
             previous_id = str(previous)
             previous_owners[previous_id].append(node_id)
             if previous_id not in by_id:
-                issues.append(issue("semantic", "unresolved_previous_sibling", "error", node_id, "previous_sibling", previous, f"O irmão anterior {previous_id} não existe."))
+                issues.append(issue("semantic", "unresolved_previous_sibling", "error", node_id, "previous_sibling", previous, f"Previous sibling {previous_id} does not exist."))
             elif previous_id == node_id:
-                issues.append(issue("semantic", "self_previous_sibling", "error", node_id, "previous_sibling", previous, "Um nó não pode ser irmão anterior de si mesmo."))
+                issues.append(issue("semantic", "self_previous_sibling", "error", node_id, "previous_sibling", previous, "A node cannot be its own previous sibling."))
             elif by_id[previous_id].get("parent") != node_data.get("parent"):
-                issues.append(issue("semantic", "cross_parent_previous_sibling", "error", node_id, "previous_sibling", previous, "O irmão anterior precisa ter o mesmo parent."))
+                issues.append(issue("semantic", "cross_parent_previous_sibling", "error", node_id, "previous_sibling", previous, "Previous sibling must share the same parent."))
         if node_type == "slot" and str(node_data.get("parent") or "") in by_id and str(by_id[str(node_data["parent"])].get("type") or "standard") != "frame":
-            issues.append(issue("semantic", "slot_parent_not_frame", "error", node_id, "parent", node_data.get("parent"), "Um slot precisa ser filho de um frame."))
+            issues.append(issue("semantic", "slot_parent_not_frame", "error", node_id, "parent", node_data.get("parent"), "A slot must be a child of a frame node."))
         if node_type == "response_condition" and str(node_data.get("parent") or "") in by_id and str(by_id[str(node_data["parent"])].get("type") or "standard") not in {"standard", "frame"}:
-            issues.append(issue("semantic", "response_condition_parent_invalid", "error", node_id, "parent", node_data.get("parent"), "Uma response_condition precisa ser filha de standard ou frame."))
+            issues.append(issue("semantic", "response_condition_parent_invalid", "error", node_id, "parent", node_data.get("parent"), "A response_condition must be a child of standard or frame."))
         if node_type in {"event_handler", "response_condition"} and children.get(node_id):
-            issues.append(issue("semantic", "leaf_node_has_children", "error", node_id, "parent", children[node_id], f"Um nó {node_type} não pode ter filhos."))
+            issues.append(issue("semantic", "leaf_node_has_children", "error", node_id, "parent", children[node_id], f"A {node_type} leaf node cannot have children."))
         if node_type == "event_handler":
             event = str(node_data.get("event_name") or "")
             parent_type = str(by_id.get(str(node_data.get("parent") or ""), {}).get("type") or "standard")
             if event not in V1_SLOT_EVENTS | {"generic"}:
-                issues.append(issue("syntactic", "invalid_event_handler_name", "error", node_id, "event_name", node_data.get("event_name"), "event_name não é permitido para event_handler."))
+                issues.append(issue("syntactic", "invalid_event_handler_name", "error", node_id, "event_name", node_data.get("event_name"), "Invalid event_name for event_handler."))
             elif event == "generic" and parent_type not in {"slot", "frame"}:
-                issues.append(issue("semantic", "generic_handler_parent_invalid", "error", node_id, "parent", node_data.get("parent"), "Handler generic precisa pertencer a slot ou frame."))
+                issues.append(issue("semantic", "generic_handler_parent_invalid", "error", node_id, "parent", node_data.get("parent"), "Generic handler must belong to a slot or frame."))
             elif event in V1_SLOT_EVENTS and parent_type != "slot":
-                issues.append(issue("semantic", "slot_handler_parent_invalid", "error", node_id, "parent", node_data.get("parent"), f"Handler {event} precisa pertencer a slot."))
+                issues.append(issue("semantic", "slot_handler_parent_invalid", "error", node_id, "parent", node_data.get("parent"), f"Handler {event} must belong to a slot."))
 
     for previous, owners in previous_owners.items():
         if len(owners) > 1:
             for node_id in sorted(owners):
-                issues.append(issue("semantic", "previous_sibling_has_multiple_successors", "error", node_id, "previous_sibling", previous, f"Mais de um nó aponta para o irmão anterior {previous}."))
+                issues.append(issue("semantic", "previous_sibling_has_multiple_successors", "error", node_id, "previous_sibling", previous, f"Multiple nodes declare previous sibling {previous}."))
     for parent, sibling_ids in children.items():
         first = [node_id for node_id in sibling_ids if by_id[node_id].get("previous_sibling") in (None, "")]
         if len(first) > 1:
             for node_id in sorted(first):
-                issues.append(issue("semantic", "multiple_first_siblings", "error", node_id, "previous_sibling", None, f"O grupo de irmãos de {parent or 'root'} tem mais de um primeiro nó."))
+                issues.append(issue("semantic", "multiple_first_siblings", "error", node_id, "previous_sibling", None, f"Sibling group under {parent or 'root'} contains multiple initial nodes."))
     for node_id, node_data in by_id.items():
         if str(node_data.get("type") or "standard") == "frame" and not any(str(by_id[child].get("type") or "standard") == "slot" for child in children.get(node_id, [])):
-            issues.append(issue("semantic", "frame_without_slot", "error", node_id, "type", "frame", "Um frame precisa ter pelo menos um filho slot."))
+            issues.append(issue("semantic", "frame_without_slot", "error", node_id, "type", "frame", "A frame node must contain at least one slot child."))
 
         # V1 Jump targets
         next_step = node_data.get("next_step")
         if isinstance(next_step, dict) and next_step.get("behavior") == "jump_to":
             target = next_step.get("dialog_node")
             if target not in (None, "") and str(target) not in set(by_id.keys()) | {"root"}:
-                issues.append(issue("semantic", "unresolved_jump_target", "error", node_id, "next_step.dialog_node", target, f"O jump aponta para o nó inexistente {target}."))
+                issues.append(issue("semantic", "unresolved_jump_target", "error", node_id, "next_step.dialog_node", target, f"Jump targets non-existent node {target}."))
 
         # V1 Disabled conditions
         cond = node_data.get("conditions")
         if cond is not None and str(cond).strip().lower() == "false":
-            issues.append(issue("info", "disabled_condition_false", "info", node_id, "conditions", cond, "A condição contém `false` explícito e mantém o ramo deliberadamente desabilitado no fluxo normal."))
+            issues.append(issue("info", "disabled_condition_false", "info", node_id, "conditions", cond, "Condition contains explicit 'false' deliberately disabling branch in normal flow."))
 
 
 def context_variables(document: dict[str, Any]) -> dict[str, str]:
@@ -2661,7 +2666,7 @@ def validate(document: dict[str, Any], check_variables: bool = False, summary_on
             if not isinstance(node_data, dict):
                 continue
             if node_data.get("uuid") in (None, ""):
-                issues.append(issue("syntactic", "missing_node_uuid", "error", "(sem_uuid)", "uuid", None, "O nó legado não possui o campo uuid obrigatório."))
+                issues.append(issue("syntactic", "missing_node_uuid", "error", "(sem_uuid)", "uuid", None, "Legacy node is missing the required uuid property."))
             node_id = str(node_data.get("uuid") or "(sem_uuid)")
             sequence = node_data.get("sequencia")
             if sequence is not None:
@@ -2675,7 +2680,7 @@ def validate(document: dict[str, Any], check_variables: bool = False, summary_on
                 and str(node_data.get("condicao") or "").strip().lower() == "anything_else"
                 and index != len(siblings) - 1
             ):
-                issues.append(issue("semantic", "anything_else_not_last_sibling", "warning", node_id, "condicao", node_data.get("condicao"), f"anything_else deve ser o último irmão do grupo {parent}."))
+                issues.append(issue("semantic", "anything_else_not_last_sibling", "warning", node_id, "condicao", node_data.get("condicao"), f"anything_else must be the last sibling in group {parent}."))
         for sequence, node_ids in seen_sequences.items():
             if len(node_ids) > 1:
                 ordered_ids = sorted(node_ids)
@@ -2686,12 +2691,12 @@ def validate(document: dict[str, Any], check_variables: bool = False, summary_on
                     parent,
                     "sequencia",
                     {"sequence": sequence, "nodes": ordered_ids},
-                    f"A sequência legacy {sequence!r} é compartilhada por {len(ordered_ids)} irmãos; a ordem relativa não pode ser inferida com segurança.",
+                    f"Legacy sequence {sequence!r} is shared by {len(ordered_ids)} siblings; relative order cannot be safely proven.",
                 ))
 
     roots = document.get("nos") or []
     if not any(isinstance(node_data, dict) and str(node_data.get("condicao") or "").strip().lower() == "anything_else" for node_data in roots):
-        issues.append(issue("semantic", "missing_root_anything_else", "warning", "root", "nos", None, "Não há um nó raiz com a condição anything_else."))
+        issues.append(issue("semantic", "missing_root_anything_else", "warning", "root", "nos", None, "No root node found with condition anything_else."))
 
     variable_by_uuid = context_variables(document)
     for frame, inactive_path in iter_nodes_with_activity(document, condition_dormant):
@@ -2701,7 +2706,7 @@ def validate(document: dict[str, Any], check_variables: bool = False, summary_on
             if not isinstance(slot, dict):
                 continue
             if slot.get("uuid") in (None, ""):
-                issues.append(issue("syntactic", "missing_slot_uuid", "error", "(sem_uuid)", "uuid", None, "O slot não possui o campo uuid obrigatório."))
+                issues.append(issue("syntactic", "missing_slot_uuid", "error", "(sem_uuid)", "uuid", None, "Slot is missing the required uuid property."))
             condition = str(slot.get("condicao") or "")
             slot_id = f"slot:{slot.get('uuid') or '(sem_uuid)'}"
             if not inactive_path:
@@ -2731,11 +2736,11 @@ def validate(document: dict[str, Any], check_variables: bool = False, summary_on
         node_id = str(node_data.get("uuid") or "(sem_uuid)")
         target = node_data.get("uuidEnviarPara")
         if target not in (None, "") and str(target) not in node_ids | {"root"}:
-            issues.append(issue("semantic", "unresolved_jump_target", "error", node_id, "uuidEnviarPara", target, f"O jump aponta para o UUID inexistente {target}."))
+            issues.append(issue("semantic", "unresolved_jump_target", "error", node_id, "uuidEnviarPara", target, f"Jump targets non-existent UUID {target}."))
         if inactive_path or not node_data.get("inDigressionOut"):
             continue
         if target not in (None, "") or str(node_data.get("jumpSelector") or "") == "move_on":
-            issues.append(issue("semantic", "digression_blocked_by_transition", "info", node_id, "inDigressionOut", node_data.get("inDigressionOut"), "O Watson não permite digressão de saída quando o nó ativo força jump ou Skip user input."))
+            issues.append(issue("semantic", "digression_blocked_by_transition", "info", node_id, "inDigressionOut", node_data.get("inDigressionOut"), "Watson prevents digression out when active node forces jump or Skip user input."))
         active_forcing_children = [
             child for child in node_data.get("filhos") or []
             if isinstance(child, dict)
@@ -2749,12 +2754,12 @@ def validate(document: dict[str, Any], check_variables: bool = False, summary_on
                 for child in active_forcing_children
             )
             severity = "info" if all_escapes else "warning"
-            issues.append(issue("semantic", "digression_blocked_by_forcing_child", severity, node_id, "inDigressionOut", node_data.get("inDigressionOut"), f"O Watson não permite digressão de saída com filho ativo true/anything_else; blockers: {blocker_ids}."))
+            issues.append(issue("semantic", "digression_blocked_by_forcing_child", severity, node_id, "inDigressionOut", node_data.get("inDigressionOut"), f"Watson prevents digression out when node has active child with condition true/anything_else; blockers: {blocker_ids}."))
     for owner, responses in iter_response_owners(document):
         for response in responses:
             target = response.get("uuidEnviarPara") or response.get("dialog_node")
             if target not in (None, "") and str(target) not in node_ids | {"root"}:
-                issues.append(issue("semantic", "unresolved_response_jump_target", "error", owner, "respostas.uuidEnviarPara", target, f"O jump de resposta aponta para o UUID inexistente {target}."))
+                issues.append(issue("semantic", "unresolved_response_jump_target", "error", owner, "respostas.uuidEnviarPara", target, f"Response jump targets non-existent UUID {target}."))
 
     validate_v1_structure(document, issues)
 
@@ -2780,13 +2785,13 @@ def validate(document: dict[str, Any], check_variables: bool = False, summary_on
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Valida estrutural e semanticamente um export Watson Assistant Dialog.")
-    parser.add_argument("input", type=Path, help="export JSON do Watson Assistant")
-    parser.add_argument("--output", type=Path, help="arquivo de saída; padrão: stdout")
-    parser.add_argument("--check-variables", action="store_true", help="também valida variáveis fora de variaveisContexto")
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
-    parser.add_argument("--summary-only", action="store_true", help="emite apenas sumário consolidado das contagens de issues")
-    parser.add_argument("--max-issues", type=int, default=None, help="limite máximo de issues detalhadas no relatório")
+    parser = argparse.ArgumentParser(description="Validates structural and semantic rules across dialog state machine exports.")
+    parser.add_argument("input", type=Path, help="JSON dialog export")
+    parser.add_argument("--output", type=Path, help="output file path; default: stdout")
+    parser.add_argument("--check-variables", action="store_true", help="also validate context variables against catalog")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emits only consolidated summary of issue counts")
+    parser.add_argument("--max-issues", type=int, default=None, help="maximum number of detailed issues in output report")
     args = parser.parse_args()
     try:
         report = validate(
@@ -2796,7 +2801,7 @@ def main() -> int:
             max_issues=args.max_issues,
         )
     except (ValueError, KeyError) as error:
-        print(f"Erro: {error}", file=sys.stderr)
+        print(f"Error: {error}", file=sys.stderr)
         return 2
     output = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if args.output:
@@ -2866,8 +2871,8 @@ def load_json(path: Path, max_bytes: int | None = None) -> dict[str, Any]:
         file_size = path.stat().st_size
         if file_size > max_bytes:
             raise ValueError(
-                f"Arquivo {path} ({file_size} bytes) excede o limite configurado de {max_bytes} bytes. "
-                f"Use --max-input-bytes para aumentar o limite se necessário."
+                f"File {path} ({file_size} bytes) exceeds configured limit of {max_bytes} bytes. "
+                f"Use --max-input-bytes to increase limit if necessary."
             )
     try:
         if HAS_ORJSON:
@@ -2876,19 +2881,19 @@ def load_json(path: Path, max_bytes: int | None = None) -> dict[str, Any]:
             with path.open(encoding="utf-8") as file:
                 document = json.load(file)
     except (OSError, ValueError, json.JSONDecodeError if not HAS_ORJSON else Exception) as error:
-        raise ValueError(f"Não foi possível ler {path}: {error}") from error
+        raise ValueError(f"Could not read {path}: {error}") from error
     if not isinstance(document, dict):
-        raise ValueError(f"{path} deve conter um objeto JSON na raiz.")
+        raise ValueError(f"{path} must contain a JSON object at root.")
     return document
 
 
 def item_label(item: Any) -> str:
     if not isinstance(item, dict):
         return str(item)
-    for field in ("nome", "textoTema", "textoAcao", "textoObjeto", "variavelContexto"):
+    for field in ("title", "name", "nome", "textoTema", "textoAcao", "textoObjeto", "variavelContexto"):
         if item.get(field):
             return str(item[field])
-    return item.get("uuid", "(sem nome)")
+    return item.get("uuid", item.get("id", item.get("dialog_node", "(unnamed)")))
 
 
 def keyed_by_uuid(value: Any) -> dict[str, Any] | None:
@@ -3627,31 +3632,31 @@ def markdown(report: dict[str, Any], max_changes: int) -> str:
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Diff semântico de exports do Watson Assistant Dialog.")
-    parser.add_argument("current", type=Path, help="arquivo da versão atual")
-    parser.add_argument("candidate", type=Path, help="arquivo da versão candidata")
+    parser = argparse.ArgumentParser(description="Semantic diff of dialog state machine exports.")
+    parser.add_argument("current", type=Path, help="baseline export JSON file")
+    parser.add_argument("candidate", type=Path, help="candidate export JSON file")
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
-    parser.add_argument("--output", type=Path, help="grava o relatório neste arquivo; padrão: stdout")
-    parser.add_argument("--include-timestamps", action="store_true", help="inclui dataCriacao e dataModificacao")
-    parser.add_argument("--max-changes", type=int, default=20, help="máximo de campos mostrados por item no Markdown")
-    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
-    parser.add_argument("--summary-only", action="store_true", help="emite apenas sumário consolidado de contagens")
+    parser.add_argument("--output", type=Path, help="write report to this file; default: stdout")
+    parser.add_argument("--include-timestamps", action="store_true", help="include creation/modification timestamps")
+    parser.add_argument("--max-changes", type=int, default=20, help="maximum changes displayed per item in Markdown")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="maximum byte limit; default: WATSON_DIALOG_MAX_BYTES or 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emit only consolidated count summary")
     parser.add_argument(
         "--engine",
         choices=("auto", "dom", "external"),
         default="auto",
-        help="auto usa external para exports >= 16 MiB; dom força json.load; external força índice source-backed legacy/V1",
+        help="auto selects external for large exports; dom forces in-memory DOM; external forces source-backed streaming",
     )
     parser.add_argument(
         "--jobs",
         default="auto",
-        help="workers do diff detalhado external: auto ou inteiro positivo",
+        help="external diff parallel workers: auto or positive integer",
     )
     parser.add_argument(
         "--index-backend",
         choices=("auto", "mmap", "transient"),
         default="auto",
-        help="backend do índice external: auto escolhe transient quando um DOM por vez cabe com folga; mmap força bounded-memory estrito",
+        help="external index backend: auto selects transient when memory fits; mmap enforces strict bounded memory",
     )
     args = parser.parse_args()
     if args.max_changes < 1:
@@ -4036,14 +4041,14 @@ def _extract_rich_responses_nested(respostas_list: list[dict[str, Any]]) -> list
 
 
 def explore_document(raw_document: dict[str, Any]) -> UniversalDialogDocument:
-    """Explore and parse any Watson dialog export into UniversalDialogDocument AST."""
+    """Explore and parse any dialog export into UniversalDialogDocument AST."""
     if not isinstance(raw_document, dict):
-        raise ValueError("O documento de diálogo precisa ser um objeto JSON.")
+        raise ValueError("Dialog document must be a JSON object.")
 
     fmt = detect_dialog_format(raw_document)
     name = str(raw_document.get("name") or raw_document.get("nome") or "Dialog")
     desc = str(raw_document.get("description") or raw_document.get("descricao") or "")
-    lang = str(raw_document.get("language") or raw_document.get("idioma") or "pt-br")
+    lang = str(raw_document.get("language") or raw_document.get("idioma") or "en-US")
 
     intents = raw_document.get("intents") or raw_document.get("intencoes") or []
     entities = raw_document.get("entities") or raw_document.get("entidades") or []

@@ -1,38 +1,38 @@
-# ADR-0005 — Modularização de Pacote (`src/tare_dialog`) e Aceleração de Performance (`orjson`, `networkx`, `rich`, `pydantic`)
+# ADR-0005 — Package Modularization (`src/tare_dialog`) and Performance Acceleration (`orjson`, `networkx`, `rich`, `pydantic`)
 
 **Status:** ACCEPTED  
-**Data:** 2026-08-18  
-**Escopo:** `tare.tools.dialog-engine`
+**Date:** 2026-08-18  
+**Scope:** `tare.tools.dialog-engine`
 
 ---
 
-## 1. Contexto & Desafio
+## 1. Context & Operational Challenge
 
-Com a implementação da estratégia de Distribuição Dupla ([ADR-0004](0004-dual-distribution-strategy-modular-and-ephemeral.md)), a restrição artificial de "zero dependências externas" na base de código de desenvolvimento principal tornou-se desnecessária.
+With the formal establishment of the Dual Distribution Strategy ([ADR-0004](0004-dual-distribution-strategy-modular-and-ephemeral.md)), the artificial constraint of "zero external dependencies" on the core development package was eliminated.
 
-Executar o parsing de JSONs com mais de 28.000 nós (83MB+) e dezenas de milhares de expressões SpEL em Python puro sem extensões em C/Rust apresentava oportunidades claras de aceleração e modernização de Developer Experience (DX).
-
----
-
-## 2. Decisão Arquitetural
-
-1. **Estruturação no Padrão `src-layout` (`src/tare_dialog`):**
-   - Agrupamento dos módulos soltos da raiz em um pacote canônico com namespaces claros (`tare_dialog.explorer`, `tare_dialog.diff_engine`, `tare_dialog.validator`, `tare_dialog.spel`, `tare_dialog.graph`, `tare_dialog.triage`, `tare_dialog.cli`).
-   - Manutenção de shims de retrocompatibilidade total na raiz (`watson_*.py`) para não quebrar scripts ou integrações legadas.
-
-2. **Aceleração com Bibliotecas de Alta Performance:**
-   - **`orjson` (Rust C-Extension):** Substituição transparente do `json` padrão no carregamento e cálculo de digests (`load_json()`, `stable_item()`), acelerando o parsing em 1.37x em arquivos de 166MB.
-   - **`networkx`:** Modela o fluxo de diálogo como um `DiGraph`, fornecendo algoritmos eficientes de detecção de ciclos (`find_graph_cycles()`), componentes fortemente conexos e análise de alcançabilidade.
-   - **`pydantic` v2:** Modelagem tipada e validação de esquemas de nós, respostas ricas e componentes universais.
-   - **`rich`:** Interface de linha de comando com tabelas formatadas em cores, painéis e syntax highlighting (`--format rich`, `--rich`).
-
-3. **Otimizações Internas de AST & SpEL:**
-   - **LRU Cache (`@functools.lru_cache`):** Armazena em cache os tokens e diagnósticos de sintaxe SpEL repetidos em milhares de nós.
-   - **Slotted Dataclasses (`slots=True`):** Redução drástica da pegada de memória de instâncias `Token` e nós.
+Parsing massive JSON exports containing 28,000+ nodes (83 MB+) and tens of thousands of SpEL expressions in pure Python without C/Rust native acceleration offered clear opportunities for performance enhancements and modernized Developer Experience (DX).
 
 ---
 
-## 3. Consequências & Ganhos
+## 2. Architectural Decision
 
-* **100% de Paridade Semântica:** A suíte de 132 testes automatizados continuou com 100% de aprovação (132/132 PASS).
-* **Compatibilidade Completa:** O builder de distribuição efêmera (`scripts/build_standalone.py`) continua gerando o artefato autônomo `dialog_engine_standalone.py` e o executável `dialog_engine.pyz` para o ChatGPT Code Interpreter e Copilot.
+1. **Adopt Canonical `src-layout` (`src/tare_dialog`):**
+   - Consolidated legacy root modules into a cohesive package namespace (`tare_dialog.explorer`, `tare_dialog.diff_engine`, `tare_dialog.validator`, `tare_dialog.spel`, `tare_dialog.graph`, `tare_dialog.triage`, `tare_dialog.cli`, `tare_dialog.schema_adapter`).
+   - Retained transparent backwards-compatibility shims at the repository root (`watson_*.py`).
+
+2. **Acceleration via High-Performance Libraries:**
+   - **`orjson` (Rust C-Extension):** Transparently accelerates JSON deserialization and cryptographic digest computation (`load_json()`, `stable_item()`), speeding up multi-megabyte parsing.
+   - **`networkx`:** Models conversational flow as a directed graph (`DiGraph`), providing cycle detection algorithms (`find_graph_cycles()`), strongly connected components analysis, and reachability proofs.
+   - **`pydantic` v2:** Typed modeling and validation for AST nodes, rich response payloads, and universal schema definitions.
+   - **`rich`:** Formatted terminal user interface with color-coded tables, panels, and syntax highlighting (`--format rich`, `--rich`).
+
+3. **Internal AST & SpEL Optimizations:**
+   - **LRU Cache (`@functools.lru_cache`):** Caches token streams and syntax diagnostic trees across identical SpEL expressions found throughout enterprise trees.
+   - **Slotted Dataclasses (`slots=True`):** Reduces the memory footprint of `Token` and node instances.
+
+---
+
+## 3. Consequences & Gains
+
+* **100% Semantic Parity:** Full test suite passes with 100% green status across all supported Python versions.
+* **Seamless Standalone Generation:** The standalone builder (`scripts/build_standalone.py`) automatically strips package-only dependencies and produces single-file artifacts for ChatGPT ADA and Microsoft 365 Copilot Studio.

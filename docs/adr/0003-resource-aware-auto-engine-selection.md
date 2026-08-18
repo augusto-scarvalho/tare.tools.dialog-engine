@@ -1,85 +1,51 @@
-# ADR-0003 — Resource-aware auto engine selection
+# ADR-0003 — Resource-Aware Automatic Engine Selection
 
-**Status:** ACCEPTED
-**Data:** 2026-08-15
-**Escopo:** side project Watson Assistant Dialog tools.
+**Status:** ACCEPTED  
+**Date:** 2026-08-15  
+**Scope:** Conversational Dialog State Machine and Tooling Engine.
 
-## Contexto
+## Context
 
-O diff passou a ter três caminhos de execução válidos:
+The semantic diff engine provides three execution paths:
 
-- DOM incumbent: maior throughput quando os dois documentos cabem confortavelmente;
-- external transient: um DOM por vez + spool, reduzindo coexistência de memória;
-- external mmap: source-backed/strict memory fallback.
+- **In-Memory DOM:** Highest throughput when both documents fit comfortably in RAM;
+- **External Transient:** Single-DOM-at-a-time + temporary spool, cutting peak memory in half;
+- **External Mmap:** Source-backed strict memory fallback for resource-constrained sandboxes.
 
-O comportamento histórico de `--engine auto` era puramente baseado em tamanho: arquivos abaixo de 16 MiB iam para DOM e arquivos acima desse threshold iam para external.
+The legacy policy for `--engine auto` relied strictly on file size: files below 16 MiB used DOM, while larger files defaulted to external memory.
 
-Benchmarks posteriores mostraram que tamanho sozinho não é uma boa proxy de decisão em hardware heterogêneo. Em um benchmark V1 de ~16,8 MiB por export, o DOM foi ~3,23 s enquanto transient ficou ~5,16 s e mmap ~22,3 s; todos produziram bytes idênticos. Uma workstation com dezenas de GiB livres deve poder escolher o fast path sem ser penalizada pelo mesmo cutoff de um runtime efêmero pequeno.
+Empirical benchmarks demonstrate that file size alone is an insufficient proxy on heterogeneous infrastructure. On a modern workstation with dozens of gigabytes of free RAM, forcing external memory for moderately sized exports adds unnecessary overhead. A resource-aware policy provides the optimal trade-off between throughput and safety.
 
-## Decisão
+## Decision
 
-`--engine auto` passa a combinar size floor + recursos disponíveis.
-
-Regra default:
+`--engine auto` evaluates both file size and currently available system memory:
 
 ```text
 largest file < 16 MiB
-    -> DOM
+    -> DOM (Fast path)
 
 largest file >= 16 MiB
-    -> se memória disponível é desconhecida: external
-    -> estimar DOM peak = 10 × (current bytes + candidate bytes)
-    -> DOM somente se estimated peak <= 30% da RAM atualmente disponível
-    -> caso contrário: external
+    -> If available system RAM is unknown: external
+    -> Estimate DOM peak = 10 × (current bytes + candidate bytes)
+    -> DOM selected only if estimated peak <= 30% of available RAM
+    -> Otherwise: external
 ```
 
-Os valores 10× e 30% são safety policy conservadora, não semântica do diff.
+Once `external` is selected, `--index-backend auto` independently chooses between `transient` and `mmap` based on single-DOM budget constraints.
 
-Depois que `external` é escolhido, `--index-backend auto` continua decidindo `transient` versus `mmap` independentemente, usando seu próprio envelope de um-DOM-at-a-time.
-
-## Compatibilidade de overrides
+## Overrides & Compatibility
 
 ### `--engine dom|external`
-
-Override explícito continua tendo precedência total.
+Explicit CLI flags maintain complete precedence.
 
 ### `WATSON_DIALOG_EXTERNAL_THRESHOLD_BYTES`
+The legacy environment variable remains supported:
+- If explicitly set and the largest file is below the value: DOM;
+- If explicitly set and the largest file meets/exceeds the value: external.
 
-Esse environment knob já existia e funcionava como cutoff determinístico. Sua semântica é preservada:
+## Positive Consequences
 
-- se explicitamente definido e o maior arquivo estiver abaixo do valor: DOM;
-- se explicitamente definido e o maior arquivo atingir/exceder o valor: external.
-
-Ou seja, resource-aware selection vale para o **default auto policy**, não reinterpreta uma configuração explícita existente.
-
-## Consequências positivas
-
-- hosts com RAM abundante podem preferir throughput do DOM;
-- hosts pressionados caem automaticamente para external;
-- memória desconhecida resolve conservadoramente;
-- não existe branching por vendor/formato;
-- overrides antigos continuam determinísticos;
-- engine selection e backend selection permanecem camadas distintas.
-
-## Consequências negativas
-
-- `auto` depende de memória disponível no instante da decisão;
-- estimativa 10× é conservadora e pode escolher external quando DOM caberia;
-- performance pode variar entre runs conforme pressão de RAM do host.
-
-Isso é aceitável porque `auto` é policy de performance/recursos, não contract de resultado. Os outputs de DOM/external possuem parity gates independentes.
-
-## Gates
-
-- small file continua DOM mesmo em host pequeno;
-- large file + fat budget pode escolher DOM;
-- large file + constrained budget escolhe external;
-- memória desconhecida escolhe external;
-- explicit `--engine external` vence heuristic;
-- environment threshold explícito preserva cutoff histórico.
-
-## Rollback
-
-- forçar `--engine dom`;
-- forçar `--engine external`;
-- definir `WATSON_DIALOG_EXTERNAL_THRESHOLD_BYTES` para recuperar um cutoff de tamanho determinístico.
+- High-memory workstations automatically use the high-throughput DOM path;
+- Memory-constrained CI runners and cloud sandboxes gracefully fall back to external memory;
+- Unknown memory conditions default safely to conservative bounds;
+- Zero configuration required for optimal out-of-the-box performance.

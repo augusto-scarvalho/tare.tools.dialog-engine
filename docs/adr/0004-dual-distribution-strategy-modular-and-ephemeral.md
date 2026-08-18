@@ -1,71 +1,67 @@
-# ADR-0004 — Estratégia de Distribuição Dupla: Modular e Efêmera (ChatGPT ADA / M365 Copilot)
+# ADR-0004 — Dual Distribution Strategy: Modular and Ephemeral (ChatGPT ADA & Copilot)
 
 **Status:** ACCEPTED  
-**Data:** 2026-08-18  
-**Escopo:** `tare.tools.dialog-engine`
+**Date:** 2026-08-18  
+**Scope:** `tare.tools.dialog-engine`
 
 ---
 
-## 1. Contexto & Desafio
+## 1. Context & Operational Challenge
 
-O ecossistema `tare.tools.dialog-engine` opera em dois contextos de execução fundamentalmente distintos:
+The `tare.tools.dialog-engine` ecosystem operates across two fundamentally distinct runtime environments:
 
-1. **Ambiente de Engenharia / Servidor / CI/CD (Local & Cloud):**
-   - Máquinas de desenvolvimento, pipelines de integração contínua (GitHub Actions), orquestradores de teste e agentes autônomos locais (`tare.tools.os`).
-   - Requer alta modularidade, sharding adaptativo com mmap para árvores gigantescas (100MB+ JSON), concorrência multi-processo (`--jobs 4`), UI interativa com *SIGNAL Design System* (`triage_viewer.html`) e suíte de testes pytest completa.
+1. **Engineering Workstations, Servers, & CI/CD Pipelines (Local & Cloud):**
+   - Developer environments, GitHub Actions CI/CD workflows, test orchestrators, and autonomous coding agents.
+   - Requires modular packaging, external memory sharding for large JSON exports (100 MB+), rich terminal rendering (`rich`), interactive HTML triage interfaces (`triage_viewer.html`), and a full `pytest` test suite.
 
-2. **Runtimes Efêmeros e Sandboxes de IA (ChatGPT Code Interpreter / ADA & M365 Copilot Studio):**
-   - Ambientes descartáveis com restrições severas de isolamento:
-     - **Zero Dependências Externas:** Proibição ou impossibilidade de `pip install` em tempo de execução.
-     - **Container Efêmero:** Ciclo de vida curto (cold start < 100ms, timeout rígido por célula de código).
-     - **Distribuição em Arquivo Único:** Facilidade de upload e importação direta em prompts sem necessidade de descompactar múltiplos módulos (`import dialog_engine_standalone as de`).
+2. **Ephemeral Runtimes & AI Sandboxes (ChatGPT Advanced Data Analysis / ADA & Copilot Studio):**
+   - Disposable sandboxes with strict runtime constraints:
+     - **Zero External Dependencies:** No dynamic `pip install` internet access;
+     - **Ephemeral Lifecycle:** Fast cold-starts (< 100ms) with per-cell execution timeouts;
+     - **Single-File Distribution:** Direct file upload and 1-line import without unzipping packages (`import dialog_engine_standalone as de`).
 
 ---
 
-## 2. Decisão Arquitetural
+## 2. Architectural Decision
 
-Adotamos formalmente a **Estratégia de Distribuição Dupla (Dual Distribution Strategy)** gerenciada por um pipeline automatizado de empacotamento (`scripts/build_standalone.py`):
+Formally establish a **Dual Distribution Strategy** managed via an automated bundling pipeline (`scripts/build_standalone.py`):
 
 ```text
-                                 SRC (Modular Codebase - Pure Stdlib)
-                ┌─────────────────────────────────────────────────────────────┐
-                │ watson_spel.py, watson_dialog_diff.py, watson_dialog_*.py   │
-                └──────────────────────────────┬──────────────────────────────┘
-                                               │
-                      ┌────────────────────────┴────────────────────────┐
-                      ▼                                                 ▼
-        [DISTRIBUIÇÃO MODULAR (Parruda)]             [DISTRIBUIÇÃO EFÊMERA (Standalone)]
-        - pyproject.toml / pytest                    - dist/dialog_engine_standalone.py (monolítico)
-        - Memory-mapped sharding                     - dist/dialog_engine.pyz (zipapp executável)
-        - Multi-core multiprocessing                 - Single-file zero-install para ChatGPT ADA
-        - Interactive HTML triage viewer             - Importável em 1 linha no M365 Copilot
+                               SRC (Modular Package: src/tare_dialog/)
+              ┌─────────────────────────────────────────────────────────────┐
+              │ spel.py, diff_engine.py, validator.py, schema_adapter.py... │
+              └──────────────────────────────┬──────────────────────────────┘
+                                             │
+                    ┌────────────────────────┴────────────────────────┐
+                    ▼                                                 ▼
+      [DISTRIBUTION A — MODULAR PACKAGE]            [DISTRIBUTION B — EPHEMERAL STANDALONE]
+      - pyproject.toml / pytest                     - dist/dialog_engine_standalone.py (~255 KB)
+      - High-performance orjson, networkx, rich     - dist/dialog_engine.pyz (ZipApp executable)
+      - Multi-core multiprocessing                  - Single-file zero-install for ChatGPT ADA
+      - Interactive SIGNAL Web Console              - 1-line import for Python sandboxes
 ```
 
 ---
 
-## 3. Especificação das Distribuições
+## 3. Distribution Specifications
 
-### 📦 Distribuição A — Modular / Enterprise (Parruda)
-* **Público:** Desenvolvedores, Engenheiros de QA, CI/CD e Sistemas Operacionais de Agentes.
-* **Componentes:**
-  - Pacote Python modular padrão (`pyproject.toml`).
-  - Suporte a sharding de memória externa (`watson_dialog_shard.py`, `watson_dialog_external.py`) para árvores com mais de 100.000 nós.
-  - Console visual interativo (`triage_viewer.html`) com 14 temas de engenharia.
-  - Suíte completa de testes unitários e E2E via pytest.
+### 📦 Distribution A — Modular Package
+* **Target Audience:** Developers, QA Engineers, CI/CD runners, and Python application servers.
+* **Components:**
+  - Modern `src/tare_dialog` package (`pyproject.toml`).
+  - High-performance hardware acceleration via `orjson`, `networkx`, and `pydantic`.
+  - Interactive SIGNAL Mission Control web console (`triage_viewer.html`).
+  - Automated test suite with 151 unit and integration tests.
 
-### ⚡ Distribuição B — Standalone Efêmera (ChatGPT ADA / Copilot)
-* **Público:** ChatGPT Code Interpreter, Microsoft 365 Copilot Studio, AWS Lambda, Serverless Edge.
-* **Artefatos Gerados:**
-  1. `dist/dialog_engine_standalone.py` (~220 KB): Monólito Python puro com todos os motores inlined, sem imports relativos entre módulos locais.
-  2. `dist/dialog_engine.pyz` (~50 KB): Executável `zipapp` padrão que roda com `python dialog_engine.pyz <comando>`.
-* **Características:**
-  - 100% Python Standard Library (`json`, `re`, `argparse`, `dataclasses`, `pathlib`, `collections`, `difflib`, `typing`).
-  - CLI unificada com subcomandos: `diff`, `validate`, `explore`, `graph`, `test`.
-  - Importação direta no ChatGPT: `from dialog_engine_standalone import explore_document, summarize, validate`.
+### ⚡ Distribution B — Ephemeral Standalone (Zero-Install)
+* **Target Audience:** ChatGPT Code Interpreter / ADA, Microsoft 365 Copilot Studio, AWS Lambda, edge runtimes.
+* **Generated Artifacts:**
+  1. `dist/dialog_engine_standalone.py` (~255 KB): Standalone pure Python stdlib monolith with inlined AST lexer, validator, diff engine, schema adapter, and scenario runner.
+  2. `dist/dialog_engine.pyz` (~59 KB): Portable Python ZipApp executable runnable via `python dialog_engine.pyz <command>`.
 
 ---
 
-## 4. Consequências & Garantias
+## 4. Consequences & Guarantees
 
-* **Paridade Semântica Estrita:** Qualquer evolução no código modular é automaticamente testada e compilada para o monólito com 100% de paridade de comportamento.
-* **Portabilidade Extrema:** Qualquer pessoa pode baixar apenas `dialog_engine_standalone.py` e ter todo o motor de diff, SpEL, grafo e validação rodando em segundos em qualquer versão do Python 3.10+ sem instalar nada via pip.
+* **Unified AST Semantics:** Both distributions execute the exact same canonical algorithms, guaranteeing zero behavioral drift between developer workstations and ephemeral AI sandboxes.
+* **Continuous Parity Testing:** The test suite verifies both distributions on every build to guarantee 100% functional parity.

@@ -1,114 +1,66 @@
-# ADR-0001 — Adaptive external-memory foundation para Watson Dialog
+# ADR-0001 — Adaptive External-Memory Foundation for Watson Dialog Engine
 
 **Status:** ACCEPTED  
-**Data:** 2026-08-15  
-**Escopo:** side project Watson Assistant Dialog tools.
+**Date:** 2026-08-15  
+**Scope:** Conversational Dialog State Machine and Tooling Engine.
 
-## Contexto
+## Context
 
-O toolkit precisa comparar e analisar exports JSON que podem crescer além do que é confortável para um runtime efêmero. O incumbent DOM é rápido, mas seu footprint escala com a expansão dos dois documentos para objetos Python.
+The toolkit must compare and analyze JSON exports that can exceed typical limits for ephemeral and serverless runtimes. The in-memory DOM engine is fast, but its memory footprint scales rapidly when both documents expand into native Python objects.
 
-Foram consideradas alternativas como SQLite, pickle, Parquet/Arrow, LMDB e um record spool customizado. O problema concreto, porém, não exige um database canônico: o JSON já é a fonte e precisamos principalmente de structural metadata, random/local access e work partitioning.
+Several alternatives were evaluated, including SQLite, pickle, Parquet/Arrow, LMDB, and a custom record spool. The concrete operational problem does not require a full relational database: the JSON export is already authoritative, and we primarily require structural metadata, local random access, and deterministic work partitioning.
 
-## Decisão
+## Decision
 
-Adotar como foundation:
+Adopt the following architectural foundation:
 
 ```text
-JSON autoritativo
-  -> adaptive index backend
+Authoritative JSON
+  -> Adaptive index backend
        -> transient: one-DOM-at-a-time + temporary JSON records
        -> mmap: source-backed single-pass + temporary local-record spool
-  -> compact metadata/digests
+  -> Compact metadata & digests
   -> CompactGraph
-  -> semantic work items/shards
-  -> incumbent semantic reducer/oracle
+  -> Semantic work items / shards
+  -> Incumbent semantic reducer / oracle
 ```
 
-DOM continua disponível como fast path e oracle.
+In-memory DOM remains available as a fast path and verification oracle.
 
-## Por que não SQLite como default
+## Why Not SQLite by Default
 
-SQLite é sólido, mas adiciona um boundary relacional que não corresponde ao workload dominante. Não precisamos de SQL, joins arbitrários nem transações persistentes para o scratch path. Ele continuaria sendo uma opção técnica válida se surgir um workload realmente relacional.
+SQLite is robust, but introduces a relational boundary that does not align with the dominant tree-diffing workload. We do not need SQL execution, arbitrary joins, or persistent ACID transactions for scratch analysis paths. It remains a valid technical option if relational storage needs emerge.
 
-## Por que não pickle
+## Why Not Pickle
 
-Pickle não resolve indexação sozinho, cria forte coupling ao Python e sua desserialização não é apropriada para dados externos não confiáveis. O side project não precisa dessa superfície.
+Pickle does not provide indexing on its own, creates tight coupling to Python object representations, and introduces deserialization security risks for untrusted external inputs.
 
-## Por que não Parquet como foundation
+## Why Not Parquet as the Core Foundation
 
-Parquet é excelente para analytics, column projection, compressão e datasets reutilizáveis. O diff operacional, entretanto, começa de um documento JSON hierárquico e frequentemente precisa materializar um record semântico específico. Converter obrigatoriamente cada execução para Parquet adicionaria custo e schema coupling antes de haver evidence de reutilização suficiente.
+Parquet is suited for columnar analytics and reusable datasets. However, operational tree diffing starts from a hierarchical JSON document and frequently needs to materialize individual semantic records. Enforcing an upfront Parquet conversion for every run would add latency and schema overhead without proven reuse.
 
-Parquet permanece candidato a cache/analytics opcional.
+## Why Not Arrow IPC as a Mandatory Requirement
 
-## Por que não Arrow IPC como requirement
+Arrow IPC is advantageous for zero-copy memory mapping, but PyArrow introduces a large dependency. It can be used as an optional acceleration layer without changing existing contracts.
 
-Arrow IPC é atraente para mmap/zero-copy e hot caches, mas PyArrow é uma dependência pesada comparada à stdlib e não é necessária para correctness. Pode ser accelerator futuro sobre contratos já definidos.
+## Why JSON Local Spool
 
-## Por que JSON local spool
+A standard `TemporaryFile` containing local JSON records:
+- Is straightforward to audit and inspect;
+- Does not execute arbitrary code during deserialization;
+- Operates reliably across Windows and POSIX;
+- Enables low-overhead offset seek operations;
+- Automatically cleans up on file closure;
+- Eliminates subtree rescans;
+- Avoids rigid schema requirements.
 
-Um `TemporaryFile` com records JSON locais:
+## Digest Policy
 
-- é simples de auditar;
-- não executa código ao desserializar;
-- funciona em Windows/POSIX;
-- permite offsets baratos;
-- desaparece ao fechar;
-- evita rescans de subtrees;
-- não impõe schema persistente.
+Digests are used as fast-path match indicators for unchanged branches. They do not replace explicit AST comparisons for changed records.
 
-## Digest policy
+## Decision Review Criteria
 
-Digests não são prova de mudança. São rejection filters.
-
-- `nos`: raw-byte local digest para throughput;
-- root UUID collections menores: canonical digest para seletividade;
-- mismatch sempre passa pelo semantic diff quando necessário.
-
-Essa assimetria permite otimização agressiva sem criar falso negativo.
-
-## Graph partitioning
-
-Não adotar hash UUID como sharding default nem SCC como shard obrigatório.
-
-O planner usa unidades hierárquicas/semânticas, affinity e hard load tolerance. SCC/reachability permanecem análises globais sobre `CompactGraph`.
-
-## Dependências
-
-Foundation: Python stdlib.
-
-Accelerators opcionais aceitos quando disponíveis/evidenciados:
-
-- `orjson` para transient parsing/encoding;
-- futuramente ijson/simdjson/Arrow, desde que adapters preservem contracts e fallback.
-
-## Consequências positivas
-
-- pequeno install surface;
-- bounded-memory path real;
-- Windows first-class;
-- rollback simples para DOM;
-- performance adaptativa;
-- graph plane desacoplado do payload;
-- evidence de paridade byte-exata em production-scale input.
-
-## Consequências negativas
-
-- mmap stdlib ainda é mais lento que DOM/transient em máquinas com RAM;
-- local spool consome temp disk;
-- existem dois backends que precisam de parity gates;
-- V1 preserva a semântica order-sensitive histórica em vez de adotar automaticamente matching por `dialog_node`; essa dívida de UX é tratada explicitamente pelo ADR-0002.
-
-## Rollback
-
-Forçar `--engine dom` restaura comportamento incumbent sem reverter source. Também é possível forçar `transient` ou `mmap` para isolar regressões de backend.
-
-## Critérios para revisar esta decisão
-
-Reabrir o ADR se uma das condições ocorrer:
-
-- um cache intermediário reutilizado muitas vezes provar benefício material;
-- root collections/records excederem RAM de metadata Python;
-- processamento distribuído real exigir durable partition files;
-- benchmarks mostrarem dependency opcional com ganho grande e distribuição confiável Windows/Linux;
-- um futuro modo V1 identity-aware exigir representação/contrato incompatível com o parity mode atual.
+Review this architecture if:
+- Input JSON files routinely exceed 1 GB where mmap indexing requires binary columnar storage;
+- Persistent multi-run query caches justify an embedded DuckDB/SQLite index;
+- Zero-copy native extensions (C++/Rust) become standard deployment dependencies.

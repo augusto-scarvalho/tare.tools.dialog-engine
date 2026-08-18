@@ -130,7 +130,7 @@ def run_single_mutant(
             "name": name,
             "module": source_path.name,
             "status": "INVALID_MUTANT",
-            "reason": "Alvo da mutação não encontrado no código-fonte",
+            "reason": "Mutation target not found in source code",
             "duration_ms": 0,
             "killer": None,
         }
@@ -246,27 +246,27 @@ def append_checkpoint(path: Path, result: dict[str, Any]) -> None:
 
 def main() -> int:
     configure_utf8_output()
-    parser = argparse.ArgumentParser(description="Executa mutações comportamentais nos módulos do Watson Dialog Tools.")
-    parser.add_argument("--smoke", action="store_true", help="executa apenas subconjunto rápido e representativo de mutantes")
-    parser.add_argument("--mutant", type=str, help="executa apenas um mutante específico pelo nome")
-    parser.add_argument("--list", action="store_true", help="lista todos os mutantes disponíveis")
-    parser.add_argument("--timeout", type=float, default=10.0, help="timeout em segundos por mutante (padrão: 10.0)")
-    parser.add_argument("--json", action="store_true", help="imprime o resultado em formato JSON")
-    parser.add_argument("--output-json", type=Path, help="grava o resultado detalhado em arquivo JSON")
-    parser.add_argument("--checkpoint-jsonl", type=Path, help="append de um registro durável por mutante concluído")
-    parser.add_argument("--resume", action="store_true", help="reaproveita resultados válidos de --checkpoint-jsonl")
-    parser.add_argument("--jobs", default="auto", help="concorrência: auto ou inteiro positivo")
-    parser.add_argument("--budget-seconds", type=float, help="não inicia novos mutantes após este budget de wall time")
-    parser.add_argument("--full-suite", action="store_true", help="sempre executa descoberta completa de testes por mutante")
+    parser = argparse.ArgumentParser(description="Executes mutation testing against Dialog Engine modules.")
+    parser.add_argument("--smoke", action="store_true", help="runs only a fast representative subset of mutants")
+    parser.add_argument("--mutant", type=str, help="runs a specific mutant by name")
+    parser.add_argument("--list", action="store_true", help="lists all available mutants")
+    parser.add_argument("--timeout", type=float, default=10.0, help="timeout in seconds per mutant (default: 10.0)")
+    parser.add_argument("--json", action="store_true", help="prints result in JSON format")
+    parser.add_argument("--output-json", type=Path, help="writes detailed report to a JSON file")
+    parser.add_argument("--checkpoint-jsonl", type=Path, help="appends durable checkpoint records per completed mutant")
+    parser.add_argument("--resume", action="store_true", help="resumes valid results from --checkpoint-jsonl")
+    parser.add_argument("--jobs", default="auto", help="concurrency: auto or positive integer")
+    parser.add_argument("--budget-seconds", type=float, help="do not start new mutants after wall-clock time budget expires")
+    parser.add_argument("--full-suite", action="store_true", help="always runs full test discovery per mutant")
     args = parser.parse_args()
 
     if args.resume and not args.checkpoint_jsonl:
-        parser.error("--resume requer --checkpoint-jsonl")
+        parser.error("--resume requires --checkpoint-jsonl")
     if args.budget_seconds is not None and args.budget_seconds <= 0:
-        parser.error("--budget-seconds deve ser positivo")
+        parser.error("--budget-seconds must be positive")
 
     if args.list:
-        print("Mutantes disponíveis:")
+        print("Available mutants:")
         for source_path, _, name, _, _ in MUTANTS:
             smoke_tag = " [SMOKE]" if name in SMOKE_MUTANT_NAMES else ""
             print(f"- {name:<42} ({source_path.name}){smoke_tag}")
@@ -276,7 +276,7 @@ def main() -> int:
     if args.mutant:
         mutants_to_run = [m for m in mutants_to_run if m[2] == args.mutant]
         if not mutants_to_run:
-            print(f"Erro: mutante '{args.mutant}' não encontrado.", file=sys.stderr)
+            print(f"Error: mutant '{args.mutant}' not found.", file=sys.stderr)
             return 2
     elif args.smoke:
         mutants_to_run = [m for m in mutants_to_run if m[2] in SMOKE_MUTANT_NAMES]
@@ -388,13 +388,13 @@ def main() -> int:
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:
-        print("\nResultado da campanha de mutação:")
-        print(f"  Jobs: {jobs}; concluídos: {total_count}/{len(mutants_to_run)} em {total_duration:.2f}s")
-        print(f"  Score concluído: {killed_count}/{total_count} ({score:.1f}%)")
+        print("\nMutation test campaign results:")
+        print(f"  Jobs: {jobs}; completed: {total_count}/{len(mutants_to_run)} in {total_duration:.2f}s")
+        print(f"  Score: {killed_count}/{total_count} ({score:.1f}%)")
         if deferred:
-            print(f"  Deferred por budget/interrupção: {len(deferred)}")
+            print(f"  Deferred by budget/interruption: {len(deferred)}")
         if killed_count < total_count:
-            print(f"  Avisos: {total_count - killed_count} mutantes concluídos não eliminados.")
+            print(f"  Warnings: {total_count - killed_count} completed mutants survived.")
 
     if deferred:
         return 3

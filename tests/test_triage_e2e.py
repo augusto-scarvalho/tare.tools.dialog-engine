@@ -103,9 +103,9 @@ class TriageConsoleE2ETests(unittest.TestCase):
 
     def test_triage_button_actions_and_persistence(self) -> None:
         first_card = self.page.locator(".issue-card").first
-        bug_btn = first_card.locator("button:has-text('Bug Confirmado')")
+        bug_btn = first_card.locator(".btn-triage").first
 
-        # Click Bug Confirmado
+        # Click Confirmed Bug
         bug_btn.click()
         self.page.wait_for_timeout(100)
         self.assertIn("active-bug", bug_btn.get_attribute("class"))
@@ -118,14 +118,14 @@ class TriageConsoleE2ETests(unittest.TestCase):
         # Type reviewer notes
         notes_input = first_card.locator("textarea.notes-input")
         notes_input.fill("E2E Test Rationale: Defeito comprovado no slot")
+        notes_input.evaluate("el => el.dispatchEvent(new Event('input', { bubbles: true }))")
         self.page.wait_for_timeout(100)
 
-        # Reload page and verify localStorage persistence
+        # Reload and check persistence
         self.page.reload()
         self.page.wait_for_timeout(200)
         reloaded_card = self.page.locator(".issue-card").first
-        reloaded_bug_btn = reloaded_card.locator("button:has-text('Bug Confirmado')")
-        self.assertIn("active-bug", reloaded_bug_btn.get_attribute("class"))
+        self.assertIn("triage-bug", reloaded_card.get_attribute("class"))
         reloaded_notes = reloaded_card.locator("textarea.notes-input").input_value()
         self.assertEqual(reloaded_notes, "E2E Test Rationale: Defeito comprovado no slot")
 
@@ -157,33 +157,38 @@ class TriageConsoleE2ETests(unittest.TestCase):
             self.assertNotIn("open", drawer.get_attribute("class"))
 
     def test_bilingual_switcher(self) -> None:
-        # Default is PT-BR
-        self.assertIn("Painel de Triagem", self.page.locator("#tab-btn-triage").inner_text())
-
-        # Switch to English
-        self.page.locator("#btn-lang-en").click()
-        self.page.wait_for_timeout(150)
+        # Default is en-US
         self.assertIn("Triage Workspace", self.page.locator("#tab-btn-triage").inner_text())
-        self.assertIn("Triage Guide", self.page.locator("#tab-btn-guide").inner_text())
-        self.assertIn("CLI Manual", self.page.locator("#tab-btn-manual").inner_text())
 
-        # Check that cards show translated buttons
+        # Switch to PT-BR
+        self.page.locator("#btn-lang-pt").click()
+        self.page.wait_for_timeout(150)
+        self.assertIn("Painel de Triagem", self.page.locator("#tab-btn-triage").inner_text())
+        self.assertIn("Guia de Triagem", self.page.locator("#tab-btn-guide").inner_text())
+        self.assertIn("Manual CLI", self.page.locator("#tab-btn-manual").inner_text())
+
+        # Check that cards show translated buttons in PT
         first_card = self.page.locator(".issue-card").first
-        self.assertTrue(first_card.locator("button:has-text('Confirmed Bug')").is_visible())
-        self.assertTrue(first_card.locator("button:has-text('False Positive')").is_visible())
-        self.assertTrue(first_card.locator("button:has-text('Tech Debt')").is_visible())
+        self.assertTrue(first_card.locator("button:has-text('Bug Confirmado')").is_visible())
+        self.assertTrue(first_card.locator("button:has-text('Falso Positivo')").is_visible())
+        self.assertTrue(first_card.locator("button:has-text('Débito / Backlog')").is_visible())
 
-        # Check that Guide tab in EN-US shows English docs
+        # Check that Guide tab in PT-BR shows Portuguese docs
         self.page.locator("#tab-btn-guide").click()
+        self.page.wait_for_timeout(150)
+        self.assertTrue(self.page.locator("#view-triage-guide .lang-pt").is_visible())
+        self.assertFalse(self.page.locator("#view-triage-guide .lang-en").is_visible())
+
+        # Switch back to English
+        self.page.locator("#btn-lang-en").click()
         self.page.wait_for_timeout(150)
         self.assertTrue(self.page.locator("#view-triage-guide .lang-en").is_visible())
         self.assertFalse(self.page.locator("#view-triage-guide .lang-pt").is_visible())
 
-        # Switch back to PT-BR
-        self.page.locator("#btn-lang-pt").click()
+        # Switch back to Triage tab to inspect cards
+        self.page.locator("#tab-btn-triage").click()
         self.page.wait_for_timeout(150)
-        self.assertTrue(self.page.locator("#view-triage-guide .lang-pt").is_visible())
-        self.assertFalse(self.page.locator("#view-triage-guide .lang-en").is_visible())
+        self.assertTrue(first_card.locator("button:has-text('Confirmed Bug')").is_visible())
 
     def test_theme_selector(self) -> None:
         theme_selector = self.page.locator("#themeSelector")

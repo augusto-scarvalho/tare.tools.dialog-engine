@@ -344,14 +344,14 @@ def _extract_rich_responses_nested(respostas_list: list[dict[str, Any]]) -> list
 
 
 def explore_document(raw_document: dict[str, Any]) -> UniversalDialogDocument:
-    """Explore and parse any Watson dialog export into UniversalDialogDocument AST."""
+    """Explore and parse any dialog export into UniversalDialogDocument AST."""
     if not isinstance(raw_document, dict):
-        raise ValueError("O documento de diálogo precisa ser um objeto JSON.")
+        raise ValueError("Dialog document must be a JSON object.")
 
     fmt = detect_dialog_format(raw_document)
     name = str(raw_document.get("name") or raw_document.get("nome") or "Dialog")
     desc = str(raw_document.get("description") or raw_document.get("descricao") or "")
-    lang = str(raw_document.get("language") or raw_document.get("idioma") or "pt-br")
+    lang = str(raw_document.get("language") or raw_document.get("idioma") or "en-US")
 
     intents = raw_document.get("intents") or raw_document.get("intencoes") or []
     entities = raw_document.get("entities") or raw_document.get("entidades") or []

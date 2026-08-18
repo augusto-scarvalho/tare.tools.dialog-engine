@@ -27,7 +27,7 @@ class WatsonDialogDocumentTests(unittest.TestCase):
     def test_preflight_exceeding_byte_limit_raises_error(self) -> None:
         with self.assertRaises(ValueError) as ctx:
             preflight_check(FIXTURES / "current.json", max_bytes=10)
-        self.assertIn("excede o limite configurado", str(ctx.exception))
+        self.assertIn("exceeds configured limit", str(ctx.exception))
 
     def test_dialog_index_traversal_and_ancestors(self) -> None:
         legacy_doc = json.loads((FIXTURES / "dialog_session.json").read_text(encoding="utf-8"))

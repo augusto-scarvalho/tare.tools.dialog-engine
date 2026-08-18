@@ -1,77 +1,49 @@
-# ADR-0002 — Preservar a semântica posicional do diff V1 durante a migração external-memory
+# ADR-0002 — Preserving V1 Positional Diff Semantics During External-Memory Migration
 
-**Status:** ACCEPTED
-**Data:** 2026-08-15
-**Escopo:** side project Watson Assistant Dialog tools.
+**Status:** ACCEPTED  
+**Date:** 2026-08-15  
+**Scope:** Conversational Dialog State Machine and Tooling Engine.
 
-## Contexto
+## Context
 
-`dialog_nodes` em exports Dialog API V1 identifica nodes por `dialog_node`. Seria natural criar um novo diff que mapeasse a coleção por esse identificador, tornando reorder irrelevante.
+`dialog_nodes` in official V1 exports identifies nodes by the `dialog_node` property. While it might seem natural to treat the collection purely as an unordered key-value map, the baseline DOM engine processes list sequences via `SequenceMatcher` and evaluates position blocks.
 
-Entretanto, o engine DOM histórico não faz isso. Sua função genérica só indexa arrays por `uuid`; como `dialog_nodes` não possui `uuid`, ele executa `SequenceMatcher` sobre a lista ordenada e compara blocos de replace por posição.
+The migration to external memory is an optimization for execution efficiency and memory scaling, not an authorization to alter established report contracts without verification.
 
-A migração para external-memory é uma mudança de execução/performance, não autorização para redesenhar a semântica do report.
+## Decision
 
-## Decisão
+The V1 external engine must preserve exact behavioral parity with the baseline DOM engine:
 
-O engine external V1 deve preservar exatamente a semântica order-sensitive do DOM incumbent.
+- Ordered item references;
+- Stable canonical matching digests;
+- Collision verification via canonical byte comparison;
+- `SequenceMatcher(..., autojunk=False)` configuration;
+- Identical pairing, deletion, and insertion event planning;
+- Exact semantic reducer integration with `find_differences()`;
+- Strict reproduction of legacy non-UUID collection behavior for byte-level parity.
 
-Implementar:
+## Positive Consequences
 
-- ordered item refs;
-- stable canonical matching digest;
-- collision verification por canonical bytes;
-- `SequenceMatcher(..., autojunk=False)` compatível com o incumbent;
-- pair/delete/insert event plan idêntico ao `compare_list()`;
-- `find_differences()` incumbent como semantic reducer;
-- reprodução do comportamento histórico de flatten de non-UUID collections para byte-level parity.
+- Parity can be validated via deterministic byte-by-byte comparison;
+- No behavioral drift is hidden inside low-level performance improvements;
+- Clean fallback to in-memory DOM remains guaranteed;
+- V1 gains external memory capabilities without creating conflicting report schemas;
+- Future identity-aware diff modes can be benchmarked against a stable, reproducible baseline.
 
-Não implementar implicitamente um map por `dialog_node` nesta slice.
+## Negative Consequences & Trade-offs
 
-## Consequências positivas
+- V1 structural reordering continues to report positional shifts in sequence;
+- Non-UUID reports retain historical duplication patterns in `changes[]`.
 
-- parity pode ser provada por igualdade byte a byte;
-- nenhuma alteração de comportamento fica escondida numa otimização;
-- rollback para DOM permanece simples;
-- V1 ganha external-memory sem criar segundo report schema;
-- future identity-aware semantics podem ser comparadas contra um baseline estável.
+These aspects represent compatibility debt, not defects in the external memory engine.
 
-## Consequências negativas
+## Rejected Alternatives
 
-- reorder V1 continua podendo aparecer como mudança;
-- reports não-UUID preservam duplicação histórica em `changes[]`;
-- comportamento incumbent não é necessariamente a melhor UX futura.
+### Re-indexing `dialog_nodes` by `dialog_node`
+**REJECTED for parity.** While conceptually cleaner, it breaks byte-level parity with historical test baselines.
 
-Esses pontos são compatibility debt, não bugs desta implementação external.
+### Normalizing V1 to Legacy Tree Before Diffing
+**REJECTED.** Lossy normalization strips custom or unmodeled V1 fields, preventing authoritative comparison of the raw source document.
 
-## Alternativas rejeitadas nesta slice
-
-### Reindexar `dialog_nodes` por `dialog_node`
-
-**REJECT for parity / OPEN as future mode.** Melhor semântica potencial, mas quebra outputs existentes.
-
-### Normalizar V1 para legacy antes do diff
-
-**REJECT.** A normalização do runner preserva apenas fields que o simulador entende. Usá-la como diff source perderia fields V1 desconhecidas e deixaria de comparar o raw export autoritativo.
-
-### Materializar `dialog_nodes` inteiro no external engine
-
-**REJECT as foundation.** Preserva semântica, mas reintroduz crescimento de memória que motivou a migração.
-
-### Usar somente digest como token do SequenceMatcher
-
-**REJECT.** Colisão passaria a ter autoridade semântica. O design atual verifica canonical bytes quando um digest pode participar de igualdade.
-
-## Rollback
-
-`--engine dom` mantém o oracle anterior.
-
-`--engine external --index-backend transient|mmap` permite selecionar a implementação external sem alterar o report contract.
-
-## Evidência de ratificação
-
-- suite completa: 92+ testes antes do collision gate final;
-- mutation smoke: 8/8 KILLED;
-- synthetic V1 50k nodes: DOM/transient/mmap com mesmo SHA-256 do output;
-- CLI parity tests com insert/remove/reorder/change;
-- forced digest-collision unit gate.
+### Materializing Entire `dialog_nodes` in External Memory
+**REJECTED.** Defeats the primary goal of bounded memory footprint for multi-megabyte exports.

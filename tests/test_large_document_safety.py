@@ -59,7 +59,7 @@ class LargeDocumentSafetyTests(unittest.TestCase):
             # Must fail when size exceeds limit
             with self.assertRaises(ValueError) as ctx:
                 diff.load_json(file_path, max_bytes=1024)
-            self.assertIn("excede o limite configurado", str(ctx.exception))
+            self.assertIn("exceeds configured limit", str(ctx.exception))
 
             # Must succeed when limit is adequate
             loaded = diff.load_json(file_path, max_bytes=10 * 1024 * 1024)
@@ -95,7 +95,7 @@ class LargeDocumentSafetyTests(unittest.TestCase):
                 env=env, capture_output=True, text=True, check=False,
             )
             self.assertEqual(result.returncode, 2)
-            self.assertIn("excede o limite configurado", result.stderr)
+            self.assertIn("exceeds configured limit", result.stderr)
 
     def test_cli_diff_supports_max_input_bytes_and_summary_only(self) -> None:
         doc1 = generate_synthetic_large_dialog(100)
@@ -129,7 +129,7 @@ class LargeDocumentSafetyTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(res_rejected.returncode, 2)
-            self.assertIn("excede o limite configurado", res_rejected.stderr)
+            self.assertIn("exceeds configured limit", res_rejected.stderr)
 
     def test_validate_summary_only_and_max_issues(self) -> None:
         doc = generate_synthetic_large_dialog(200)
