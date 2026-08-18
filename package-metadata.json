@@ -1,0 +1,49 @@
+{
+  "name": "tare.tools.dialog-engine",
+  "version": "1.0.0",
+  "ecosystem": "tare.tools",
+  "ecosystem_role": "Conversational AST Diff, Static SpEL Evaluator, Topological Graph Analyzer & Triage Engine",
+  "date": "2026-08-18",
+  "languages": [
+    "Portuguese",
+    "English"
+  ],
+  "canonical_entrypoints": {
+    "cli": "src/tare_dialog/cli.py",
+    "standalone_ephemeral": "dist/dialog_engine_standalone.py",
+    "zipapp_executable": "dist/dialog_engine.pyz",
+    "web_console": "triage_viewer.html"
+  },
+  "protocols": [
+    "tare.tools/v1",
+    "watson_assistant/v1_flat",
+    "watson_assistant/enterprise_nested"
+  ],
+  "capabilities": [
+    "ast_semantic_diff",
+    "spel_sandboxed_evaluation",
+    "12_phase_static_validation",
+    "topological_cycle_detection",
+    "omnichannel_schema_discovery",
+    "deterministic_scenario_generation",
+    "signal_mission_control_console"
+  ],
+  "distribution_modes": {
+    "modular_package": {
+      "path": "src/tare_dialog",
+      "target": "Engineering workstations, CI/CD pipelines, agent OS local runners"
+    },
+    "ephemeral_standalone": {
+      "path": "dist/dialog_engine_standalone.py",
+      "target": "ChatGPT Advanced Data Analysis, M365 Copilot Studio, isolated sandboxes"
+    }
+  },
+  "docs": {
+    "readme_pt": "README.md",
+    "readme_en": "README.en.md",
+    "adrs": "docs/adr",
+    "architecture": "docs/architecture",
+    "operations": "docs/operations",
+    "design_history": "docs/design_history"
+  }
+}

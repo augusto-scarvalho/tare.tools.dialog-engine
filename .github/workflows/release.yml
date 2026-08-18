@@ -1,4 +1,4 @@
-name: Production Release
+name: Ecosystem Release
 
 on:
   push:
@@ -8,11 +8,10 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
   build-and-release:
-    name: Build & Publish Release
+    name: Build & Publish tare.tools Release
     runs-on: ubuntu-latest
 
     steps:
@@ -36,7 +35,7 @@ jobs:
         run: |
           python -m pytest
 
-      - name: Build Source and Wheel Distributions
+      - name: Build Python Package Artifacts
         run: |
           python -m build
 
@@ -44,10 +43,11 @@ jobs:
         run: |
           python scripts/build_standalone.py
 
-      - name: Create GitHub Release & Attach Binaries
+      - name: Create GitHub Release & Attach Ecosystem Binaries
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          name: "tare.tools.dialog-engine ${{ github.ref_name }}"
           generate_release_notes: true
           files: |
             dist/dialog_engine_standalone.py
@@ -55,10 +55,4 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
             triage_viewer.html
-
-      # To enable automated PyPI deployment:
-      # Configure PyPI Trusted Publishing under Settings -> Environments -> pypi
-      # - name: Publish to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #     packages-dir: dist/
+            package-metadata.json
