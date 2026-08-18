@@ -6,6 +6,15 @@ reflection, or arbitrary Python/Java method execution is permitted.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
+
+
 import functools
 import re
 from dataclasses import dataclass

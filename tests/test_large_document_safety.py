@@ -11,15 +11,15 @@ import time
 import unittest
 from pathlib import Path
 
-import watson_dialog_diff as diff
-import watson_dialog_graph as graph
-import watson_dialog_validate as validate
+import tare_dialog.diff_engine as diff
+import tare_dialog.graph as graph
+import tare_dialog.validator as validate
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DIFF_CLI = ROOT / "watson_dialog_diff.py"
-VALIDATE_CLI = ROOT / "watson_dialog_validate.py"
-GRAPH_CLI = ROOT / "watson_dialog_graph.py"
+DIFF_CLI = ROOT / "src/tare_dialog/diff_engine.py"
+VALIDATE_CLI = ROOT / "src/tare_dialog/validator.py"
+GRAPH_CLI = ROOT / "src/tare_dialog/graph.py"
 
 
 def generate_synthetic_large_dialog(node_count: int = 1500) -> dict:

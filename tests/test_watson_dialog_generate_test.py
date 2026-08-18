@@ -7,11 +7,11 @@ import sys
 import unittest
 from pathlib import Path
 
-import watson_dialog_topology as topology
+import tare_dialog.topology as topology
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULE_PATH = Path(os.environ.get("WATSON_DIALOG_GENERATE_TEST_PATH", ROOT / "watson_dialog_generate_test.py"))
+MODULE_PATH = Path(os.environ.get("WATSON_DIALOG_GENERATE_TEST_PATH", ROOT / "src/tare_dialog/generate_test.py"))
 SPEC = importlib.util.spec_from_file_location("watson_dialog_generate_test_under_test", MODULE_PATH)
 assert SPEC and SPEC.loader
 generator = importlib.util.module_from_spec(SPEC)

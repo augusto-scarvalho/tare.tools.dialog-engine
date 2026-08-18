@@ -48,6 +48,15 @@ process.  Optional psutil support improves telemetry but is not required.
 """
 
 
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
+
+
 import os
 import shutil
 import tempfile
@@ -202,6 +211,15 @@ def resolve_jobs(value: str | int, task_count: int, budget: ResourceBudget | Non
 It intentionally supports expressions only: no assignments, type construction,
 reflection, or arbitrary Python/Java method execution is permitted.
 """
+
+
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 
 import functools
@@ -717,6 +735,15 @@ def evaluate_condition(expression: str, environment: dict[str, Any]) -> bool | _
 """Statically analyze boolean conditions in a Watson Assistant Dialog export."""
 
 
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
+
+
 import argparse
 import json
 import re
@@ -1179,6 +1206,15 @@ def main() -> int:
 # ------------------------------------------------------------------------------
 
 """Deterministic, traceable scenario runner for legacy Watson Dialog exports."""
+
+
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 
 import argparse
@@ -1810,6 +1846,15 @@ def main() -> int:
 """Build a deterministic directed graph from a Watson Assistant Dialog export."""
 
 
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
+
+
 import argparse
 import json
 import sys
@@ -2133,6 +2178,15 @@ The validator intentionally reports only problems that can be established from
 the export itself.  It does not treat SpEL expressions outside the supported
 parser subset as invalid Watson syntax.
 """
+
+
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 
 import argparse
@@ -2778,6 +2832,15 @@ The exports store their main collections as arrays of objects with UUIDs.  This
 tool matches those objects by UUID, so a changed ordering in the JSON does not
 appear as a change in the report.
 """
+
+
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 
 import argparse
@@ -3662,6 +3725,15 @@ Provides automatic introspection, extraction, and bidirectional normalization fo
 5. Slots, slot event handlers, and context variable lifecycles.
 6. Arbitrary rich metadata, tags, designer coordinates, and action payloads.
 """
+
+
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 
 import json

@@ -2,11 +2,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from watson_spel import UNKNOWN, SpelError, evaluate_condition, evaluate_expression
-import watson_dialog_conditions as conditions
-import watson_dialog_external as external
-import watson_dialog_test as runner
-import watson_dialog_validate as validate
+from tare_dialog.spel import UNKNOWN, SpelError, evaluate_condition, evaluate_expression
+import tare_dialog.conditions as conditions
+import tare_dialog.external as external
+import tare_dialog.test_runner as runner
+import tare_dialog.validator as validate
 
 
 class AdversarialHardeningTests(unittest.TestCase):

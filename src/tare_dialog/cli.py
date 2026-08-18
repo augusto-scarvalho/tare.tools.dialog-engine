@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
+
+
 import argparse
 import json
 import sys
 from pathlib import Path
 
-# Ensure src/ is on sys.path when invoked directly
-src_dir = str(Path(__file__).resolve().parent.parent)
-if src_dir not in sys.path:
-    sys.path.insert(0, src_dir)
 
 try:
     from rich import print as rprint
@@ -265,4 +270,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    from pathlib import Path
+    raise SystemExit(main())

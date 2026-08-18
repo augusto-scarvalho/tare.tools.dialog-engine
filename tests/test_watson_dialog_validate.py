@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULE_PATH = Path(os.environ.get("WATSON_DIALOG_VALIDATE_PATH", ROOT / "watson_dialog_validate.py"))
+MODULE_PATH = Path(os.environ.get("WATSON_DIALOG_VALIDATE_PATH", ROOT / "src/tare_dialog/validator.py"))
 FIXTURES = ROOT / "tests" / "fixtures"
 SPEC = importlib.util.spec_from_file_location("watson_dialog_validate_under_test", MODULE_PATH)
 assert SPEC and SPEC.loader

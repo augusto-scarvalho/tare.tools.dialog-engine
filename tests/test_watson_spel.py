@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULE_PATH = Path(os.environ.get("WATSON_SPEL_PATH", ROOT / "watson_spel.py"))
+MODULE_PATH = Path(os.environ.get("WATSON_SPEL_PATH", ROOT / "src/tare_dialog/spel.py"))
 SPEC = importlib.util.spec_from_file_location("watson_spel_under_test", MODULE_PATH)
 assert SPEC and SPEC.loader
 spel = importlib.util.module_from_spec(SPEC)

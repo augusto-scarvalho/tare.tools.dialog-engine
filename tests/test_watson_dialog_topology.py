@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 import unittest
 from pathlib import Path
-import watson_dialog_topology as topology
+import tare_dialog.topology as topology
 
 ROOT = Path(__file__).resolve().parents[1]
 

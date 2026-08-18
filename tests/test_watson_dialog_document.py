@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from watson_dialog_document import DialogIndex, preflight_check
+from tare_dialog.document import DialogIndex, preflight_check
 
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -19,26 +19,26 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from watson_dialog_diff import configure_utf8_output
-from watson_dialog_resources import ResourceBudget, resolve_jobs
-DIFF_SOURCE = ROOT / "watson_dialog_diff.py"
-GRAPH_SOURCE = ROOT / "watson_dialog_graph.py"
-CONDITIONS_SOURCE = ROOT / "watson_dialog_conditions.py"
-SPEL_SOURCE = ROOT / "watson_spel.py"
-VALIDATE_SOURCE = ROOT / "watson_dialog_validate.py"
-TEST_RUNNER_SOURCE = ROOT / "watson_dialog_test.py"
-GENERATE_TEST_SOURCE = ROOT / "watson_dialog_generate_test.py"
-DIFF_GENERATE_TEST_SOURCE = ROOT / "watson_dialog_generate_diff_tests.py"
+from tare_dialog.diff_engine import configure_utf8_output
+from tare_dialog.resources import ResourceBudget, resolve_jobs
+DIFF_SOURCE = ROOT / "src/tare_dialog/diff_engine.py"
+GRAPH_SOURCE = ROOT / "src/tare_dialog/graph.py"
+CONDITIONS_SOURCE = ROOT / "src/tare_dialog/conditions.py"
+SPEL_SOURCE = ROOT / "src/tare_dialog/spel.py"
+VALIDATE_SOURCE = ROOT / "src/tare_dialog/validator.py"
+TEST_RUNNER_SOURCE = ROOT / "src/tare_dialog/test_runner.py"
+GENERATE_TEST_SOURCE = ROOT / "src/tare_dialog/generate_test.py"
+DIFF_GENERATE_TEST_SOURCE = ROOT / "src/tare_dialog/generate_diff_tests.py"
 
 TARGET_TESTS: dict[Path, str] = {
-    DIFF_SOURCE: "tests/test_watson_dialog_diff.py",
-    GRAPH_SOURCE: "tests/test_watson_dialog_graph.py",
-    CONDITIONS_SOURCE: "tests/test_watson_dialog_conditions.py",
-    SPEL_SOURCE: "tests/test_watson_spel.py",
-    VALIDATE_SOURCE: "tests/test_watson_dialog_validate.py",
-    TEST_RUNNER_SOURCE: "tests/test_watson_dialog_test.py",
-    GENERATE_TEST_SOURCE: "tests/test_watson_dialog_generate_test.py",
-    DIFF_GENERATE_TEST_SOURCE: "tests/test_watson_dialog_generate_diff_tests.py",
+    DIFF_SOURCE: "tests/test_src/tare_dialog/diff_engine.py",
+    GRAPH_SOURCE: "tests/test_src/tare_dialog/graph.py",
+    CONDITIONS_SOURCE: "tests/test_src/tare_dialog/conditions.py",
+    SPEL_SOURCE: "tests/test_src/tare_dialog/spel.py",
+    VALIDATE_SOURCE: "tests/test_src/tare_dialog/validator.py",
+    TEST_RUNNER_SOURCE: "tests/test_src/tare_dialog/test_runner.py",
+    GENERATE_TEST_SOURCE: "tests/test_src/tare_dialog/generate_test.py",
+    DIFF_GENERATE_TEST_SOURCE: "tests/test_src/tare_dialog/generate_diff_tests.py",
 }
 
 MUTANTS = (

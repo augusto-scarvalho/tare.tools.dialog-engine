@@ -11,6 +11,15 @@ Provides automatic introspection, extraction, and bidirectional normalization fo
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Ensure src/ is on sys.path when invoked directly
+_src_dir = str(Path(__file__).resolve().parent.parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
+
+
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -917,4 +926,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    from pathlib import Path
+    raise SystemExit(main())

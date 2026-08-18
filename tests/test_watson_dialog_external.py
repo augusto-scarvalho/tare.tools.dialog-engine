@@ -9,10 +9,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import watson_dialog_external as external_module
-from watson_dialog_external import CompactGraph, DialogSourceIndex
-from watson_dialog_graph import build_graph
-from watson_dialog_resources import ResourceBudget, resolve_jobs
+import tare_dialog.external as external_module
+from tare_dialog.external import CompactGraph, DialogSourceIndex
+from tare_dialog.graph import build_graph
+from tare_dialog.resources import ResourceBudget, resolve_jobs
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures"

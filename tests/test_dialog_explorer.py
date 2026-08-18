@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 import json
 
-from watson_dialog_diff import load_json
-from watson_dialog_explorer import (
+from tare_dialog.diff_engine import load_json
+from tare_dialog.explorer import (
     detect_dialog_format,
     explore_document,
     introspect_primitives,
