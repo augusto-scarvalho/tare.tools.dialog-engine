@@ -13,7 +13,8 @@
 
 <p align="center">
   <a href="#por-que-o-dialog-engine">Por que o Dialog Engine?</a> •
-  <a href="#catálogo-de-funcionalidades--benefícios-reais">Funcionalidades & Benefícios</a> •
+  <a href="#exemplos-práticos-do-mundo-real-o-que-resolvemos">Exemplos do Mundo Real</a> •
+  <a href="#catálogo-de-funcionalidades--benefícios">Funcionalidades & Benefícios</a> •
   <a href="#pilares-arquiteturais">Pilares Arquiteturais</a> •
   <a href="#estratégia-de-distribuição-dupla">Distribuição Dupla</a> •
   <a href="#taxonomia-de-validação-em-12-fases">Taxonomia de Validação</a> •
@@ -49,71 +50,148 @@ MOTOR DE AST DETERMINÍSTICO DO DIALOG ENGINE (Preservação de Invariantes Sem�
    +---> [Digressão: #ajuda] --------> (Preservação de Pilha / Retorno) ------------+
 ```
 
-### Matriz Comparativa
+---
 
-| Capacidade | Diff Ingênuo / Linha a Linha | tare.tools Dialog Engine |
-|---|---|---|
-| **Resolução de Identidade de Nós** | Linha / índice do array (frágil) | **UUID imutável e ordenação canônica de AST** |
-| **Análise de Condições SpEL** | Nenhuma (trata como texto bruto) | **Lexer AST estático e avaliação segura fail-closed** |
-| **Topologia & Detecção de Ciclos** | Inspeção manual | **Detecção de ciclos e loops infinitos via NetworkX** |
-| **Auditoria por Mutação Simbólica** | Inexistente | **Injeção formal de falhas com cálculo de Mutation Score** |
-| **Auditoria de Regras de Negócio** | Falso 100% ("test-the-tests ausente") | **Descoberta de pontos cegos e síntese automática de cenários** |
-| **Parsing & Serialização de Alta Escala** | Lento em JSON padrão | **Acelerado com `orjson` (Rust) — 166MB em 600ms** |
-| **Descoberta de Esquemas & Omnichannel** | Apenas um formato rígido | **Introspecção universal (Watson V1 flat + Corporativo aninhado)** |
-| **Execução em Runtimes Efêmeros** | Requer instalação complexa | **Distribuição Standalone de arquivo único para ChatGPT ADA / Copilot** |
+## Exemplos Práticos do Mundo Real (O que Resolvemos)
+
+Para entender como o **Dialog Engine** protege assistentes em bancos, seguradoras e telecomunicações, veja **5 casos reais** onde ferramentas comuns falham e como o nosso motor atua:
 
 ---
 
-## Catálogo de Funcionalidades & Benefícios Reais
+### 🚨 Exemplo 1: O "Bug Silencioso" de Limite de Crédito (Mutação & Ponto Cego)
 
-Cada componente do `tare.tools.dialog-engine` foi projetado para resolver dores críticas de engenharia em ambientes corporativos de missão crítica:
-
-### 1. Auditoria de Regras de Negócio & Descoberta de Pontos Cegos (`audit-rules`)
-* **O Problema:** Times de QA frequentemente comemoram "100% dos testes passando", sem saber que seus 10 ou 20 cenários cobrem apenas o caminho feliz, deixando brechas de segurança e regras financeiras totalmente desprotegidas.
-* **A Solução do Engine:** O mutador inverte operadores de limite de crédito (`$score >= 750` $\to$ `< 750`), desativa travas de autenticação (`$user_authenticated` $\to$ `true`) e muta intenções de transbordo (`#falar_atendente`). Se todos os testes do cliente continuarem passando, o engine alerta o **Ponto Cego (Blindspot)**.
-* **Síntese Automática:** O engine **escreve sozinho o arquivo de teste JSON que faltava** (`--synthesize-gaps`), fechando a brecha sem esforço manual.
-* **Exemplo Concreto:**
-  ```bash
-  dialog-engine audit-rules bot_banco.json --scenarios cenarios.json --synthesize-gaps --gaps-out-dir ./novos_testes/
+* **O Cenário:** Um bot bancário analisa score para aprovar aumento de limite de cartão.
+* **O Código no Nó de Diálogo:**
+  ```json
+  {
+    "dialog_node": "node_credit_underwriting",
+    "context": {
+      "limit_evaluation": "<? ($user_score >= 750 && $account_months > 6) ? 'approved' : 'analysis' ?>"
+    }
+  }
+  ```
+* **A Falsa Segurança dos Testes:** O time de QA tem 5 testes automatizados (consultar saldo, ver fatura, pedir ajuda). Todos passam (100% verde).
+* **O que o Mutador de Regras (`dialog-engine audit-rules`) faz:**
+  1. O motor **inverte a lógica** do nó: muda `>= 750` para `< 750` (negando o bom pagador e aprovando o mau pagador!).
+  2. Roda a suíte de testes do cliente contra o bot mutado.
+  3. **Resultado:** Todos os 5 testes continuam passando!
+  4. **O Alerta do Engine:** 
+     `[🔴 RISCO FINANCEIRO] Ponto Cego Detectado: Nenhum teste existente valida a regra de crédito em node_credit_underwriting!`
+* **A Solução Automática:** Com a flag `--synthesize-gaps`, o engine **gera sozinho o arquivo de teste que faltava**:
+  ```json
+  {
+    "id": "gap_test_credit_score_high",
+    "name": "[Auto-Synthesized] Validar Aprovação de Limite com Score Alto",
+    "turns": [
+      {
+        "input": {"text": "quero aumentar meu limite", "context": {"user_score": 800, "account_months": 12}},
+        "expected": {"node": "node_credit_underwriting"}
+      }
+    ]
+  }
   ```
 
-### 2. Motor de Mutação Simbólica de AST & Autômatos (`mutate`)
-* **O Problema:** Como garantir matematicamente que o validador estático realmente detecta todos os erros e que não gera falsos positivos?
-* **A Solução do Engine:** Implementa 7 operadores formais de mutação de grafo ($M_{jump}, M_{topo}, M_{pred}, M_{dormant}, M_{contra}, M_{slot}, M_{meta}$) e calcula o *Mutation Score* (Taxa de Morte).
-* **Testes Metamórficos:** O operador neutro $M_{meta}$ aplica variações cosméticas no JSON para provar rigorosamente que o motor mantém **Zero Falsos Positivos**.
-* **Exemplo Concreto:**
-  ```bash
-  dialog-engine mutate tests/fixtures/demo_banking_current.json
-  # Resultado: Mutation Score: 100.0% (4/4 KILLED, 1 METAMORPHIC PASS)
+---
+
+### 🚨 Exemplo 2: A Pegadinha do Slot com Número Zero (Validação Estática 12-Fases)
+
+* **O Cenário:** O bot de pesquisa de satisfação pergunta ao cliente:
+  > *"Em uma escala de 0 a 10, qual a chance de você nos indicar?"*
+* **A Condição configurada no Slot:**
+  ```json
+  {
+    "variable": "$nps_score",
+    "conditions": "@sys-number > 0"
+  }
+  ```
+* **O Problema em Produção:** O texto do prompt aceita `0`, mas a condição de captura `@sys-number > 0` **ignora o número zero**.
+  - Quando o cliente insatisfeito digita `0`, o bot entra em loop repetindo: *"Desculpe, não entendi. Digite de 0 a 10"*. O cliente se irrita e desiste.
+* **Como o Dialog Engine resolve:**
+  A **Fase 4** (`sys_number_zero_not_captured`) audita simultaneamente o prompt em linguagem natural e a AST de condições, emitindo o alerta antes do deploy:
+  ```text
+  [⚠️ SEMANTIC WARNING] slot_nps_rating: O prompt inclui zero no domínio ("0 a 10"), 
+  mas a condição de captura (@sys-number > 0) descarta o zero!
   ```
 
-### 3. Motor de Diff Semântico AST sem Ruído (`diff`)
-* **O Problema:** Um `git diff` de 5.000 linhas em JSON após um curador renomear um nó ou reordenar propriedades na interface gráfica torna revisões de PR inviáveis.
-* **A Solução do Engine:** Indexa todos os nós por UUID imutável e compara propriedades de forma canônica. Aponta com precisão cirúrgica apenas as adições, remoções e modificações semânticas reais.
-* **Exemplo Concreto:**
-  ```bash
-  dialog-engine diff producao.json candidata.json --format rich
+---
+
+### 🚨 Exemplo 3: O "Diff Fantasma" de 3.000 Linhas (Diff Semântico AST)
+
+* **O Cenário:** Um curador apenas renomeou o título de um nó de *"Menu Principal"* para *"Menu Inicial"* na interface web. A ferramenta visual salvou o JSON reordenando as propriedades.
+* **No `git diff` Tradicional:**
+  ```diff
+  - "title": "Menu Principal",
+  - "conditions": "#menu",
+  - "responses": [ ... ],
+  + "conditions": "#menu",
+  + "responses": [ ... ],
+  + "title": "Menu Inicial"
+  @@ ... 3.200 linhas de falso conflito no PR ... @@
+  ```
+  *(Revisão de PR inviável — ninguém consegue achar o que realmente mudou).*
+* **No `dialog-engine diff`:**
+  ```text
+  ============================================================
+    tare.tools — Semantic AST Diff Report
+  ============================================================
+  Nodes Added:   0
+  Nodes Removed: 0
+  Nodes Changed: 1
+
+  ~ [node_main_menu] Menu Principal -> Menu Inicial
+    • title: "Menu Principal" -> "Menu Inicial"
+  ============================================================
+  ```
+  *(Identificação cirúrgica em milissegundos, com 0 linhas de ruído).*
+
+---
+
+### 🚨 Exemplo 4: O Loop Infinito Oculto em Digressão (Grafo Topológico)
+
+* **O Cenário:**
+  1. O nó `BoasVindas` pula para `VerificaAutenticacao`.
+  2. `VerificaAutenticacao` pula para `MenuOpcoes`.
+  3. Em uma manutenção posterior, alguém adicionou um jump de fallback em `MenuOpcoes` voltando para `BoasVindas`.
+* **O Problema:** O usuário digita "olá" e o assistente entra em **loop infinito de 50 execuções por turno**, travando o backend e estourando a conta de requisições de API.
+* **Como o Dialog Engine resolve:**
+  O módulo `dialog-engine graph` constrói o dígrafo de saltos (`networkx.DiGraph`) e aponta o ciclo no CI/CD:
+  ```text
+  [🔴 GRAPH CYCLE DETECTED] Infinite loop found:
+  node_welcome -> node_auth_check -> node_menu_options -> node_welcome
   ```
 
-### 4. Sandbox e Avaliador Seguro SpEL (`spel`)
-* **O Problema:** Expressões em Spring Expression Language (`<? $user_score >= 750 ? 'aprovado' : 'analise' ?>`) frequentemente contêm erros de digitação, parênteses desbalanceados ou injeções que travam o runtime do assistente em produção.
-* **A Solução do Engine:** Lexer estático com cache LRU que audita sintaxe sem executar código arbitrário, bloqueia acesso a métodos perigosos e trata acessos nulos com semântica *fail-closed*.
+---
 
-### 5. Grafo Topológico & Detecção de Ciclos Infinitos (`graph`)
-* **O Problema:** Saltos circulares indiretos (Nó A $\to$ Nó B $\to$ Nó C $\to$ Nó A) criam loops infinitos que travam a sessão do usuário e geram custos astronômicos de infraestrutura.
-* **A Solução do Engine:** Modela o diálogo como um dígrafo topológico (`networkx.DiGraph`), encontra ciclos no grafo e exporta representações em JSON e Graphviz DOT.
-* **Exemplo Concreto:**
-  ```bash
-  dialog-engine graph bot.json --output-dot grafo.dot
+### 🚨 Exemplo 5: O Parêntese SpEL Esquecido (Hardened SpEL Sandbox)
+
+* **O Cenário:** Um curador escreveu uma condição composta com erro de digitação:
+  ```json
+  "conditions": "#consultar_fatura && ($canal == 'whatsapp' || ($tipo_cliente == 'pj'"
+  ```
+  *(Falta fechar o parêntese `)` no final).*
+* **O Problema em Produção:** No Watson Assistant ou Copilot, quando o usuário aciona essa rota, o motor de expressão falha e o bot exibe a mensagem de crash padrão do sistema: *"Ops, ocorreu um erro inesperado."*
+* **Como o Dialog Engine resolve:**
+  O lexer estático `tare_dialog.spel` audita a expressão antes da publicação sem executar código:
+  ```text
+  [❌ SYNTACTIC ERROR] node_invoice_query: context_spel_unclosed_parenthesis
+  Expressão: ($canal == 'whatsapp' || ($tipo_cliente == 'pj'
+  Erro: Há um parêntese aberto no caractere 36 sem fechamento correspondente.
   ```
 
-### 6. Introspecção e Descoberta Universal de Esquemas (`explore`)
-* **O Problema:** Ter ferramentas separadas para o formato flat nativo do Watson Assistant (V1) e para formatos corporativos aninhados.
-* **A Solução do Engine:** Converte e navega bidirecionalmente e sem perdas entre esquemas flat (`dialog_nodes`) e aninhados (`nos/filhos/slots`), detectando canais (WhatsApp, Web, Voz) e mídias (carrosséis, botões).
+---
 
-### 7. Console Mission Control SIGNAL (`triage_viewer.html`)
-* **O Problema:** Dificuldade de curadores e auditores não-técnicos navegarem em relatórios gigantescos de terminal ou JSON.
-* **A Solução do Engine:** Console visual executável em navegador (GitHub Pages) com 14 temas de engenharia, busca instantânea, drawer de inspeção profunda de nós e painel de triagem de mutantes.
+## Catálogo de Funcionalidades & Benefícios
+
+| Módulo / CLI | Capacidade Chave | Benefício Real de Engenharia |
+|---|---|---|
+| **`audit-rules`** | Auditoria de Regras & Pontos Cegos | Injeta falhas de negócio e gera automaticamente os testes JSON que faltavam. |
+| **`mutate`** | Mutação Simbólica de AST & Autômatos | 7 operadores formais e teste metamórfico provando 100% de detecção e 0 falsos alarmes. |
+| **`diff`** | Diff Semântico AST sem Ruído | Identificação de nós por UUID imutável, eliminando falsos conflitos de chaves JSON. |
+| **`validate`** | Validador Estático em 12 Fases | Contrato único de qualidade cobrindo SpEL, topologia, slots, transbordo e causalidade. |
+| **`spel`** | Sandbox e Lexer SpEL Seguro | Validação de sintaxe e avaliação fail-closed com cache LRU e bloqueio de injeções. |
+| **`graph`** | Grafo Topológico & Análise de Ciclos | Detecção antecipada de loops infinitos e exportação para JSON e Graphviz DOT. |
+| **`explore`** | Descoberta Universal de Esquemas | Normalização bidirecional entre Watson V1 flat e formatos aninhados corporativos. |
+| **Console SIGNAL** | Interface Web de Triagem (HTML) | Console visual ao vivo com 14 temas de engenharia, busca e drawer de inspeção. |
 
 ---
 
