@@ -334,6 +334,18 @@ def validate_v1_structure(document: dict[str, Any], issues: list[dict[str, Any]]
         if str(node_data.get("type") or "standard") == "frame" and not any(str(by_id[child].get("type") or "standard") == "slot" for child in children.get(node_id, [])):
             issues.append(issue("semantic", "frame_without_slot", "error", node_id, "type", "frame", "Um frame precisa ter pelo menos um filho slot."))
 
+        # V1 Jump targets
+        next_step = node_data.get("next_step")
+        if isinstance(next_step, dict) and next_step.get("behavior") == "jump_to":
+            target = next_step.get("dialog_node")
+            if target not in (None, "") and str(target) not in set(by_id.keys()) | {"root"}:
+                issues.append(issue("semantic", "unresolved_jump_target", "error", node_id, "next_step.dialog_node", target, f"O jump aponta para o nó inexistente {target}."))
+
+        # V1 Disabled conditions
+        cond = node_data.get("conditions")
+        if cond is not None and str(cond).strip().lower() == "false":
+            issues.append(issue("info", "disabled_condition_false", "info", node_id, "conditions", cond, "A condição contém `false` explícito e mantém o ramo deliberadamente desabilitado no fluxo normal."))
+
 
 def context_variables(document: dict[str, Any]) -> dict[str, str]:
     """Map context variable UUIDs to names, ignoring malformed definitions."""

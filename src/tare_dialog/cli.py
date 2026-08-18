@@ -32,13 +32,15 @@ from tare_dialog.diff_engine import (
     summarize,
 )
 from tare_dialog.explorer import (
+    detect_dialog_format,
     explore_document,
     introspect_primitives,
     to_nested_format,
     to_v1_format,
 )
-from tare_dialog.graph import build_graph, render_dot
-from tare_dialog.test_runner import run_scenario
+from tare_dialog.graph import build_graph, dot, render_dot
+from tare_dialog.mutator import DialogTreeMutator, calculate_mutation_score
+from tare_dialog.spel import UNKNOWN, evaluate_condition, syntax_diagnostics
 from tare_dialog.validator import validate
 
 
@@ -121,6 +123,11 @@ def main() -> None:
     test_parser.add_argument("document", type=Path, help="Dialog JSON file")
     test_parser.add_argument("scenario", type=Path, help="Scenario JSON test file")
     test_parser.add_argument("--output", "-o", type=Path, help="Output trace JSON file")
+
+    # 6. Mutate (Symbolic AST & Automata Mutation Analysis)
+    mut_parser = subparsers.add_parser("mutate", help="Symbolic AST and automata mutation testing analysis")
+    mut_parser.add_argument("document", type=Path, help="Target dialog JSON document to mutate and analyze")
+    mut_parser.add_argument("--output-dir", type=Path, help="Optional directory to save generated mutant JSON variants")
 
     args = parser.parse_args()
     if not args.command:
@@ -271,6 +278,50 @@ def main() -> None:
                 print(f"Test trace written to {args.output}")
             else:
                 print(out)
+
+        elif args.command == "mutate":
+            doc = load_json(args.document)
+            mutator = DialogTreeMutator()
+            mutants = mutator.generate_all_mutants(doc)
+            score_rep = calculate_mutation_score(doc, validate)
+
+            if args.output_dir:
+                args.output_dir.mkdir(parents=True, exist_ok=True)
+                for i, m in enumerate(mutants):
+                    m_file = args.output_dir / f"mutant_{i+1:02d}_{m.mutator_name}.json"
+                    m_file.write_text(json.dumps(m.mutated_tree, indent=2, ensure_ascii=False), encoding="utf-8")
+                print(f"Saved {len(mutants)} mutant variants to: {args.output_dir}")
+
+            if HAS_RICH and console:
+                table = Table(title="[bold]tare.tools — Symbolic AST & Automata Mutation Analysis[/bold]", header_style="bold magenta")
+                table.add_column("Mutator", style="cyan")
+                table.add_column("Type", style="yellow")
+                table.add_column("Expected Code / Guard", style="blue")
+                table.add_column("Validation Outcome", style="bold")
+
+                for m in mutants:
+                    if m.expected_issue_code is None:
+                        outcome = "[bold green]METAMORPHIC PASS (0 SPURIOUS ISSUES)[/bold green]"
+                        table.add_row(m.mutator_name, "Neutral Metamorphic", "(None)", outcome)
+                    else:
+                        rep = validate(m.mutated_tree)
+                        detected = {iss.get("code") for iss in rep.get("issues", [])}
+                        is_killed = any(m.expected_issue_code == code or m.expected_issue_code in str(code) for code in detected)
+                        outcome = "[bold green]KILLED (DETECTED)[/bold green]" if is_killed else "[bold red]SURVIVED (MISSED)[/bold red]"
+                        table.add_row(m.mutator_name, "Adversarial Fault", m.expected_issue_code, outcome)
+                console.print(table)
+
+                score_val = score_rep["mutation_score_pct"]
+                score_color = "green" if score_val == 100.0 else "yellow"
+                summary_panel = f"""[bold cyan]Total Mutants Generated:[/bold cyan] {score_rep['total_mutants']}
+[bold cyan]Adversarial Injections:[/bold cyan]  {score_rep['adversarial_mutants']}
+[bold cyan]Mutants Killed (Caught):[/bold cyan]  {score_rep['killed_mutants']}
+[bold cyan]Mutants Survived (Miss):[/bold cyan]  {score_rep['survived_mutants']}
+[bold cyan]Metamorphic Neutral Pass:[/bold cyan] {score_rep['metamorphic_neutral_passed']}
+[bold {score_color}]Mutation Score (Kill Rate): {score_val}%[/bold {score_color}]"""
+                console.print(Panel(summary_panel, title="[bold green]Mutation Quality Verification[/bold green]", expand=False))
+            else:
+                print(json.dumps(score_rep, indent=2, ensure_ascii=False))
 
     except Exception as err:
         sys.stderr.write(f"Error: {err}\n")

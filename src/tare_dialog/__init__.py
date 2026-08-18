@@ -31,6 +31,7 @@ from tare_dialog.explorer import (
     to_v1_format,
 )
 from tare_dialog.graph import build_graph, dot, render_dot
+from tare_dialog.mutator import DialogTreeMutator, Mutant, calculate_mutation_score
 from tare_dialog.spel import UNKNOWN, SpelError, evaluate_condition, syntax_diagnostics
 from tare_dialog.test_runner import normalize_document, run_scenario
 from tare_dialog.validator import validate
@@ -47,10 +48,13 @@ __all__ = [
     "DialogResponse",
     "DialogSlot",
     "DialogSlotHandler",
+    "DialogTreeMutator",
+    "Mutant",
     "PreflightMetadata",
     "SpelError",
     "UniversalDialogDocument",
     "build_graph",
+    "calculate_mutation_score",
     "configure_utf8_output",
     "detect_dialog_format",
     "diff_dialogs",

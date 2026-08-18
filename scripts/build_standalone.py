@@ -27,6 +27,7 @@ CORE_MODULES = [
     "validator.py",
     "diff_engine.py",
     "explorer.py",
+    "mutator.py",
 ]
 
 HEADER = """#!/usr/bin/env python3
