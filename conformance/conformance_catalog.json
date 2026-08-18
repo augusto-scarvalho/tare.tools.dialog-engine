@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "catalog_version": "1.2.0",
+  "title": "IBM Watson Assistant Dialog Conformance & Provenance Catalog",
+  "description": "Deterministic behavioral specifications and provenance mapping between official IBM rules and test oracles.",
+  "status_enum": [
+    "SUPPORTED",
+    "PARTIAL",
+    "UNKNOWN",
+    "OUT_OF_SCOPE"
+  ],
+  "oracle_types": [
+    "ibm_doc_rule",
+    "observed_runtime",
+    "simulator_hypothesis"
+  ],
+  "entries": [
+    {
+      "id": "CONF-FLOW-001",
+      "category": "tree_evaluation",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-build",
+      "description": "Nodes in a sibling group are evaluated in sequential order from top to bottom.",
+      "evidence_test": "test_watson_dialog_test.WatsonDialogTestRunnerTests.test_accepts_and_normalizes_a_v1_dialog_payload",
+      "expected_behavior": "First matching sibling is selected; remaining siblings in the group are skipped unless jumped to."
+    },
+    {
+      "id": "CONF-FLOW-002",
+      "category": "tree_evaluation",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-tasks",
+      "description": "Folder nodes organize sibling groups without creating separate conversational nesting levels.",
+      "evidence_test": "test_watson_dialog_graph.WatsonDialogGraphTests.test_folder_metadata_and_structure",
+      "expected_behavior": "Root nodes inside root folders remain root-level nodes for runtime evaluation."
+    },
+    {
+      "id": "CONF-COND-001",
+      "category": "conditions",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-start",
+      "description": "Special conditions: 'welcome' matches first turn without input; 'conversation_start' matches first turn regardless of input.",
+      "evidence_test": "test_watson_dialog_test.WatsonDialogTestRunnerTests.test_scenario_evaluation_special_conditions",
+      "expected_behavior": "Condition evaluates true during first turn under documented conditions."
+    },
+    {
+      "id": "CONF-COND-002",
+      "category": "conditions",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-overview",
+      "description": "anything_else serves as conversational catchall / fallback at the bottom of the dialog.",
+      "evidence_test": "test_watson_dialog_conditions.WatsonDialogConditionsTests.test_cli_is_deterministic_and_signals_issues",
+      "expected_behavior": "Matches when no prior non-fallback root node condition evaluated to true."
+    },
+    {
+      "id": "CONF-SPEL-001",
+      "category": "spel_expression",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-expression-language",
+      "description": "Shorthand syntax #intent, @entity, @entity:(value), $variable are parsed and evaluated.",
+      "evidence_test": "test_watson_spel.WatsonSpelTests.test_string_chaining_and_boolean_operators",
+      "expected_behavior": "Shorthands resolve against intents list, entities dict/list, and context variables."
+    },
+    {
+      "id": "CONF-SPEL-002",
+      "category": "spel_expression",
+      "status": "PARTIAL",
+      "oracle_type": "simulator_hypothesis",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-methods",
+      "description": "Partial SpEL evaluator handles common safe subset (.toLowerCase(), .filter(), arithmetic, comparisons); unsupported complex expressions return UNKNOWN safely without throwing runtime crashes.",
+      "evidence_test": "test_watson_spel.WatsonSpelTests.test_filter_uses_the_local_variable_and_context",
+      "expected_behavior": "A partial evaluation does not imply the official IBM Watson runtime would reject the expression."
+    },
+    {
+      "id": "CONF-SPEL-003",
+      "category": "spel_expression",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-methods",
+      "description": "Dialog-node context values can embed SpEL by using the <? expression ?> evaluation syntax; malformed embedded templates are validated without executing them.",
+      "evidence_test": "test_watson_dialog_validate.WatsonDialogValidateTests.test_validates_spel_inside_nested_v1_dialog_node_context",
+      "expected_behavior": "Context strings may contain one or more expression templates; unclosed delimiters and unambiguous lexical/syntax defects are reported at the nested context field path."
+    },
+    {
+      "id": "CONF-SLOT-001",
+      "category": "slots_and_handlers",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-slots",
+      "description": "Slots gather required context variables in declaration order before completing the parent frame.",
+      "evidence_test": "test_watson_dialog_test.WatsonDialogTestRunnerTests.test_slot_filling_and_handlers",
+      "expected_behavior": "Frame stays active until all mandatory slots are filled or a jump/cancellation is triggered."
+    },
+    {
+      "id": "CONF-DIGR-001",
+      "category": "digressions",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-runtime",
+      "description": "Digressions allow jumping to root nodes and returning to the interrupted slot or node using a LIFO return stack.",
+      "evidence_test": "test_watson_dialog_test.WatsonDialogTestRunnerTests.test_digressions_can_return_recursively",
+      "expected_behavior": "Return stack pops in LIFO order; abandoned if a digression target triggers an explicit non-returning jump."
+    },
+    {
+      "id": "CONF-JUMP-001",
+      "category": "transitions",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-overview",
+      "description": "Jump to 'condition', 'response' (body), or 'user_input' routes execution deterministically to the target node.",
+      "evidence_test": "test_watson_dialog_test.WatsonDialogTestRunnerTests.test_jumps_and_transitions",
+      "expected_behavior": "Immediate jumps execute within current turn; user_input jumps set cursor for the following turn."
+    },
+    {
+      "id": "CONF-EXT-001",
+      "category": "integrations_webhooks_actions",
+      "status": "OUT_OF_SCOPE",
+      "oracle_type": "simulator_hypothesis",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-webhooks",
+      "description": "External network webhooks and Actions are not dispatched over HTTP by the local deterministic test runner; effects/results are injected declaratively via scenario fixtures.",
+      "evidence_test": "test_watson_dialog_test.WatsonDialogTestRunnerTests.test_action_results_are_injected_from_the_scenario_without_network",
+      "expected_behavior": "Network-free determinism guarantees zero external side effects."
+    },
+    {
+      "id": "CONF-COND-003",
+      "category": "conditions",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-overview",
+      "description": "The special false condition can deliberately disable normal branch evaluation while the node remains available as configured content or an alternate jump target.",
+      "evidence_test": "test_watson_dialog_conditions.WatsonDialogConditionsTests.test_explicit_false_is_disabled_evidence_not_an_accidental_contradiction",
+      "expected_behavior": "Explicit false is classified as deliberate disabled-node evidence rather than an accidental contradiction warning; graph normal-flow reachability remains blocked."
+    },
+    {
+      "id": "CONF-SLOT-002",
+      "category": "slots_and_handlers",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-slots",
+      "description": "A numeric slot that must recognize zero should use a condition that admits zero so zero-specific validation or response handling can execute.",
+      "evidence_test": "test_watson_dialog_validate.WatsonDialogValidateTests.test_number_slot_reports_only_causal_zero_and_capture_type_contradictions",
+      "expected_behavior": "Bare @sys-number is not blanket-rejected; a warning is emitted only when the slot itself proves that zero must be recognized or when the processed input type contradicts the capture condition."
+    },
+    {
+      "id": "CONF-DIGR-002",
+      "category": "digressions",
+      "status": "SUPPORTED",
+      "oracle_type": "ibm_doc_rule",
+      "rule_source": "https://cloud.ibm.com/docs/watson-assistant?topic=watson-assistant-dialog-runtime",
+      "description": "Digression away can be prevented by a forcing catch-all child or an explicit forced transition/skip path.",
+      "evidence_test": "test_watson_dialog_validate.WatsonDialogValidateTests.test_digression_ignores_inactive_paths_and_inactive_forcing_children",
+      "expected_behavior": "The validator reports the documented conflict only for operational source paths; project-local inactive/review status is used as a confidence qualifier rather than promoted to an IBM primitive."
+    }
+  ]
+}

@@ -11,7 +11,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from watson_dialog_diff import DEFAULT_IGNORED_FIELDS, load_json, summarize
+from watson_dialog_diff import DEFAULT_IGNORED_FIELDS, DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json, summarize
 from watson_dialog_generate_test import generate, generate_slot, index_paths, slots_by_id
 from watson_dialog_test import normalize_document
 
@@ -90,13 +90,18 @@ def generate_from_diff(current: dict[str, Any], candidate: dict[str, Any]) -> di
 
 
 def main() -> int:
+    configure_utf8_output()
     parser = argparse.ArgumentParser(description="Gera cenários da versão candidata a partir do diff current → candidate.")
     parser.add_argument("current", type=Path)
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
     args = parser.parse_args()
     try:
-        result = generate_from_diff(load_json(args.current), load_json(args.candidate))
+        result = generate_from_diff(
+            load_json(args.current, max_bytes=args.max_input_bytes),
+            load_json(args.candidate, max_bytes=args.max_input_bytes),
+        )
     except (ValueError, KeyError) as error:
         print(f"Erro: {error}", file=sys.stderr)
         return 2

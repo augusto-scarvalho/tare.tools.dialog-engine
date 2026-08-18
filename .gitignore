@@ -6,3 +6,15 @@ output/*
 
 # Exports reais do Watson Assistant são dados locais e não devem ser versionados.
 input/*.json
+
+# Local/editor/runtime artifacts
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Mutation/checkpoint outputs are runtime evidence, not source.
+*.jsonl
+# Relay/audit/planning artifacts are operational evidence, not source.
+.relay/
+

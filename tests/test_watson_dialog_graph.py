@@ -98,6 +98,7 @@ class WatsonDialogGraphTests(unittest.TestCase):
         result = graph_module.build_graph(document)["reachability"]
         unreachable = {item["node"]: item["reasons"] for item in result["unreachable"]}
         self.assertIn("disabled", unreachable)
+        self.assertIn("disabled_condition_false", unreachable["disabled"])
         self.assertIn("disabled-child", unreachable)
         self.assertIn("after-catchall", unreachable)
         self.assertNotIn("rescued", unreachable)

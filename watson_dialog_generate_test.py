@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from watson_dialog_diff import load_json
+from watson_dialog_diff import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
 from watson_dialog_test import normalize_document, run_scenario
 
 
@@ -175,23 +175,30 @@ def generate_topology(document: dict[str, Any], topology: dict[str, Any]) -> dic
 
 
 def main() -> int:
+    configure_utf8_output()
     parser = argparse.ArgumentParser(description="Gera cenário de teste até um nó Watson Dialog.")
     parser.add_argument("dialog", type=Path)
     parser.add_argument("node", nargs="?")
     parser.add_argument("--topology", type=Path, help="JSON produzido por watson_dialog_topology.py")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
     args = parser.parse_args()
     if bool(args.node) == bool(args.topology):
         parser.error("Informe exatamente NODE ou --topology TOPOLOGY.json.")
     try:
-        scenario = generate_topology(load_json(args.dialog), load_json(args.topology)) if args.topology else generate(load_json(args.dialog), args.node)
-    except (ValueError, KeyError) as error: print(f"Erro: {error}", file=sys.stderr); return 2
+        scenario = generate_topology(load_json(args.dialog, max_bytes=args.max_input_bytes), load_json(args.topology, max_bytes=args.max_input_bytes)) if args.topology else generate(load_json(args.dialog, max_bytes=args.max_input_bytes), args.node)
+    except (ValueError, KeyError) as error:
+        print(f"Erro: {error}", file=sys.stderr)
+        return 2
     output = json.dumps(scenario, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    if args.output: args.output.write_text(output, encoding="utf-8")
-    else: print(output, end="")
+    if args.output:
+        args.output.write_text(output, encoding="utf-8")
+    else:
+        print(output, end="")
     if args.topology:
         return 0 if scenario["summary"]["runner_failed"] == 0 else 1
     return 0 if scenario["generated"]["runner_passed"] else 1
 
 
-if __name__ == "__main__": raise SystemExit(main())
+if __name__ == "__main__":
+    raise SystemExit(main())

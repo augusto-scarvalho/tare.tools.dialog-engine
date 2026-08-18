@@ -45,6 +45,55 @@ class WatsonDialogConditionsTests(unittest.TestCase):
         default_issues = {(issue["node"], issue["type"]) for issue in conditions.analyze_conditions(conditions.load_json(FIXTURE))["issues"]}
         self.assertNotIn(("unknown-references", "unknown_variable"), default_issues)
 
+
+    def test_explicit_false_is_disabled_evidence_not_an_accidental_contradiction(self) -> None:
+        document = {"nos": [
+            {"uuid": "disabled", "sequencia": 0, "condicao": "false", "filhos": []},
+            {"uuid": "guarded-disabled", "sequencia": 1, "condicao": "$flag && false", "filhos": []},
+            {"uuid": "contradiction", "sequencia": 2, "condicao": "$flag && !$flag", "filhos": []},
+        ]}
+        report = conditions.analyze_conditions(document)
+        issues = {(item["node"], item["type"], item["severity"]) for item in report["issues"]}
+        self.assertIn(("disabled", "disabled_condition_false", "info"), issues)
+        self.assertIn(("guarded-disabled", "disabled_condition_false", "info"), issues)
+        self.assertIn(("contradiction", "unsatisfiable_condition", "warning"), issues)
+        self.assertNotIn(("disabled", "unsatisfiable_condition", "warning"), issues)
+
+    def test_shadow_analysis_requires_proven_order_and_ignores_inactive_paths(self) -> None:
+        ambiguous = {"nos": [
+            {"uuid": "true", "sequencia": 1, "condicao": "true", "filhos": []},
+            {"uuid": "later", "sequencia": 1, "condicao": "#intent", "filhos": []},
+        ]}
+        self.assertNotIn("shadowed_by_always_true", {item["type"] for item in conditions.analyze_conditions(ambiguous)["issues"]})
+
+        inactive = {"nos": [
+            {"uuid": "true", "sequencia": 1, "condicao": "true", "filhos": []},
+            {"uuid": "later", "sequencia": 2, "status": "INATIVO", "condicao": "#intent", "filhos": []},
+        ]}
+        self.assertNotIn(("later", "shadowed_by_always_true"), {(item["node"], item["type"]) for item in conditions.analyze_conditions(inactive)["issues"]})
+
+        review_duplicate = {"nos": [
+            {"uuid": "review", "sequencia": 1, "status": "REVISAO", "condicao": "#same", "filhos": []},
+            {"uuid": "active", "sequencia": 2, "status": "ATIVO", "condicao": "#same", "filhos": []},
+        ]}
+        self.assertNotIn(("active", "duplicate_sibling_condition"), {(item["node"], item["type"]) for item in conditions.analyze_conditions(review_duplicate)["issues"]})
+
+
+    def test_alternate_jump_entry_prevents_overclaiming_shadow_and_duplicate_unreachability(self) -> None:
+        shadow = {"nos": [
+            {"uuid": "entry", "sequencia": 0, "condicao": "#go", "uuidEnviarPara": "later", "filhos": []},
+            {"uuid": "catchall", "sequencia": 1, "condicao": "true", "filhos": []},
+            {"uuid": "later", "sequencia": 2, "condicao": "#later", "filhos": []},
+        ]}
+        self.assertNotIn(("later", "shadowed_by_always_true"), {(i["node"], i["type"]) for i in conditions.analyze_conditions(shadow)["issues"]})
+
+        duplicate = {"nos": [
+            {"uuid": "entry", "sequencia": 0, "condicao": "#go", "uuidEnviarPara": "second", "filhos": []},
+            {"uuid": "first", "sequencia": 1, "condicao": "#same", "filhos": []},
+            {"uuid": "second", "sequencia": 2, "condicao": "#same", "filhos": []},
+        ]}
+        self.assertNotIn(("second", "duplicate_sibling_condition"), {(i["node"], i["type"]) for i in conditions.analyze_conditions(duplicate)["issues"]})
+
     def test_cli_is_deterministic_and_signals_issues(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             first = Path(directory) / "first.json"
@@ -69,8 +118,10 @@ class WatsonDialogConditionsTests(unittest.TestCase):
 
     def test_reports_invalid_direct_entity_call(self) -> None:
         document = {"nos": [{"uuid": "invalid-call", "condicao": "@ne(input.text) && true", "filhos": []}]}
-        issue_types = {issue["type"] for issue in conditions.analyze_conditions(document)["issues"]}
+        report = conditions.analyze_conditions(document)
+        issue_types = {issue["type"] for issue in report["issues"]}
         self.assertIn("invalid_spel_entity_call", issue_types)
+        self.assertNotIn("unknown_entity", issue_types)
 
 
 if __name__ == "__main__":

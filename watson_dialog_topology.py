@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from watson_dialog_conditions import sorted_siblings
-from watson_dialog_diff import load_json
+from watson_dialog_diff import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
 
 
 def response_groups(item: dict[str, Any]) -> list[dict[str, Any]]:
@@ -58,15 +58,25 @@ def topology(document: dict[str, Any], target: str) -> dict[str, Any]:
 
 
 def main() -> int:
+    configure_utf8_output()
     parser = argparse.ArgumentParser(description="Gera ancestrais e descendentes estruturais de um nó Watson Dialog.")
-    parser.add_argument("dialog", type=Path); parser.add_argument("target"); parser.add_argument("--output", type=Path)
+    parser.add_argument("dialog", type=Path)
+    parser.add_argument("target")
+    parser.add_argument("--output", type=Path)
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
     args = parser.parse_args()
-    try: result = topology(load_json(args.dialog), args.target)
-    except (ValueError, KeyError) as error: print(f"Erro: {error}", file=sys.stderr); return 2
+    try:
+        result = topology(load_json(args.dialog, max_bytes=args.max_input_bytes), args.target)
+    except (ValueError, KeyError) as error:
+        print(f"Erro: {error}", file=sys.stderr)
+        return 2
     output = json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    if args.output: args.output.write_text(output, encoding="utf-8")
-    else: print(output, end="")
+    if args.output:
+        args.output.write_text(output, encoding="utf-8")
+    else:
+        print(output, end="")
     return 0
 
 
-if __name__ == "__main__": raise SystemExit(main())
+if __name__ == "__main__":
+    raise SystemExit(main())

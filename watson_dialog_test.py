@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from watson_dialog_conditions import sorted_siblings
-from watson_dialog_diff import load_json
+from watson_dialog_diff import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
 from watson_spel import UNKNOWN, SpelError, evaluate_condition
 
 
@@ -44,7 +44,7 @@ def condition_result(condition: str, environment: dict[str, Any], fallback: bool
     if normalized == "conversation_start": return "true" if environment.get("conversation_start", environment.get("is_first_turn")) is True else "false"
     if normalized == "irrelevant": return "true" if environment.get("irrelevant") is True else "false"
     try: value = evaluate_condition(condition, environment)
-    except SpelError: return "unknown"
+    except Exception: return "unknown"
     return "unknown" if value is UNKNOWN else str(value).lower()
 
 
@@ -598,15 +598,34 @@ def run_scenarios(document: dict[str, Any], scenarios: list[tuple[dict[str, Any]
 
 
 def main() -> int:
+    configure_utf8_output()
     parser = argparse.ArgumentParser(description="Executa sessões determinísticas de teste de um Dialog Watson.")
-    parser.add_argument("dialog", type=Path); parser.add_argument("scenarios", type=Path, nargs="+"); parser.add_argument("--output", type=Path)
+    parser.add_argument("dialog", type=Path)
+    parser.add_argument("scenarios", type=Path, nargs="+")
+    parser.add_argument("--output", type=Path)
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emite apenas sumário consolidado de execução")
     args = parser.parse_args()
-    try: report = run_scenarios(load_json(args.dialog), [(load_json(path), str(path)) for path in args.scenarios])
-    except (ValueError, KeyError) as error: print(f"Erro: {error}", file=sys.stderr); return 2
+    try:
+        doc = load_json(args.dialog, max_bytes=args.max_input_bytes)
+        scenarios_loaded = [(load_json(path, max_bytes=args.max_input_bytes), str(path)) for path in args.scenarios]
+        report = run_scenarios(doc, scenarios_loaded)
+        if args.summary_only:
+            report = {
+                "schema_version": report["schema_version"],
+                "summary": report["summary"],
+                "results": [{"name": r["name"], "source": r["source"], "passed": r["passed"]} for r in report["results"]],
+            }
+    except (ValueError, KeyError) as error:
+        print(f"Erro: {error}", file=sys.stderr)
+        return 2
     output = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    if args.output: args.output.write_text(output, encoding="utf-8")
-    else: print(output, end="")
+    if args.output:
+        args.output.write_text(output, encoding="utf-8")
+    else:
+        print(output, end="")
     return 0 if not report["summary"]["failed"] else 1
 
 
-if __name__ == "__main__": raise SystemExit(main())
+if __name__ == "__main__":
+    raise SystemExit(main())

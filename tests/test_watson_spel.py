@@ -16,6 +16,7 @@ SPEC.loader.exec_module(spel)
 UNKNOWN = spel.UNKNOWN
 evaluate_condition = spel.evaluate_condition
 evaluate_expression = spel.evaluate_expression
+template_syntax_diagnostics = spel.template_syntax_diagnostics
 
 
 class WatsonSpelTests(unittest.TestCase):
@@ -52,6 +53,22 @@ class WatsonSpelTests(unittest.TestCase):
         self.environment["entities"]["sys-number"] = [-1]
         self.assertIs(evaluate_condition("@5w1h && @sys-number:-1", self.environment), True)
         self.assertIs(evaluate_expression("new Random().nextInt(2)", self.environment), UNKNOWN)
+
+    def test_context_template_syntax_diagnostics_are_conservative_and_quote_aware(self) -> None:
+        self.assertEqual(template_syntax_diagnostics("prefix <? input.text.toLowerCase() ?> suffix"), [])
+        self.assertEqual(template_syntax_diagnostics("<? '?>'.contains('>') ?>"), [])
+        self.assertEqual(template_syntax_diagnostics("<? @pattern.literal.replace('\\', '') ?>"), [])
+        self.assertEqual(template_syntax_diagnostics("<? 'Tony''s ?> marker'.contains('x') ?>"), [])
+        self.assertEqual(spel.syntax_diagnostics("@pattern.literal.replace('\\', '')"), [])
+        self.assertEqual(spel.syntax_diagnostics("'Tony''s' == 'Tony''s'"), [])
+
+        codes = [item["code"] for item in template_syntax_diagnostics("<? $ready && ?> / <? ?> / <? input.text")]
+        self.assertEqual(codes, ["missing_right_operand", "empty_expression", "unclosed_template"])
+
+        diagnostics = template_syntax_diagnostics("a <? ($ready ?> b <? input.text ?>")
+        self.assertEqual([item["code"] for item in diagnostics], ["unclosed_parenthesis"])
+        self.assertEqual(diagnostics[0]["ordinal"], 1)
+        self.assertEqual(diagnostics[0]["expression"], "($ready")
 
 
 if __name__ == "__main__":

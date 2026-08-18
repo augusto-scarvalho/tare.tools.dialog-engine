@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from watson_dialog_conditions import analyze_conditions
-from watson_dialog_diff import load_json
+from watson_dialog_diff import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
 from watson_dialog_test import normalize_document
 
 
@@ -88,7 +88,7 @@ def reachability(document: dict[str, Any], graph: dict[str, Any]) -> dict[str, A
     condition_report = analyze_conditions(document)
     direct_reasons: dict[str, list[str]] = {}
     for issue in condition_report["issues"]:
-        if issue["type"] in {"unsatisfiable_condition", "shadowed_by_always_true"}:
+        if issue["type"] in {"disabled_condition_false", "unsatisfiable_condition", "shadowed_by_always_true"}:
             direct_reasons.setdefault(issue["node"], []).append(issue["type"])
 
     vertices = {vertex["id"]: vertex for vertex in graph["vertices"]}
@@ -137,7 +137,7 @@ def reachability(document: dict[str, Any], graph: dict[str, Any]) -> dict[str, A
     }
 
 
-def build_graph(document: dict[str, Any]) -> dict[str, Any]:
+def build_graph(document: dict[str, Any], summary_only: bool = False) -> dict[str, Any]:
     """Create a detailed graph whose edges always have node, target, and type."""
     document = normalize_document(document)
     vertices: dict[str, dict[str, Any]] = {}
@@ -232,13 +232,26 @@ def build_graph(document: dict[str, Any]) -> dict[str, Any]:
         "digression_targets": digression_targets,
     }
     graph["reachability"] = reachability(document, graph)
+    if summary_only:
+        return {
+            "schema_version": GRAPH_SCHEMA_VERSION,
+            "summary": {
+                "vertex_count": len(graph["vertices"]),
+                "edge_count": len(graph["edges"]),
+                "unresolved_jumps_count": len(graph["unresolved_jumps"]),
+                "digression_targets_count": len(graph["digression_targets"]),
+                "unreachable_count": len(graph["reachability"].get("unreachable", [])),
+            },
+            "unresolved_jumps": graph["unresolved_jumps"],
+            "reachability": graph["reachability"],
+        }
     return graph
 
 
 def dot(graph: dict[str, Any]) -> str:
     colors = {"dialog_node": "#DCEEFF", "slot_child": "#FFF1CC", "event_handler": "#FFE2B8", "slot": "#E5D8FF"}
     lines = ["digraph watson_dialog {", "  rankdir=LR;", "  node [shape=box, style=rounded, fontname=Arial];"]
-    for vertex in graph["vertices"]:
+    for vertex in graph.get("vertices", []):
         label = vertex.get("name") or vertex["id"]
         if vertex.get("folder"):
             label = "[folder] " + label
@@ -248,20 +261,23 @@ def dot(graph: dict[str, Any]) -> str:
         shape = "folder" if vertex.get("folder") else "box"
         color = "#D7F2DF" if vertex.get("folder") else colors[vertex["kind"]]
         lines.append(f'  "{vertex["id"]}" [label="{escaped}", shape="{shape}", fillcolor="{color}", style="rounded,filled"];')
-    for edge in graph["edges"]:
+    for edge in graph.get("edges", []):
         lines.append(f'  "{edge["node"]}" -> "{edge["target"]}" [label="{edge["type"]}"];')
     lines.append("}")
     return "\n".join(lines) + "\n"
 
 
 def main() -> int:
+    configure_utf8_output()
     parser = argparse.ArgumentParser(description="Gera um grafo direcionado de um export Watson Assistant Dialog.")
     parser.add_argument("input", type=Path, help="export JSON do Watson Assistant")
     parser.add_argument("--format", choices=("json", "dot"), default="json")
     parser.add_argument("--output", type=Path, help="arquivo de saída; padrão: stdout")
+    parser.add_argument("--max-input-bytes", type=int, default=None, help="limite máximo em bytes; padrão: WATSON_DIALOG_MAX_BYTES ou 50 MiB")
+    parser.add_argument("--summary-only", action="store_true", help="emite apenas contagens consolidadas do grafo")
     args = parser.parse_args()
     try:
-        graph = build_graph(load_json(args.input))
+        graph = build_graph(load_json(args.input, max_bytes=args.max_input_bytes), summary_only=args.summary_only)
     except (ValueError, KeyError) as error:
         print(f"Erro: {error}", file=sys.stderr)
         return 2
