@@ -130,6 +130,31 @@ Resource-aware execution for large-scale enterprise exports:
 
 ---
 
+## Dual Distribution Architecture
+
+`tare.tools.dialog-engine` is published in **two distinct distributions** ([ADR-0004](docs/adr/0004-dual-distribution-strategy-modular-and-ephemeral.md)):
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📦 1. MODULAR FULL PACKAGE (Workstations & CI/CD)                          │
+│    - Complete modular architecture, memory mmap sharding, and pytest suite. │
+│    - Interactive SIGNAL Mission Control triage console (HTML).              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ⚡ 2. EPHEMERAL STANDALONE (ChatGPT ADA & M365 Copilot Runtime)              │
+│    - Single-file zero-install monolith: dist/dialog_engine_standalone.py    │
+│    - Portable Python ZipApp: dist/dialog_engine.pyz (~50 KB)                │
+│    - Drop directly into ChatGPT Advanced Data Analysis / Copilot Studio!    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Build the Ephemeral Standalone Bundle
+```bash
+python scripts/build_standalone.py
+# Generates dist/dialog_engine_standalone.py and dist/dialog_engine.pyz
+```
+
+---
+
 ## Quickstart and Installation
 
 ```bash
