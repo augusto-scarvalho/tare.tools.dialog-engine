@@ -12,15 +12,54 @@ if _src_dir not in sys.path:
 
 
 from pathlib import Path
-from typing import Any
-
+from tare_dialog.test_runner import normalize_document
 from tare_dialog.validator import validate
 
 
 def generate_triage_data(current_doc: dict[str, Any], candidate_doc: dict[str, Any]) -> dict[str, Any]:
     """Generate optimized triage dataset for the SIGNAL HTML console."""
-    current_rep = validate(current_doc)
-    candidate_rep = validate(candidate_doc)
+    def validate_full(doc: dict[str, Any]) -> dict[str, Any]:
+        is_v1 = "dialog_nodes" in doc and not doc.get("nos")
+        if is_v1:
+            v1_rep = validate(doc)
+            try:
+                norm_doc = normalize_document(doc)
+                norm_rep = validate(norm_doc)
+            except Exception:
+                norm_rep = {"issues": [], "summary": {"issues": 0}}
+
+            combined_issues = list(v1_rep.get("issues", []))
+            seen = {(iss.get("node"), iss.get("code"), iss.get("field")) for iss in combined_issues}
+
+            for iss in norm_rep.get("issues", []):
+                key = (iss.get("node"), iss.get("code"), iss.get("field"))
+                if key not in seen:
+                    seen.add(key)
+                    combined_issues.append(iss)
+
+            by_severity: dict[str, int] = {}
+            for iss in combined_issues:
+                sev = str(iss.get("severity", "info"))
+                by_severity[sev] = by_severity.get(sev, 0) + 1
+
+            by_category: dict[str, int] = {}
+            for iss in combined_issues:
+                cat = str(iss.get("category", "semantic"))
+                by_category[cat] = by_category.get(cat, 0) + 1
+
+            return {
+                "summary": {
+                    "issues": len(combined_issues),
+                    "issues_by_severity": by_severity,
+                    "issues_by_category": by_category,
+                },
+                "issues": combined_issues,
+            }
+        else:
+            return validate(doc)
+
+    current_rep = validate_full(current_doc)
+    candidate_rep = validate_full(candidate_doc)
 
     def build_node_indexer(document: dict[str, Any]) -> dict[str, Any]:
         index: dict[str, Any] = {}

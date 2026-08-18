@@ -2273,15 +2273,14 @@ input/current.json input/candidate.json \
   "generated_at": "2026-08-18T12:00:00Z",
   "current": {
     "summary": {
-      "issues": 1,
-      "issues_by_category": {
-        "semantic": 1
-      },
-      "issues_by_code": {
-        "missing_root_anything_else": 1
-      },
+      "issues": 16,
       "issues_by_severity": {
-        "warning": 1
+        "warning": 11,
+        "info": 4,
+        "error": 1
+      },
+      "issues_by_category": {
+        "semantic": 16
       }
     },
     "actionable_issues": [
@@ -2293,9 +2292,144 @@ input/current.json input/candidate.json \
         "field": "nos",
         "value": null,
         "message": "Não há um nó raiz com a condição anything_else."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_broken_navigation",
+        "field": "condicao",
+        "value": "#seguros",
+        "message": "Intent não definida: #seguros."
+      },
+      {
+        "category": "semantic",
+        "code": "digression_blocked_by_transition",
+        "severity": "info",
+        "node": "node_broken_navigation",
+        "field": "inDigressionOut",
+        "value": true,
+        "message": "O Watson não permite digressão de saída quando o nó ativo força jump ou Skip user input."
+      },
+      {
+        "category": "semantic",
+        "code": "unresolved_jump_target",
+        "severity": "error",
+        "node": "node_broken_navigation",
+        "field": "uuidEnviarPara",
+        "value": "node_insurance_quotes_uuid_404",
+        "message": "O jump aponta para o UUID inexistente node_insurance_quotes_uuid_404."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_entity",
+        "severity": "warning",
+        "node": "node_card_invoice",
+        "field": "condicao",
+        "value": "#consultar_fatura || @produto:cartao",
+        "message": "Entidade não definida: @produto."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_card_invoice",
+        "field": "condicao",
+        "value": "#consultar_fatura || @produto:cartao",
+        "message": "Intent não definida: #consultar_fatura."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_credit_limit",
+        "field": "condicao",
+        "value": "#aumentar_limite",
+        "message": "Intent não definida: #aumentar_limite."
+      },
+      {
+        "category": "semantic",
+        "code": "digression_blocked_by_transition",
+        "severity": "info",
+        "node": "node_credit_limit",
+        "field": "inDigressionOut",
+        "value": true,
+        "message": "O Watson não permite digressão de saída quando o nó ativo força jump ou Skip user input."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_help_faq",
+        "field": "condicao",
+        "value": "#ajuda || #duvidas",
+        "message": "Intent não definida: #ajuda."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_human_handoff",
+        "field": "condicao",
+        "value": "#falar_atendente || #humano",
+        "message": "Intent não definida: #falar_atendente."
+      },
+      {
+        "category": "semantic",
+        "code": "disabled_condition_false",
+        "severity": "info",
+        "node": "node_legacy_campaign",
+        "field": "condicao",
+        "value": "false",
+        "message": "A condição contém `false` explícito e mantém o ramo deliberadamente desabilitado no fluxo normal."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_entity",
+        "severity": "warning",
+        "node": "node_pix_frame",
+        "field": "condicao",
+        "value": "#fazer_pix || @operacao:pix",
+        "message": "Entidade não definida: @operacao."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_pix_frame",
+        "field": "condicao",
+        "value": "#fazer_pix || @operacao:pix",
+        "message": "Intent não definida: #fazer_pix."
+      },
+      {
+        "category": "semantic",
+        "code": "digression_blocked_by_forcing_child",
+        "severity": "warning",
+        "node": "node_pix_frame",
+        "field": "inDigressionOut",
+        "value": true,
+        "message": "O Watson não permite digressão de saída com filho ativo true/anything_else; blockers: node_pix_receipt."
+      },
+      {
+        "category": "semantic",
+        "code": "digression_blocked_by_transition",
+        "severity": "info",
+        "node": "node_pix_frame",
+        "field": "inDigressionOut",
+        "value": true,
+        "message": "O Watson não permite digressão de saída quando o nó ativo força jump ou Skip user input."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_entity",
+        "severity": "warning",
+        "node": "slot:slot_pix_key",
+        "field": "slots[uuid=slot_pix_key].condicao",
+        "value": "@chave_pix || @sys-email || @sys-phone || @sys-number",
+        "message": "Entidade não definida: @chave_pix."
       }
     ],
-    "total_info_count": 0,
+    "total_info_count": 4,
     "nodes": {
       "node_welcome": {
         "uuid": "node_welcome",
@@ -2596,10 +2730,7 @@ input/current.json input/candidate.json \
                 "channel": "whatsapp",
                 "values": [
                   {
-                    "text": "📄 *Fatura do Cartão Platinum*
-Valor Total: *R$ 2.340,50*
-Vencimento: *10/10*
-Linha Digitável: `23793.38128 60000.123456 7 89010000234050`"
+                    "text": "📄 *Fatura do Cartão Platinum*\nValor Total: *R$ 2.340,50*\nVencimento: *10/10*\nLinha Digitável: `23793.38128 60000.123456 7 89010000234050`"
                   }
                 ]
               },
@@ -2921,20 +3052,15 @@ Linha Digitável: `23793.38128 60000.123456 7 89010000234050`"
   },
   "candidate": {
     "summary": {
-      "issues": 5,
-      "issues_by_category": {
-        "semantic": 4,
-        "syntactic": 1
-      },
-      "issues_by_code": {
-        "context_spel_unclosed_parenthesis": 1,
-        "missing_root_anything_else": 1,
-        "previous_sibling_has_multiple_successors": 2,
-        "unresolved_previous_sibling": 1
-      },
+      "issues": 19,
       "issues_by_severity": {
         "error": 4,
-        "warning": 1
+        "warning": 13,
+        "info": 2
+      },
+      "issues_by_category": {
+        "semantic": 18,
+        "syntactic": 1
       }
     },
     "actionable_issues": [
@@ -2982,9 +3108,135 @@ Linha Digitável: `23793.38128 60000.123456 7 89010000234050`"
         "field": "nos",
         "value": null,
         "message": "Não há um nó raiz com a condição anything_else."
+      },
+      {
+        "category": "semantic",
+        "code": "anything_else_not_last_sibling",
+        "severity": "warning",
+        "node": "node_anything_else",
+        "field": "condicao",
+        "value": "anything_else",
+        "message": "anything_else deve ser o último irmão do grupo root."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_entity",
+        "severity": "warning",
+        "node": "node_card_invoice",
+        "field": "condicao",
+        "value": "#consultar_fatura || @produto:cartao",
+        "message": "Entidade não definida: @produto."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_card_invoice",
+        "field": "condicao",
+        "value": "#consultar_fatura || @produto:cartao",
+        "message": "Intent não definida: #consultar_fatura."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_credit_limit",
+        "field": "condicao",
+        "value": "#aumentar_limite",
+        "message": "Intent não definida: #aumentar_limite."
+      },
+      {
+        "category": "semantic",
+        "code": "digression_blocked_by_transition",
+        "severity": "info",
+        "node": "node_credit_limit",
+        "field": "inDigressionOut",
+        "value": true,
+        "message": "O Watson não permite digressão de saída quando o nó ativo força jump ou Skip user input."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_help_faq",
+        "field": "condicao",
+        "value": "#ajuda || #duvidas",
+        "message": "Intent não definida: #ajuda."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_human_handoff",
+        "field": "condicao",
+        "value": "#falar_atendente || #humano",
+        "message": "Intent não definida: #falar_atendente."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_entity",
+        "severity": "warning",
+        "node": "node_investments_cdb",
+        "field": "condicao",
+        "value": "#investimentos || @produto:investimento",
+        "message": "Entidade não definida: @produto."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_investments_cdb",
+        "field": "condicao",
+        "value": "#investimentos || @produto:investimento",
+        "message": "Intent não definida: #investimentos."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_entity",
+        "severity": "warning",
+        "node": "node_pix_frame",
+        "field": "condicao",
+        "value": "#fazer_pix || @operacao:pix",
+        "message": "Entidade não definida: @operacao."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_intent",
+        "severity": "warning",
+        "node": "node_pix_frame",
+        "field": "condicao",
+        "value": "#fazer_pix || @operacao:pix",
+        "message": "Intent não definida: #fazer_pix."
+      },
+      {
+        "category": "semantic",
+        "code": "digression_blocked_by_forcing_child",
+        "severity": "warning",
+        "node": "node_pix_frame",
+        "field": "inDigressionOut",
+        "value": true,
+        "message": "O Watson não permite digressão de saída com filho ativo true/anything_else; blockers: node_pix_receipt."
+      },
+      {
+        "category": "semantic",
+        "code": "digression_blocked_by_transition",
+        "severity": "info",
+        "node": "node_pix_frame",
+        "field": "inDigressionOut",
+        "value": true,
+        "message": "O Watson não permite digressão de saída quando o nó ativo força jump ou Skip user input."
+      },
+      {
+        "category": "semantic",
+        "code": "unknown_entity",
+        "severity": "warning",
+        "node": "slot:slot_pix_key",
+        "field": "slots[uuid=slot_pix_key].condicao",
+        "value": "@chave_pix || @sys-email || @sys-phone || @sys-number",
+        "message": "Entidade não definida: @chave_pix."
       }
     ],
-    "total_info_count": 0,
+    "total_info_count": 2,
     "nodes": {
       "node_welcome": {
         "uuid": "node_welcome",
@@ -3305,10 +3557,7 @@ Linha Digitável: `23793.38128 60000.123456 7 89010000234050`"
                 "channel": "whatsapp",
                 "values": [
                   {
-                    "text": "📄 *Fatura do Cartão Platinum*
-Valor Total: *R$ 2.340,50*
-Vencimento: *10/10*
-Linha Digitável: `23793.38128 60000.123456 7 89010000234050`"
+                    "text": "📄 *Fatura do Cartão Platinum*\nValor Total: *R$ 2.340,50*\nVencimento: *10/10*\nLinha Digitável: `23793.38128 60000.123456 7 89010000234050`"
                   }
                 ]
               },
