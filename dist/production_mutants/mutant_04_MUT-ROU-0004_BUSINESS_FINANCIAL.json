@@ -1,0 +1,10 @@
+{
+  "mutation_id": "MUT-ROU-0004",
+  "node_id": "69e80a9b-77a1-428c-ac75-6bdda5705742",
+  "node_title": "69e80a9b-77a1-428c-ac75-6bdda5705742",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "operator": "INTENT_MUTATION",
+  "original_expression": "$dadosNovoCorpus && $dadosNovoCorpus.ativo_pf",
+  "mutated_expression": "false",
+  "explanation": "Disabled route trigger '$dadosNovoCorpus && $dadosNovoCorpus.ativo_pf' to test if conversational test suite detects loss of 69e80a9b-77a1-428c-ac75-6bdda5705742."
+}

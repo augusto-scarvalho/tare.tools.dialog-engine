@@ -1,0 +1,10 @@
+{
+  "mutation_id": "MUT-ROU-0010",
+  "node_id": "24da09b3-3cf6-4153-96d8-b6d5d3f2c7ae",
+  "node_title": "24da09b3-3cf6-4153-96d8-b6d5d3f2c7ae",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "operator": "INTENT_MUTATION",
+  "original_expression": "$canal && ($canal:(hs-APF) || $canal:(hs-MOV)) && $DETALHE_REGRA_ATENDIMENTO && $DETALHE_REGRA_ATENDIMENTO.id && ($DETALHE_REGRA_ATENDIMENTO.id == 390 || $DETALHE_REGRA_ATENDIMENTO.id == 448) && $DETALHE_REGRA_ATENDIMENTO.description && $DETALHE_REGRA_ATENDIMENTO.description.toLowerCase().contains('portabilidade de salário')",
+  "mutated_expression": "false",
+  "explanation": "Disabled route trigger '$canal && ($canal:(hs-APF) || $canal:(hs-MOV)) && $DETALHE_REGRA_ATENDIMENTO && $DETALHE_REGRA_ATENDIMENTO.id && ($DETALHE_REGRA_ATENDIMENTO.id == 390 || $DETALHE_REGRA_ATENDIMENTO.id == 448) && $DETALHE_REGRA_ATENDIMENTO.description && $DETALHE_REGRA_ATENDIMENTO.description.toLowerCase().contains('portabilidade de salário')' to test if conversational test suite detects loss of 24da09b3-3cf6-4153-96d8-b6d5d3f2c7ae."
+}

@@ -1,0 +1,10 @@
+{
+  "mutation_id": "MUT-ROU-0009",
+  "node_id": "c10b7ded-1eb7-49db-b595-181fddd45246",
+  "node_title": "c10b7ded-1eb7-49db-b595-181fddd45246",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "operator": "INTENT_MUTATION",
+  "original_expression": "$canal && ($canal == \"hs-APF\" || $canal == \"hs-MOV\") && $DETALHE_REGRA_ATENDIMENTO && $DETALHE_REGRA_ATENDIMENTO[\"id\"] && $DETALHE_REGRA_ATENDIMENTO[\"id\"] == 164 && ($dadosDinamicos[\"MCICLI\"] == \"960876088\" || $dadosDinamicos[\"MCICLI\"] == \"320652457\" || $dadosDinamicos[\"MCICLI\"] == \"046970810\" || $dadosDinamicos[\"MCICLI\"] == \"866991270\" || $dadosDinamicos[\"MCICLI\"] == \"050792090\")",
+  "mutated_expression": "false",
+  "explanation": "Disabled route trigger '$canal && ($canal == \"hs-APF\" || $canal == \"hs-MOV\") && $DETALHE_REGRA_ATENDIMENTO && $DETALHE_REGRA_ATENDIMENTO[\"id\"] && $DETALHE_REGRA_ATENDIMENTO[\"id\"] == 164 && ($dadosDinamicos[\"MCICLI\"] == \"960876088\" || $dadosDinamicos[\"MCICLI\"] == \"320652457\" || $dadosDinamicos[\"MCICLI\"] == \"046970810\" || $dadosDinamicos[\"MCICLI\"] == \"866991270\" || $dadosDinamicos[\"MCICLI\"] == \"050792090\")' to test if conversational test suite detects loss of c10b7ded-1eb7-49db-b595-181fddd45246."
+}

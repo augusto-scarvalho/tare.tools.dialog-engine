@@ -1,0 +1,10 @@
+{
+  "mutation_id": "MUT-ROU-0008",
+  "node_id": "04b495a8-9c31-447d-8e0c-e76b6d5c40da",
+  "node_title": "04b495a8-9c31-447d-8e0c-e76b6d5c40da",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "operator": "INTENT_MUTATION",
+  "original_expression": "$canal && ($canal == \"hs-APF\" || $canal == \"hs-MOV\") && $DETALHE_REGRA_ATENDIMENTO && $DETALHE_REGRA_ATENDIMENTO[\"id\"] && $DETALHE_REGRA_ATENDIMENTO[\"id\"] == 13",
+  "mutated_expression": "false",
+  "explanation": "Disabled route trigger '$canal && ($canal == \"hs-APF\" || $canal == \"hs-MOV\") && $DETALHE_REGRA_ATENDIMENTO && $DETALHE_REGRA_ATENDIMENTO[\"id\"] && $DETALHE_REGRA_ATENDIMENTO[\"id\"] == 13' to test if conversational test suite detects loss of 04b495a8-9c31-447d-8e0c-e76b6d5c40da."
+}

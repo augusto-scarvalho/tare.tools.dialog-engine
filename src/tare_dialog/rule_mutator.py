@@ -79,11 +79,60 @@ class SemanticRuleMutator:
     def generate_rule_mutants(self, document: dict[str, Any]) -> list[RuleMutant]:
         """Discover and mutate operational guards in document."""
         mutants: list[RuleMutant] = []
-        nodes = document.get("dialog_nodes") or document.get("nos") or []
 
-        for node in nodes:
-            if not isinstance(node, dict):
-                continue
+        def collect_nodes(raw_nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            flat: list[dict[str, Any]] = []
+            for n in raw_nodes:
+                if not isinstance(n, dict):
+                    continue
+                flat.append(n)
+                for slot in n.get("slots") or []:
+                    if isinstance(slot, dict):
+                        flat.append(slot)
+                        flat.extend(collect_nodes(slot.get("filhos") or []))
+                flat.extend(collect_nodes(n.get("filhos") or []))
+            return flat
+
+        root_nodes = document.get("dialog_nodes") or document.get("nos") or []
+        all_nodes = collect_nodes(root_nodes) if "nos" in document else [n for n in root_nodes if isinstance(n, dict)]
+
+        def make_mutated_doc(target_id: str, new_cond: str | None = None, new_ctx_key: str | None = None, new_ctx_val: Any = None) -> dict[str, Any]:
+            m_doc = copy.deepcopy(document)
+
+            def apply(nodes: list[dict[str, Any]]) -> bool:
+                for n in nodes:
+                    if not isinstance(n, dict):
+                        continue
+                    curr_id = str(n.get("dialog_node") or n.get("uuid") or "")
+                    if curr_id == target_id:
+                        if new_cond is not None:
+                            if "conditions" in n:
+                                n["conditions"] = new_cond
+                            else:
+                                n["condicao"] = new_cond
+                        if new_ctx_key is not None:
+                            ctx = n.get("context") if "context" in n else n.get("contexto", {})
+                            if isinstance(ctx, dict):
+                                ctx[new_ctx_key] = new_ctx_val
+                        return True
+                    for slot in n.get("slots") or []:
+                        if isinstance(slot, dict):
+                            slot_id = str(slot.get("uuid") or slot.get("identificador") or "")
+                            if slot_id == target_id:
+                                if new_cond is not None:
+                                    slot["condicao"] = new_cond
+                                return True
+                            if apply(slot.get("filhos") or []):
+                                return True
+                    if apply(n.get("filhos") or []):
+                        return True
+                return False
+
+            raw_nodes = m_doc.get("dialog_nodes") or m_doc.get("nos") or []
+            apply(raw_nodes)
+            return m_doc
+
+        for node in all_nodes:
             node_id = str(node.get("dialog_node") or node.get("uuid") or "")
             node_title = str(node.get("title") or node.get("nome") or node_id)
             cond = str(node.get("conditions") or node.get("condicao") or "")
@@ -93,87 +142,63 @@ class SemanticRuleMutator:
             # 1. SECURITY CRITICAL: Authentication & Authorization Guards
             # ----------------------------------------------------------
             if "user_authenticated" in cond or "auth" in cond.lower() or "!user_authenticated" in str(ctx):
-                # Bypass guard
-                m_doc = copy.deepcopy(document)
-                m_nodes = m_doc.get("dialog_nodes") or m_doc.get("nos") or []
-                target = next((n for n in m_nodes if str(n.get("dialog_node") or n.get("uuid")) == node_id), None)
-                if target:
-                    orig = cond
-                    mutated = "true" if cond else "true"
-                    if "conditions" in target:
-                        target["conditions"] = mutated
-                    else:
-                        target["condicao"] = mutated
-
-                    mutants.append(RuleMutant(
-                        mutation_id=self._next_id("SEC"),
-                        node_id=node_id,
-                        node_title=node_title,
-                        risk_tier=RiskTier.SECURITY_CRITICAL,
-                        operator=MutationOperator.GUARD_BYPASS,
-                        original_expression=orig or "user_authenticated check",
-                        mutated_expression=mutated,
-                        explanation="Bypassed user authentication guard to test if unauthorized users reach this node.",
-                        mutated_doc=m_doc,
-                    ))
+                orig = cond
+                mutated = "true" if cond else "true"
+                m_doc = make_mutated_doc(node_id, new_cond=mutated)
+                mutants.append(RuleMutant(
+                    mutation_id=self._next_id("SEC"),
+                    node_id=node_id,
+                    node_title=node_title,
+                    risk_tier=RiskTier.SECURITY_CRITICAL,
+                    operator=MutationOperator.GUARD_BYPASS,
+                    original_expression=orig or "user_authenticated check",
+                    mutated_expression=mutated,
+                    explanation="Bypassed user authentication guard to test if unauthorized users reach this node.",
+                    mutated_doc=m_doc,
+                ))
 
             # ----------------------------------------------------------
             # 2. BUSINESS FINANCIAL: Limits & Score Thresholds
             # ----------------------------------------------------------
             for field, val in (ctx.items() if isinstance(ctx, dict) else []):
                 if isinstance(val, str) and (">" in val or "<" in val or "score" in val.lower() or "limit" in val.lower()):
-                    m_doc = copy.deepcopy(document)
-                    m_nodes = m_doc.get("dialog_nodes") or m_doc.get("nos") or []
-                    target = next((n for n in m_nodes if str(n.get("dialog_node") or n.get("uuid")) == node_id), None)
-                    if target:
-                        target_ctx = target.get("context") or target.get("contexto") or {}
-                        # Invert comparison operator (> to <=, >= to <)
-                        orig_val = str(val)
-                        mutated_val = orig_val.replace(">=", "<").replace(">", "<=").replace("approved", "denied")
-                        if mutated_val == orig_val:
-                            mutated_val = f"<? false /* mutated {orig_val} */ ?>"
-                        target_ctx[field] = mutated_val
+                    orig_val = str(val)
+                    mutated_val = orig_val.replace(">=", "<").replace(">", "<=").replace("approved", "denied")
+                    if mutated_val == orig_val:
+                        mutated_val = f"<? false /* mutated {orig_val} */ ?>"
 
-                        mutants.append(RuleMutant(
-                            mutation_id=self._next_id("FIN"),
-                            node_id=node_id,
-                            node_title=node_title,
-                            risk_tier=RiskTier.BUSINESS_FINANCIAL,
-                            operator=MutationOperator.LIMIT_INVERSION,
-                            original_expression=f"{field}: {orig_val}",
-                            mutated_expression=f"{field}: {mutated_val}",
-                            explanation=f"Inverted financial underwriting threshold in context variable '{field}'.",
-                            mutated_doc=m_doc,
-                        ))
+                    m_doc = make_mutated_doc(node_id, new_ctx_key=field, new_ctx_val=mutated_val)
+                    mutants.append(RuleMutant(
+                        mutation_id=self._next_id("FIN"),
+                        node_id=node_id,
+                        node_title=node_title,
+                        risk_tier=RiskTier.BUSINESS_FINANCIAL,
+                        operator=MutationOperator.LIMIT_INVERSION,
+                        original_expression=f"{field}: {orig_val}",
+                        mutated_expression=f"{field}: {mutated_val}",
+                        explanation=f"Inverted financial underwriting threshold in context variable '{field}'.",
+                        mutated_doc=m_doc,
+                    ))
 
             # ----------------------------------------------------------
             # 3. ROUTING & ESCALATION: Intent & Trigger Guards
             # ----------------------------------------------------------
             if cond and cond not in {"welcome", "true", "false", "anything_else"}:
-                m_doc = copy.deepcopy(document)
-                m_nodes = m_doc.get("dialog_nodes") or m_doc.get("nos") or []
-                target = next((n for n in m_nodes if str(n.get("dialog_node") or n.get("uuid")) == node_id), None)
-                if target:
-                    # Mutate route guard to false to test if route is covered
-                    mutated_cond = "false"
-                    if "conditions" in target:
-                        target["conditions"] = mutated_cond
-                    else:
-                        target["condicao"] = mutated_cond
-
-                    is_escalation = any(k in cond.lower() for k in ("atendente", "humano", "transbordo", "ajuda", "duvida"))
-                    risk = RiskTier.ROUTING_ESCALATION if is_escalation else RiskTier.BUSINESS_FINANCIAL
-                    mutants.append(RuleMutant(
-                        mutation_id=self._next_id("ROU"),
-                        node_id=node_id,
-                        node_title=node_title,
-                        risk_tier=risk,
-                        operator=MutationOperator.INTENT_MUTATION,
-                        original_expression=cond,
-                        mutated_expression=mutated_cond,
-                        explanation=f"Disabled route trigger '{cond}' to test if conversational test suite detects loss of {node_title}.",
-                        mutated_doc=m_doc,
-                    ))
+                mutated_cond = "false"
+                is_escalation = any(k in cond.lower() for k in ("atendente", "humano", "transbordo", "ajuda", "duvida"))
+                risk = RiskTier.ROUTING_ESCALATION if is_escalation else RiskTier.BUSINESS_FINANCIAL
+                m_doc = make_mutated_doc(node_id, new_cond=mutated_cond)
+                mutants.append(RuleMutant(
+                    mutation_id=self._next_id("ROU"),
+                    node_id=node_id,
+                    node_title=node_title,
+                    risk_tier=risk,
+                    operator=MutationOperator.INTENT_MUTATION,
+                    original_expression=cond,
+                    mutated_expression=mutated_cond,
+                    explanation=f"Disabled route trigger '{cond}' to test if conversational test suite detects loss of {node_title}.",
+                    mutated_doc=m_doc,
+                ))
 
         return mutants
 

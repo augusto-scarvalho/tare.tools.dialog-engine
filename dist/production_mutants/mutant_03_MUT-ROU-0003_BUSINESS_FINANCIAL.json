@@ -1,0 +1,10 @@
+{
+  "mutation_id": "MUT-ROU-0003",
+  "node_id": "e060f086-c1ab-43ed-8949-e050070e8c32",
+  "node_title": "e060f086-c1ab-43ed-8949-e050070e8c32",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "operator": "INTENT_MUTATION",
+  "original_expression": "$dadosNovoCorpus && $dadosNovoCorpus.termo_PF",
+  "mutated_expression": "false",
+  "explanation": "Disabled route trigger '$dadosNovoCorpus && $dadosNovoCorpus.termo_PF' to test if conversational test suite detects loss of e060f086-c1ab-43ed-8949-e050070e8c32."
+}
