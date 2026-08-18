@@ -4,8 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-import tare_dialog.jumps as jumps
-
+from tare_dialog import jumps
 
 ROOT = Path(__file__).resolve().parents[1]
 

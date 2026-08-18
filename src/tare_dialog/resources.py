@@ -87,7 +87,7 @@ class ResourceBudget:
     max_jobs_cap: int
 
     @classmethod
-    def detect(cls, temp_dir: Path | None = None) -> "ResourceBudget":
+    def detect(cls, temp_dir: Path | None = None) -> ResourceBudget:
         usable_cpus = _usable_cpu_count()
         env_cap = os.environ.get("WATSON_DIALOG_MAX_JOBS", "")
         # Keep a conservative default ceiling for subprocess-heavy work, but

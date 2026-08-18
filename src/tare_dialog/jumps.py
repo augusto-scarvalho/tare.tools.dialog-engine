@@ -15,10 +15,14 @@ if _src_dir not in sys.path:
 import argparse
 import json
 import sys
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
-from tare_dialog.diff_engine import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
+from tare_dialog.diff_engine import (
+    configure_utf8_output,
+    load_json,
+)
 
 
 def iter_nodes(document: dict[str, Any]) -> Iterator[dict[str, Any]]:

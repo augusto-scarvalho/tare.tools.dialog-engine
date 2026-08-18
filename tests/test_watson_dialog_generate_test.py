@@ -7,8 +7,7 @@ import sys
 import unittest
 from pathlib import Path
 
-import tare_dialog.topology as topology
-
+from tare_dialog import topology
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = Path(os.environ.get("WATSON_DIALOG_GENERATE_TEST_PATH", ROOT / "src/tare_dialog/generate_test.py"))

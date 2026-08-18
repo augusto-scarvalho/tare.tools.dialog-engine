@@ -21,9 +21,10 @@ if _src_dir not in sys.path:
 
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 
 @dataclass
@@ -219,7 +220,7 @@ def _extract_rich_responses_v1(output_dict: dict[str, Any]) -> list[DialogRespon
         return []
     responses: list[DialogResponse] = []
     generic_list = output_dict.get("generic") or []
-    
+
     # 1. Process output.generic
     if isinstance(generic_list, list):
         for idx, item in enumerate(generic_list):
@@ -432,7 +433,7 @@ def _parse_watson_v1_flat(raw_document: dict[str, Any], doc: UniversalDialogDocu
                 jump = DialogJump(target_id=str(target), selector=selector, behavior=behavior)
 
         responses = _extract_rich_responses_v1(item.get("output") or {})
-        
+
         node = DialogNode(
             id=node_id,
             title=str(title) if title else None,
@@ -531,7 +532,7 @@ def _parse_enterprise_nested(raw_document: dict[str, Any], doc: UniversalDialogD
         title = item.get("nome") or item.get("title") or item.get("name")
         cond = item.get("condicao") or item.get("conditions")
         folder = bool(item.get("folder", False))
-        
+
         # Extract jump
         jump = None
         target = item.get("uuidEnviarPara") or item.get("jump_to") or item.get("target")
@@ -540,7 +541,7 @@ def _parse_enterprise_nested(raw_document: dict[str, Any], doc: UniversalDialogD
             jump = DialogJump(target_id=str(target), selector=selector, behavior="jump_to")
 
         responses = _extract_rich_responses_nested(item.get("respostas") or item.get("responses") or [])
-        
+
         # Slots
         slots: list[DialogSlot] = []
         for s in item.get("slots") or []:
@@ -608,7 +609,7 @@ def _parse_enterprise_nested(raw_document: dict[str, Any], doc: UniversalDialogD
 def introspect_primitives(raw_document: dict[str, Any]) -> dict[str, Any]:
     """Deeply inspect and discover all Watson primitives and features inside a JSON."""
     doc = explore_document(raw_document)
-    
+
     channels = set()
     response_types = set()
     has_media = False
@@ -848,6 +849,7 @@ def to_nested_format(doc: UniversalDialogDocument) -> dict[str, Any]:
 def main() -> None:
     import argparse
     import sys
+
     from tare_dialog.diff_engine import configure_utf8_output, load_json
 
     configure_utf8_output()
@@ -909,7 +911,7 @@ def main() -> None:
     # Default / --introspect
     intro = introspect_primitives(raw_doc)
     print("=================================================================")
-    print(f"  tare.tools — Dialog AST Explorer & Schema Discovery")
+    print("  tare.tools — Dialog AST Explorer & Schema Discovery")
     print("=================================================================")
     print(f"  Format Detected:      {intro['format_detected']}")
     print(f"  Total Dialog Nodes:   {intro['total_nodes']} (Root: {intro['root_nodes']})")

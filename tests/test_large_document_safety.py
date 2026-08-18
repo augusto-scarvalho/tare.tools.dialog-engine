@@ -12,9 +12,8 @@ import unittest
 from pathlib import Path
 
 import tare_dialog.diff_engine as diff
-import tare_dialog.graph as graph
 import tare_dialog.validator as validate
-
+from tare_dialog import graph
 
 ROOT = Path(__file__).resolve().parents[1]
 DIFF_CLI = ROOT / "src/tare_dialog/diff_engine.py"

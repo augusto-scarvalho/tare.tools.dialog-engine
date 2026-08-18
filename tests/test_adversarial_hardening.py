@@ -2,11 +2,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tare_dialog.spel import UNKNOWN, SpelError, evaluate_condition, evaluate_expression
-import tare_dialog.conditions as conditions
-import tare_dialog.external as external
 import tare_dialog.test_runner as runner
 import tare_dialog.validator as validate
+from tare_dialog import conditions, external
+from tare_dialog.spel import UNKNOWN, SpelError, evaluate_condition, evaluate_expression
 
 
 class AdversarialHardeningTests(unittest.TestCase):

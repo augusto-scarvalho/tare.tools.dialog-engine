@@ -18,7 +18,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from tare_dialog.diff_engine import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
+from tare_dialog.diff_engine import (
+    configure_utf8_output,
+    load_json,
+)
 from tare_dialog.test_runner import normalize_document, run_scenario
 
 
@@ -52,7 +55,7 @@ def turn_for(condition: str, context: dict[str, Any]) -> tuple[dict[str, Any], l
     if match: text = match.group(1)
     match = re.search(r"input\.text\.contains\(['\"]([^'\"]+)", condition)
     if match: text = match.group(1)
-    unsupported = re.sub(r"(?:#[\w.-]+|@[\w-]+(?::(?:\([^)]*\)|[\w-]+))?|\$[A-Za-z_]\w*|input\.text(?:\.toLowerCase\(\))?(?:\s*(?:==|!=|>|<|>=|<=)\s*['\"][^'\"]+['\"]|\.contains\(['\"][^'\"]+['\"]\))?|true|false|\s|&&|\|\||\(|\)|!|AND|OR)", "", condition, flags=re.I)
+    unsupported = re.sub(r"(?:#[\w.-]+|@[\w-]+(?::(?:\([^)]*\)|[\w-]+))?|\$[A-Za-z_]\w*|input\.text(?:\.toLowerCase\(\))?(?:\s*(?:==|!=|>|<|>=|<=)\s*['\"][^'\"]+['\"]|\.contains\(['\"][^'\"]+['\"]\))?|true|false|\s|&&|\|\||\(|\)|!|AND|OR)", "", condition, flags=re.IGNORECASE)
     if unsupported: issues.append(f"Trecho SpEL não sintetizado: {unsupported!r}")
     return {"input": {"text": text}, "intents": intents, "entities": entities, "context": dict(sorted(context.items()))}, issues
 

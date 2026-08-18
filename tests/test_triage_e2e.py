@@ -1,6 +1,7 @@
 """Playwright End-to-End Test Suite for Watson Dialog Triage and Wiki Console."""
 import unittest
 from pathlib import Path
+
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -95,7 +96,7 @@ class TriageConsoleE2ETests(unittest.TestCase):
     def test_triage_button_actions_and_persistence(self) -> None:
         first_card = self.page.locator(".issue-card").first
         bug_btn = first_card.locator("button:has-text('Bug Confirmado')")
-        
+
         # Click Bug Confirmado
         bug_btn.click()
         self.page.wait_for_timeout(100)

@@ -11,7 +11,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = Path(os.environ.get("WATSON_DIALOG_TEST_PATH", ROOT / "src/tare_dialog/test_runner.py"))
 FIXTURES = ROOT / "tests" / "fixtures"

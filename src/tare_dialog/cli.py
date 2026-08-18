@@ -16,19 +16,27 @@ import json
 import sys
 from pathlib import Path
 
-
 try:
-    from rich import print as rprint
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
-    from rich.tree import Tree
     HAS_RICH = True
 except ImportError:
     HAS_RICH = False
 
-from tare_dialog.diff_engine import DEFAULT_IGNORED_FIELDS, configure_utf8_output, load_json, markdown, summarize
-from tare_dialog.explorer import explore_document, introspect_primitives, to_nested_format, to_v1_format
+from tare_dialog.diff_engine import (
+    DEFAULT_IGNORED_FIELDS,
+    configure_utf8_output,
+    load_json,
+    markdown,
+    summarize,
+)
+from tare_dialog.explorer import (
+    explore_document,
+    introspect_primitives,
+    to_nested_format,
+    to_v1_format,
+)
 from tare_dialog.graph import build_graph, render_dot
 from tare_dialog.test_runner import run_scenario
 from tare_dialog.validator import validate
@@ -41,7 +49,7 @@ def render_rich_diff(report: dict, console: Console) -> None:
     t.add_column("Added", justify="right", style="green")
     t.add_column("Removed", justify="right", style="red")
     t.add_column("Changed", justify="right", style="yellow")
-    
+
     t.add_row("Total Changes", str(summary.get("added", 0)), str(summary.get("removed", 0)), str(summary.get("changed", 0)))
     console.print(t)
 
@@ -49,7 +57,7 @@ def render_rich_diff(report: dict, console: Console) -> None:
 def render_rich_validation(report: dict, console: Console) -> None:
     summary = report.get("summary", {})
     total = summary.get("issues", 0)
-    
+
     table = Table(title=f"[bold]tare.tools — Validation Report ({total} issues)[/bold]", header_style="bold blue")
     table.add_column("Severity", style="bold")
     table.add_column("Code", style="cyan")
@@ -124,7 +132,7 @@ def main() -> None:
             cur_doc = load_json(args.current)
             cand_doc = load_json(args.candidate)
             report = summarize(cur_doc, cand_doc, DEFAULT_IGNORED_FIELDS, summary_only=args.summary_only)
-            
+
             if args.format == "json":
                 out = json.dumps(report, indent=2, ensure_ascii=False)
             elif args.format == "rich" and HAS_RICH and console:
@@ -132,7 +140,7 @@ def main() -> None:
                 return
             else:
                 out = markdown(report, args.max_changes)
-                
+
             if args.output:
                 args.output.parent.mkdir(parents=True, exist_ok=True)
                 args.output.write_text(out, encoding="utf-8")

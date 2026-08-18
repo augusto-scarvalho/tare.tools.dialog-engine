@@ -20,10 +20,14 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from tare_dialog.diff_engine import DEFAULT_IGNORED_FIELDS, DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json, summarize
+from tare_dialog.diff_engine import (
+    DEFAULT_IGNORED_FIELDS,
+    configure_utf8_output,
+    load_json,
+    summarize,
+)
 from tare_dialog.generate_test import generate, generate_slot, index_paths, slots_by_id
 from tare_dialog.test_runner import normalize_document
-
 
 UUID_IN_PATH = re.compile(r"\[uuid=([^\]]+)\]")
 

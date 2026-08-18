@@ -20,9 +20,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from tare_dialog.diff_engine import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
-from tare_dialog.spel import UNKNOWN, SpelError, evaluate_condition
-
+from tare_dialog.diff_engine import (
+    configure_utf8_output,
+    load_json,
+)
+from tare_dialog.spel import UNKNOWN, evaluate_condition
 
 MAX_TERMS = 256
 INTENT_PATTERN = re.compile(r"(?<![\w#])#([\w.-]+)")

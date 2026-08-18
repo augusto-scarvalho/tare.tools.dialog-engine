@@ -11,7 +11,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = Path(os.environ.get("WATSON_DIALOG_GENERATE_DIFF_TEST_PATH", ROOT / "src/tare_dialog/generate_diff_tests.py"))
 SPEC = importlib.util.spec_from_file_location("watson_dialog_generate_diff_tests_under_test", MODULE_PATH)

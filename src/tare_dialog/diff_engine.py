@@ -33,8 +33,7 @@ except ImportError:
     orjson = None
     HAS_ORJSON = False
 
-from tare_dialog.resources import DEFAULT_MAX_INPUT_BYTES, ResourceBudget, resolve_jobs, resolve_max_input_bytes
-
+from tare_dialog.resources import ResourceBudget, resolve_jobs, resolve_max_input_bytes
 
 DEFAULT_IGNORED_FIELDS = {"dataCriacao", "dataModificacao"}
 DEFAULT_EXTERNAL_THRESHOLD_BYTES = 16 * 1024 * 1024

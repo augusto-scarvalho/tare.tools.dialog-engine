@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 
 from tare_dialog.diff_engine import configure_utf8_output
 from tare_dialog.resources import ResourceBudget, resolve_jobs
+
 DIFF_SOURCE = ROOT / "src/tare_dialog/diff_engine.py"
 GRAPH_SOURCE = ROOT / "src/tare_dialog/graph.py"
 CONDITIONS_SOURCE = ROOT / "src/tare_dialog/conditions.py"

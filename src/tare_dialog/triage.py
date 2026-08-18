@@ -11,12 +11,9 @@ if _src_dir not in sys.path:
     sys.path.insert(0, _src_dir)
 
 
-import json
 from pathlib import Path
 from typing import Any
 
-from tare_dialog.diff_engine import load_json
-from tare_dialog.explorer import explore_document
 from tare_dialog.validator import validate
 
 

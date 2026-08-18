@@ -25,14 +25,14 @@ if _src_dir not in sys.path:
 
 import hashlib
 import json
-import math
 import mmap
 import os
 import tempfile
 from array import array
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 from tare_dialog.resources import resolve_max_input_bytes
 
@@ -60,7 +60,7 @@ class _MappedJson:
         finally:
             self._file.close()
 
-    def __enter__(self) -> "_MappedJson":
+    def __enter__(self) -> _MappedJson:
         return self
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
@@ -298,7 +298,7 @@ class DialogSourceIndex:
         *,
         capture_details: bool = False,
         ignored_fields: Iterable[str] | None = None,
-    ) -> "DialogSourceIndex":
+    ) -> DialogSourceIndex:
         if not path.exists():
             raise ValueError(f"Arquivo não encontrado: {path}")
         max_bytes = resolve_max_input_bytes(max_bytes)
@@ -330,7 +330,7 @@ class DialogSourceIndex:
         finally:
             self._mapped.close()
 
-    def __enter__(self) -> "DialogSourceIndex":
+    def __enter__(self) -> DialogSourceIndex:
         return self
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
@@ -1139,7 +1139,7 @@ class DialogTransientIndex:
         *,
         capture_details: bool = False,
         ignored_fields: Iterable[str] | None = None,
-    ) -> "DialogTransientIndex":
+    ) -> DialogTransientIndex:
         if not path.exists():
             raise ValueError(f"Arquivo não encontrado: {path}")
         max_bytes = resolve_max_input_bytes(max_bytes)
@@ -1160,7 +1160,7 @@ class DialogTransientIndex:
     def close(self) -> None:
         self._spool.close()
 
-    def __enter__(self) -> "DialogTransientIndex":
+    def __enter__(self) -> DialogTransientIndex:
         return self
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
@@ -1571,7 +1571,7 @@ class CompactGraph:
     weights: array
 
     @classmethod
-    def from_index(cls, index: DialogSourceIndex) -> "CompactGraph":
+    def from_index(cls, index: DialogSourceIndex) -> CompactGraph:
         vertex_ids = tuple(index.graph_vertex_ids())
         id_to_int = {vertex_id: pos for pos, vertex_id in enumerate(vertex_ids)}
         edges: set[tuple[str, str, str]] = set()

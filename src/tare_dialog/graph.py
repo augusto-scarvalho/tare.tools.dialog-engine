@@ -19,9 +19,11 @@ from pathlib import Path
 from typing import Any
 
 from tare_dialog.conditions import analyze_conditions
-from tare_dialog.diff_engine import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
+from tare_dialog.diff_engine import (
+    configure_utf8_output,
+    load_json,
+)
 from tare_dialog.test_runner import normalize_document
-
 
 GRAPH_SCHEMA_VERSION = 1
 

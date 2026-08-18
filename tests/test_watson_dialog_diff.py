@@ -13,7 +13,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = Path(os.environ.get("WATSON_DIALOG_DIFF_PATH", ROOT / "src/tare_dialog/diff_engine.py"))
 FIXTURES = ROOT / "tests" / "fixtures"

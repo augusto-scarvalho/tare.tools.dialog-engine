@@ -66,3 +66,11 @@ omit = ["tests/*"]
 [tool.coverage.report]
 show_missing = true
 fail_under = 80
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E402", "E501", "E701", "E702", "E731", "F841"]

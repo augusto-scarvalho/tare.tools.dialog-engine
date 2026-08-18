@@ -40,6 +40,7 @@ __version__ = "1.0.0"
 __all__ = [
     "DEFAULT_IGNORED_FIELDS",
     "DEFAULT_MAX_INPUT_BYTES",
+    "UNKNOWN",
     "DialogIndex",
     "DialogJump",
     "DialogNode",
@@ -48,7 +49,6 @@ __all__ = [
     "DialogSlotHandler",
     "PreflightMetadata",
     "SpelError",
-    "UNKNOWN",
     "UniversalDialogDocument",
     "build_graph",
     "configure_utf8_output",

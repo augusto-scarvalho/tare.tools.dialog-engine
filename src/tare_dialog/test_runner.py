@@ -20,9 +20,11 @@ from pathlib import Path
 from typing import Any
 
 from tare_dialog.conditions import sorted_siblings
-from tare_dialog.diff_engine import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
-from tare_dialog.spel import UNKNOWN, SpelError, evaluate_condition
-
+from tare_dialog.diff_engine import (
+    configure_utf8_output,
+    load_json,
+)
+from tare_dialog.spel import UNKNOWN, evaluate_condition
 
 SCHEMA_VERSION = 2
 ROOT_GROUP = "root"

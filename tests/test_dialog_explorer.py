@@ -2,18 +2,12 @@
 
 import unittest
 from pathlib import Path
-import json
 
 from tare_dialog.diff_engine import load_json
 from tare_dialog.explorer import (
     detect_dialog_format,
     explore_document,
     introspect_primitives,
-    UniversalDialogDocument,
-    DialogNode,
-    DialogResponse,
-    DialogSlot,
-    DialogJump,
 )
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"

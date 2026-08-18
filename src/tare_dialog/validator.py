@@ -22,13 +22,16 @@ import json
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from tare_dialog.conditions import analyze_conditions, iter_conditions
-from tare_dialog.diff_engine import DEFAULT_MAX_INPUT_BYTES, configure_utf8_output, load_json
+from tare_dialog.diff_engine import (
+    configure_utf8_output,
+    load_json,
+)
 from tare_dialog.spel import syntax_diagnostics, template_syntax_diagnostics
-
 
 SCHEMA_VERSION = 1
 MAX_CONDITION_LENGTH = 2048
@@ -608,7 +611,7 @@ def validate(document: dict[str, Any], check_variables: bool = False, summary_on
     by_category = {category: sum(item["category"] == category for item in issues) for category in sorted({item["category"] for item in issues})}
     by_code = {code: sum(item["code"] == code for item in issues) for code in sorted({item["code"] for item in issues})}
     by_severity = {severity: sum(item["severity"] == severity for item in issues) for severity in sorted({item["severity"] for item in issues})}
-    
+
     total_issues = len(issues)
     reported_issues = [] if summary_only else (issues[:max_issues] if max_issues is not None and max_issues >= 0 else issues)
 
