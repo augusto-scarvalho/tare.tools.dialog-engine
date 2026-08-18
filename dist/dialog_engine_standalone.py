@@ -204,6 +204,7 @@ reflection, or arbitrary Python/Java method execution is permitted.
 """
 
 
+import functools
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -221,7 +222,7 @@ class _Unknown:
 UNKNOWN = _Unknown()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Token:
     kind: str
     value: str
@@ -232,7 +233,18 @@ TOKEN_RE = re.compile(
 )
 
 
+@functools.lru_cache(maxsize=32768)
+def _syntax_diagnostics_cached(expression: str) -> tuple[tuple[str, str, str], ...]:
+    diagnostics = _syntax_diagnostics_impl(expression)
+    return tuple((d["category"], d["code"], d["message"]) for d in diagnostics)
+
+
 def syntax_diagnostics(expression: str) -> list[dict[str, str]]:
+    cached = _syntax_diagnostics_cached(expression)
+    return [{"category": c, "code": k, "message": m} for c, k, m in cached]
+
+
+def _syntax_diagnostics_impl(expression: str) -> list[dict[str, str]]:
     """Return only SpEL errors that are unambiguous without full evaluation.
 
     The Dialog export can use valid SpEL features outside this project's parser
@@ -376,7 +388,8 @@ def template_syntax_diagnostics(text: str) -> list[dict[str, Any]]:
     return diagnostics
 
 
-def tokenize(expression: str) -> list[Token]:
+@functools.lru_cache(maxsize=32768)
+def tokenize(expression: str) -> tuple[Token, ...]:
     tokens: list[Token] = []
     index = 0
     while index < len(expression):
@@ -388,7 +401,7 @@ def tokenize(expression: str) -> list[Token]:
         value = match.group(kind)
         tokens.append(Token(kind, value))
     tokens.append(Token("eof", ""))
-    return tokens
+    return tuple(tokens)
 
 
 MAX_EXPRESSION_DEPTH = 128
