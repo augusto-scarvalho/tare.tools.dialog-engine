@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-rou-0005",
+  "name": "[Auto-Synthesized Gap Test] Verify Slot: Descrição do Comprovante (INTENT_MUTATION)",
+  "description": "Automatically synthesized to cover untested business rule in slot_pix_description. Expected condition: input.text",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar slot: descrição do comprovante"
+      },
+      "expected": {
+        "node": "slot_pix_description"
+      }
+    }
+  ]
+}

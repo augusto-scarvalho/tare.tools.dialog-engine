@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-rou-0004",
+  "name": "[Auto-Synthesized Gap Test] Verify Slot: Valor do PIX (INTENT_MUTATION)",
+  "description": "Automatically synthesized to cover untested business rule in slot_pix_amount. Expected condition: @sys-number",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar slot: valor do pix"
+      },
+      "expected": {
+        "node": "slot_pix_amount"
+      }
+    }
+  ]
+}

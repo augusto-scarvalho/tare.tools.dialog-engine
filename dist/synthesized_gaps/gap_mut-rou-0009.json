@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-rou-0009",
+  "name": "[Auto-Synthesized Gap Test] Verify Solicitação de Aumento de Limite (INTENT_MUTATION)",
+  "description": "Automatically synthesized to cover untested business rule in node_credit_limit. Expected condition: #aumentar_limite",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar solicitação de aumento de limite"
+      },
+      "expected": {
+        "node": "node_credit_limit"
+      }
+    }
+  ]
+}

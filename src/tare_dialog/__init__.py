@@ -32,6 +32,15 @@ from tare_dialog.explorer import (
 )
 from tare_dialog.graph import build_graph, dot, render_dot
 from tare_dialog.mutator import DialogTreeMutator, Mutant, calculate_mutation_score
+from tare_dialog.rule_mutator import (
+    MutationOperator,
+    RiskTier,
+    RuleMutant,
+    SemanticRuleMutator,
+    evaluate_rules_against_scenarios,
+    generate_audit_manifest,
+    synthesize_counterexample_scenario,
+)
 from tare_dialog.spel import UNKNOWN, SpelError, evaluate_condition, syntax_diagnostics
 from tare_dialog.test_runner import normalize_document, run_scenario
 from tare_dialog.validator import validate
@@ -41,6 +50,13 @@ __version__ = "1.0.0"
 __all__ = [
     "DEFAULT_IGNORED_FIELDS",
     "DEFAULT_MAX_INPUT_BYTES",
+    "MutationOperator",
+    "RiskTier",
+    "RuleMutant",
+    "SemanticRuleMutator",
+    "evaluate_rules_against_scenarios",
+    "generate_audit_manifest",
+    "synthesize_counterexample_scenario",
     "UNKNOWN",
     "DialogIndex",
     "DialogJump",

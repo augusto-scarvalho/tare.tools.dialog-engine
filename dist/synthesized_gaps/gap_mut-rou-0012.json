@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-rou-0012",
+  "name": "[Auto-Synthesized Gap Test] Verify Transbordo para Atendente Humano (INTENT_MUTATION)",
+  "description": "Automatically synthesized to cover untested business rule in node_human_handoff. Expected condition: #falar_atendente || #humano",
+  "risk_tier": "ROUTING_ESCALATION",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar transbordo para atendente humano"
+      },
+      "expected": {
+        "node": "node_human_handoff"
+      }
+    }
+  ]
+}

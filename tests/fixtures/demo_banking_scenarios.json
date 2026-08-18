@@ -1,0 +1,24 @@
+[
+  {
+    "id": "scen_pix_transfer",
+    "name": "Cenário 1: Transferência PIX padrão",
+    "input": {"text": "quero fazer um pix"},
+    "intents": [{"name": "fazer_pix", "confidence": 1.0}],
+    "entities": {"operacao": ["pix"]},
+    "context": {},
+    "expect": {
+      "selected_node": "node_pix_frame"
+    }
+  },
+  {
+    "id": "scen_card_invoice",
+    "name": "Cenário 2: Consulta de Fatura no WhatsApp",
+    "input": {"text": "consultar fatura do cartao"},
+    "intents": [{"name": "consultar_fatura", "confidence": 1.0}],
+    "entities": {"produto": ["cartao"]},
+    "context": {},
+    "expect": {
+      "selected_node": "node_card_invoice"
+    }
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-fin-0006",
+  "name": "[Auto-Synthesized Gap Test] Verify Comprovante PIX (LIMIT_INVERSION)",
+  "description": "Automatically synthesized to cover untested business rule in node_pix_receipt. Expected condition: last_value: <? $pix_amount ?>",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar comprovante pix"
+      },
+      "expected": {
+        "node": "node_pix_receipt"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-rou-0011",
+  "name": "[Auto-Synthesized Gap Test] Verify Ajuda & Dúvidas Globais (Digressão) (INTENT_MUTATION)",
+  "description": "Automatically synthesized to cover untested business rule in node_help_faq. Expected condition: #ajuda || #duvidas",
+  "risk_tier": "ROUTING_ESCALATION",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar ajuda & dúvidas globais (digressão)"
+      },
+      "expected": {
+        "node": "node_help_faq"
+      }
+    }
+  ]
+}

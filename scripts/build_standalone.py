@@ -26,6 +26,7 @@ CORE_MODULES = [
     "diff_engine.py",
     "explorer.py",
     "mutator.py",
+    "rule_mutator.py",
 ]
 
 HEADER = """#!/usr/bin/env python3

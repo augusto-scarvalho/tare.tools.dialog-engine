@@ -39,6 +39,12 @@ from tare_dialog.explorer import (
 )
 from tare_dialog.graph import build_graph, render_dot
 from tare_dialog.mutator import DialogTreeMutator, calculate_mutation_score
+from tare_dialog.rule_mutator import (
+    SemanticRuleMutator,
+    evaluate_rules_against_scenarios,
+    generate_audit_manifest,
+    synthesize_counterexample_scenario,
+)
 from tare_dialog.test_runner import run_scenario
 from tare_dialog.validator import validate
 
@@ -127,6 +133,14 @@ def main() -> None:
     mut_parser = subparsers.add_parser("mutate", help="Symbolic AST and automata mutation testing analysis")
     mut_parser.add_argument("document", type=Path, help="Target dialog JSON document to mutate and analyze")
     mut_parser.add_argument("--output-dir", type=Path, help="Optional directory to save generated mutant JSON variants")
+
+    # 7. Audit Rules (Semantic Business Rule Mutation & Test Gap Auditor)
+    audit_parser = subparsers.add_parser("audit-rules", help="Audit conversational test suite against business rule mutations")
+    audit_parser.add_argument("document", type=Path, help="Target dialog JSON document")
+    audit_parser.add_argument("--scenarios", "-s", type=Path, required=True, help="Test scenarios JSON file or directory")
+    audit_parser.add_argument("--audit-out", "-o", type=Path, help="Optional output JSON audit manifest")
+    audit_parser.add_argument("--synthesize-gaps", action="store_true", help="Synthesize gap test scenarios for surviving mutants")
+    audit_parser.add_argument("--gaps-out-dir", type=Path, help="Directory to save synthesized gap scenarios")
 
     args = parser.parse_args()
     if not args.command:
@@ -321,6 +335,68 @@ def main() -> None:
                 console.print(Panel(summary_panel, title="[bold green]Mutation Quality Verification[/bold green]", expand=False))
             else:
                 print(json.dumps(score_rep, indent=2, ensure_ascii=False))
+
+        elif args.command == "audit-rules":
+            doc = load_json(args.document)
+            raw_scen = json.loads(args.scenarios.read_text(encoding="utf-8"))
+            if isinstance(raw_scen, dict) and "scenarios" in raw_scen:
+                scenarios = raw_scen["scenarios"]
+            elif isinstance(raw_scen, list):
+                scenarios = raw_scen
+            else:
+                scenarios = [raw_scen]
+
+            report = evaluate_rules_against_scenarios(doc, scenarios)
+            manifest = generate_audit_manifest(report)
+
+            if args.audit_out:
+                args.audit_out.parent.mkdir(parents=True, exist_ok=True)
+                args.audit_out.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+                print(f"Audit manifest written to: {args.audit_out}")
+
+            if args.synthesize_gaps and args.gaps_out_dir:
+                args.gaps_out_dir.mkdir(parents=True, exist_ok=True)
+                for m in report.get("_mutants_obj", []):
+                    if m.status == "SURVIVED_BLINDSPOT":
+                        synth = synthesize_counterexample_scenario(m)
+                        f_name = args.gaps_out_dir / f"gap_{m.mutation_id.lower()}.json"
+                        f_name.write_text(json.dumps(synth, indent=2, ensure_ascii=False), encoding="utf-8")
+                print(f"Synthesized {report['summary']['survived_blindspots']} gap test scenarios to: {args.gaps_out_dir}")
+
+            if HAS_RICH and console:
+                table = Table(title="[bold]tare.tools — Business Rule Mutation & Test Gap Audit[/bold]", header_style="bold cyan")
+                table.add_column("ID", style="dim")
+                table.add_column("Risk Tier", style="bold")
+                table.add_column("Node ID", style="cyan")
+                table.add_column("Operator", style="yellow")
+                table.add_column("Rule Mutation", style="white")
+                table.add_column("Test Coverage Status", style="bold")
+
+                for m in report.get("mutations", []):
+                    tier = m.get("risk_tier")
+                    t_color = "red" if tier == "SECURITY_CRITICAL" else ("yellow" if tier == "BUSINESS_FINANCIAL" else "blue")
+                    status = m.get("status")
+                    s_text = "[bold green]PROTECTED (KILLED)[/bold green]" if status == "KILLED" else "[bold red]BLINDSPOT (SURVIVED)[/bold red]"
+                    table.add_row(
+                        m.get("mutation_id"),
+                        f"[{t_color}]{tier}[/{t_color}]",
+                        m.get("node_id"),
+                        m.get("operator"),
+                        f"{m.get('original_expression')} -> {m.get('mutated_expression')}",
+                        s_text,
+                    )
+                console.print(table)
+
+                summary = report.get("summary", {})
+                score = summary.get("test_mutation_score_pct", 0.0)
+                s_color = "green" if score >= 80 else ("yellow" if score >= 50 else "red")
+                panel_text = f"""[bold cyan]Total Business Rules Mutated:[/bold cyan] {summary.get('total_mutations')}
+[bold cyan]Protected by Existing Tests:[/bold cyan]  {summary.get('killed_by_tests')}
+[bold red]Uncovered Test Blindspots:[/bold red]    {summary.get('survived_blindspots')}
+[bold {s_color}]Conversational Mutation Score: {score}%[/bold {s_color}]"""
+                console.print(Panel(panel_text, title="[bold]Test Suite Health & Protection Rating[/bold]", expand=False))
+            else:
+                print(json.dumps(manifest, indent=2, ensure_ascii=False))
 
     except Exception as err:
         sys.stderr.write(f"Error: {err}\n")

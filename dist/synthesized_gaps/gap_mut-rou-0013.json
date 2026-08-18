@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-rou-0013",
+  "name": "[Auto-Synthesized Gap Test] Verify Menu de Seguros (Salto Quebrado) (INTENT_MUTATION)",
+  "description": "Automatically synthesized to cover untested business rule in node_broken_navigation. Expected condition: #seguros",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar menu de seguros (salto quebrado)"
+      },
+      "expected": {
+        "node": "node_broken_navigation"
+      }
+    }
+  ]
+}

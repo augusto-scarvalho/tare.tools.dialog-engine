@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-rou-0003",
+  "name": "[Auto-Synthesized Gap Test] Verify Slot: Chave PIX (INTENT_MUTATION)",
+  "description": "Automatically synthesized to cover untested business rule in slot_pix_key. Expected condition: @chave_pix || @sys-email || @sys-phone || @sys-number",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar slot: chave pix"
+      },
+      "expected": {
+        "node": "slot_pix_key"
+      }
+    }
+  ]
+}

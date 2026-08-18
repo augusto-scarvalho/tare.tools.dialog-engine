@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-fin-0008",
+  "name": "[Auto-Synthesized Gap Test] Verify Solicitação de Aumento de Limite (LIMIT_INVERSION)",
+  "description": "Automatically synthesized to cover untested business rule in node_credit_limit. Expected condition: limit_evaluation: <? ($user_score >= 750 && $account_months > 6) ? 'approved' : 'analysis' ?>",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar solicitação de aumento de limite"
+      },
+      "expected": {
+        "node": "node_credit_limit"
+      }
+    }
+  ]
+}

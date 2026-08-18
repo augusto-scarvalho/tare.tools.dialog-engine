@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-rou-0010",
+  "name": "[Auto-Synthesized Gap Test] Verify Decisão de Limite (INTENT_MUTATION)",
+  "description": "Automatically synthesized to cover untested business rule in node_limit_decision. Expected condition: $limit_evaluation == 'approved'",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar decisão de limite"
+      },
+      "expected": {
+        "node": "node_limit_decision"
+      }
+    }
+  ]
+}

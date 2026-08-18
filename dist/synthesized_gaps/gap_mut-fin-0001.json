@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-fin-0001",
+  "name": "[Auto-Synthesized Gap Test] Verify Boas-vindas & Menu Principal (LIMIT_INVERSION)",
+  "description": "Automatically synthesized to cover untested business rule in node_welcome. Expected condition: session_start: <? now() ?>",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar boas-vindas & menu principal"
+      },
+      "expected": {
+        "node": "node_welcome"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "test_synth_gap_mut-rou-0002",
+  "name": "[Auto-Synthesized Gap Test] Verify Transferência PIX (Frame Multi-turn) (INTENT_MUTATION)",
+  "description": "Automatically synthesized to cover untested business rule in node_pix_frame. Expected condition: #fazer_pix || @operacao:pix",
+  "risk_tier": "BUSINESS_FINANCIAL",
+  "turns": [
+    {
+      "input": {
+        "text": "quero testar transferência pix (frame multi-turn)"
+      },
+      "expected": {
+        "node": "node_pix_frame"
+      }
+    }
+  ]
+}
