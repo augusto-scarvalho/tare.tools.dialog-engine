@@ -1,0 +1,123 @@
+{
+  "name": "Customer Banking Skill",
+  "description": "Official IBM Watson Assistant classic skill with updated balance response and new loan node.",
+  "language": "pt-br",
+  "intents": [
+    {
+      "intent": "balance_inquiry",
+      "examples": [{ "text": "quero ver meu saldo" }]
+    },
+    {
+      "intent": "transfer_money",
+      "examples": [{ "text": "fazer pix ou transferencia" }]
+    },
+    {
+      "intent": "loan_request",
+      "examples": [{ "text": "simular emprestimo" }]
+    }
+  ],
+  "entities": [
+    {
+      "entity": "account_type",
+      "values": [{ "value": "checking", "synonyms": ["corrente"] }]
+    },
+    {
+      "entity": "sys-number"
+    }
+  ],
+  "dialog_nodes": [
+    {
+      "dialog_node": "node_welcome",
+      "title": "Welcome Node (v2)",
+      "conditions": "welcome || conversation_start",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [{ "text": "Olá! Bem-vindo à experiência digital 2.0." }]
+          }
+        ]
+      },
+      "tags": ["onboarding", "portal", "v2"]
+    },
+    {
+      "dialog_node": "node_balance",
+      "title": "Consultar Saldo",
+      "conditions": "#balance_inquiry",
+      "previous_sibling": "node_welcome",
+      "context": {
+        "service_requested": "balance",
+        "cached": true
+      },
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [{ "text": "Seu saldo consolidado é de R$ 2.000,00." }]
+          }
+        ]
+      },
+      "tags": ["finance"]
+    },
+    {
+      "dialog_node": "node_loan",
+      "title": "Simulação de Empréstimo",
+      "conditions": "#loan_request",
+      "previous_sibling": "node_balance",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [{ "text": "Temos limites pré-aprovados disponíveis." }]
+          }
+        ]
+      },
+      "tags": ["credit"]
+    },
+    {
+      "dialog_node": "node_transfer_frame",
+      "title": "Frame de Transferência",
+      "type": "frame",
+      "conditions": "#transfer_money",
+      "previous_sibling": "node_loan"
+    },
+    {
+      "dialog_node": "slot_destination_account",
+      "type": "slot",
+      "parent": "node_transfer_frame",
+      "variable": "destination_account",
+      "required": true,
+      "conditions": "@sys-number"
+    },
+    {
+      "dialog_node": "handler_slot_focus",
+      "type": "event_handler",
+      "parent": "slot_destination_account",
+      "event_name": "focus",
+      "conditions": "true",
+      "output": {
+        "generic": [{ "response_type": "text", "values": [{ "text": "Digite a conta:" }] }]
+      }
+    },
+    {
+      "dialog_node": "handler_slot_filled",
+      "type": "event_handler",
+      "parent": "slot_destination_account",
+      "previous_sibling": "handler_slot_focus",
+      "event_name": "filled",
+      "conditions": "true",
+      "output": {
+        "generic": [{ "response_type": "text", "values": [{ "text": "Conta validada!" }] }]
+      }
+    },
+    {
+      "dialog_node": "node_fallback",
+      "title": "Anything Else",
+      "conditions": "anything_else",
+      "previous_sibling": "node_transfer_frame",
+      "output": {
+        "generic": [{ "response_type": "text", "values": [{ "text": "Não entendi." }] }]
+      }
+    }
+  ]
+}

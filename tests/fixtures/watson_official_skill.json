@@ -1,0 +1,196 @@
+{
+  "name": "Customer Banking Skill",
+  "description": "Official IBM Watson Assistant classic skill with rich multichannel outputs, slots, and SpEL conditions.",
+  "language": "pt-br",
+  "intents": [
+    {
+      "intent": "balance_inquiry",
+      "examples": [
+        { "text": "quero ver meu saldo" },
+        { "text": "qual meu saldo atual" }
+      ]
+    },
+    {
+      "intent": "transfer_money",
+      "examples": [
+        { "text": "fazer pix ou transferencia" },
+        { "text": "transferir dinheiro" }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "entity": "account_type",
+      "values": [
+        { "value": "checking", "synonyms": ["corrente", "conta corrente"] },
+        { "value": "savings", "synonyms": ["poupanca", "conta poupanca"] }
+      ]
+    },
+    {
+      "entity": "sys-number"
+    }
+  ],
+  "dialog_nodes": [
+    {
+      "dialog_node": "node_welcome",
+      "title": "Welcome Node",
+      "conditions": "welcome || conversation_start",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "Olá! Seja bem-vindo ao assistente bancário." }
+            ],
+            "selection_policy": "sequential"
+          },
+          {
+            "response_type": "option",
+            "title": "Como posso te ajudar hoje?",
+            "options": [
+              { "label": "Ver Saldo", "value": { "input": { "text": "ver saldo" } } },
+              { "label": "Transferência", "value": { "input": { "text": "transferir" } } }
+            ]
+          }
+        ],
+        "integrations": {
+          "whatsapp": {
+            "template": "welcome_template_v1"
+          }
+        }
+      },
+      "tags": ["onboarding", "portal"]
+    },
+    {
+      "dialog_node": "node_balance",
+      "title": "Consultar Saldo",
+      "conditions": "#balance_inquiry",
+      "previous_sibling": "node_welcome",
+      "context": {
+        "service_requested": "balance",
+        "last_inquiry_timestamp": "<? now() ?>"
+      },
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "Seu saldo disponível na conta <? $account_type ?> é de R$ 1.500,00." }
+            ]
+          },
+          {
+            "response_type": "image",
+            "source": "https://example.corp/media/chart.png",
+            "title": "Extrato Consolidado",
+            "description": "Demonstrativo dos últimos 30 dias"
+          }
+        ]
+      },
+      "metadata": {
+        "_designer": { "x": 300, "y": 150 }
+      },
+      "tags": ["finance", "self_service"]
+    },
+    {
+      "dialog_node": "node_transfer_frame",
+      "title": "Frame de Transferência",
+      "type": "frame",
+      "conditions": "#transfer_money",
+      "previous_sibling": "node_balance"
+    },
+    {
+      "dialog_node": "slot_destination_account",
+      "type": "slot",
+      "parent": "node_transfer_frame",
+      "variable": "destination_account",
+      "required": true,
+      "conditions": "@sys-number",
+      "output": {}
+    },
+    {
+      "dialog_node": "handler_slot_focus",
+      "type": "event_handler",
+      "parent": "slot_destination_account",
+      "event_name": "focus",
+      "conditions": "true",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [{ "text": "Por favor, digite o número da conta de destino:" }]
+          }
+        ]
+      }
+    },
+    {
+      "dialog_node": "handler_slot_nomatch",
+      "type": "event_handler",
+      "parent": "slot_destination_account",
+      "previous_sibling": "handler_slot_focus",
+      "event_name": "nomatch",
+      "conditions": "true",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [{ "text": "Número de conta inválido. Digite apenas dígitos numéricos." }]
+          }
+        ]
+      }
+    },
+    {
+      "dialog_node": "handler_slot_filled",
+      "type": "event_handler",
+      "parent": "slot_destination_account",
+      "previous_sibling": "handler_slot_nomatch",
+      "event_name": "filled",
+      "conditions": "true",
+      "output": {
+        "generic": [
+          {
+            "response_type": "pause",
+            "time": 1000,
+            "typing": true
+          },
+          {
+            "response_type": "text",
+            "values": [{ "text": "Conta <? $destination_account ?> identificada com sucesso!" }]
+          }
+        ]
+      },
+      "next_step": {
+        "behavior": "jump_to",
+        "selector": "condition",
+        "dialog_node": "node_confirmation"
+      }
+    },
+    {
+      "dialog_node": "node_confirmation",
+      "title": "Confirmação de Transferência",
+      "conditions": "$destination_account != null",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [{ "text": "Transferência realizada com sucesso!" }]
+          }
+        ]
+      },
+      "tags": ["transactions"]
+    },
+    {
+      "dialog_node": "node_fallback",
+      "title": "Anything Else",
+      "conditions": "anything_else",
+      "previous_sibling": "node_transfer_frame",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [{ "text": "Desculpe, não compreendi. Pode reformular?" }]
+          }
+        ]
+      }
+    }
+  ]
+}

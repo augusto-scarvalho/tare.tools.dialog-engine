@@ -7,7 +7,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://python.org)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero%20(Pure%20Stdlib)-orange.svg)](#zero-external-runtime-dependencies)
-[![Tests](https://img.shields.io/badge/Tests-127%20Passed%20(100%25)-success.svg)](#automated-testing)
+[![Tests](https://img.shields.io/badge/Tests-132%20Passed%20(100%25)-success.svg)](#automated-testing)
 [![Agentic Protocol](https://img.shields.io/badge/Agentic%20Protocol-tare.tools%2Fv1-purple.svg)](#agentic-integration)
 
 <p align="center">
@@ -78,23 +78,31 @@ DETERMINISTIC DIALOG AST ENGINE (Semantic Invariant Preservation)
    └───────────────────────┘     └────────────────────────┘     └───────────────────────┘
 ```
 
-### 1. Deterministic Semantic Diff Engine (`watson_dialog_diff.py`)
+### 1. Universal Dialog AST Explorer & Schema Discovery (`watson_dialog_explorer.py`)
+Polymorphic introspector and bidirectional schema normalizer supporting:
+- Official flat IBM Watson Assistant exports (V1 classic and V2 flat pointer topologies with `dialog_node`, `parent`, `previous_sibling`).
+- Hierarchical / Nested enterprise dialog trees (`nos`, `filhos`, `respostas`, `slots`).
+- Multichannel awareness (WhatsApp, Web Chat, Mobile App, Voice, Slack).
+- Multimodal & rich media responses (text, images, carousels, cards, options, pauses, connect-to-agent).
+- Lossless bidirectional conversion between formats.
+
+### 2. Deterministic Semantic Diff Engine (`watson_dialog_diff.py`)
 Compares dialog trees by unique identifier (`uuid`), evaluating structural additions, removals, and semantic modifications across nodes, responses, context variables, slots, and slot handlers without false positives from key reordering.
 
-### 2. Hardened SpEL Expression Boundary (`watson_spel.py`)
+### 3. Hardened SpEL Expression Boundary (`watson_spel.py`)
 Static AST lexer and sandboxed evaluator for Spring Expression Language (SpEL) subsets (`#intent`, `@entity`, `$context`, ternary operators, string methods, regex matches):
 - **Recursion Depth Limits:** Capped at 50 frames to prevent stack exhaustion.
 - **Memory Amplification Defense:** Capped against multiplicative expansion attacks.
 - **Dunder Protection:** Rejection of `__dunder__` property traversals.
 - **Safe Evaluation:** Fail-closed `UNKNOWN` / `FALSE` propagation on runtime anomalies.
 
-### 3. Topological Graph & Jump Resolution (`watson_dialog_graph.py`)
+### 4. Topological Graph & Jump Resolution (`watson_dialog_graph.py`)
 Constructs deterministic directed acyclic/cyclic graphs of the conversation flow, resolving body jumps, response-condition jumps, slot handlers, and root digression anchors into DOT and JSON graph outputs.
 
-### 4. Deterministic Scenario Runner (`watson_dialog_test.py`)
+### 5. Deterministic Scenario Runner (`watson_dialog_test.py`)
 Traceable headless runner that validates multi-turn conversation sessions against dialog trees, supporting session slot state, digression returns, conditional response branching, and loop detection (safety cap at 50 turn iterations).
 
-### 5. Adaptive External-Memory Sharding (`watson_dialog_shard.py`, `watson_dialog_external.py`)
+### 6. Adaptive External-Memory Sharding (`watson_dialog_shard.py`, `watson_dialog_external.py`)
 Resource-aware execution for large-scale enterprise exports:
 - Automatically selects fast in-memory DOM parsing for files `< 10 MB`.
 - Switches to mmap-indexed single-pass tokenization and compact graph sharding for large exports (`> 10 MB`).
@@ -129,7 +137,7 @@ Resource-aware execution for large-scale enterprise exports:
 git clone https://github.com/augusto-scarvalho/tare.tools.dialog-engine.git
 cd tare.tools.dialog-engine
 
-# Run the full test suite (127 tests, pure stdlib)
+# Run the full test suite (132 tests, pure stdlib)
 python -m pytest
 ```
 
@@ -137,7 +145,25 @@ python -m pytest
 
 ## CLI Command Reference
 
-### 1. Semantic Diff
+### 1. Universal Dialog Explorer & Introspection
+```bash
+# Introspect primitives, topology, channels, and rich media assets
+python watson_dialog_explorer.py input/skill.json --introspect
+
+# List discovered communication channels
+python watson_dialog_explorer.py input/skill.json --channels
+
+# List rich media and interactive components
+python watson_dialog_explorer.py input/skill.json --multimedia
+
+# Convert official Watson V1 skill to nested enterprise format
+python watson_dialog_explorer.py input/skill.json --convert-to nested --output output/nested_tree.json
+
+# Convert nested enterprise format to official IBM Watson Assistant V1 JSON
+python watson_dialog_explorer.py input/nested.json --convert-to v1 --output output/official_v1.json
+```
+
+### 2. Semantic Diff
 ```bash
 # Compare two exports and output a Markdown changelog
 python watson_dialog_diff.py input/current.json input/candidate.json --output output/diff.md
@@ -146,7 +172,7 @@ python watson_dialog_diff.py input/current.json input/candidate.json --output ou
 python watson_dialog_diff.py input/current.json input/candidate.json --format json --output output/diff.json
 ```
 
-### 2. Validation & Quality Gates
+### 3. Validation & Quality Gates
 ```bash
 # Validate export with single issue contract
 python watson_dialog_validate.py input/candidate.json --output output/validation.json
@@ -155,19 +181,19 @@ python watson_dialog_validate.py input/candidate.json --output output/validation
 python watson_dialog_validate.py input/candidate.json --summary-only --max-issues 20
 ```
 
-### 3. Graph Export
+### 4. Graph Export
 ```bash
 # Export topological graph to DOT and JSON
 python watson_dialog_graph.py input/candidate.json --output-json output/graph.json --output-dot output/graph.dot
 ```
 
-### 4. Condition & SpEL Analysis
+### 5. Condition & SpEL Analysis
 ```bash
 # Extract and statically analyze all conditions across nodes and slots
 python watson_dialog_conditions.py input/candidate.json --output output/condition_analysis.json
 ```
 
-### 5. Automated Scenario Generation & Execution
+### 6. Automated Scenario Generation & Execution
 ```bash
 # Generate candidate test scenarios from diff
 python watson_dialog_generate_diff_tests.py input/current.json input/candidate.json --output output/scenarios/

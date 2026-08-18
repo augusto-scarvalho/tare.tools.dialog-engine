@@ -1,16 +1,25 @@
 """Shared document model, indexer, and preflight safety inspector for Watson Assistant Dialog.
 
-Provides uniform indexed access across Legacy format and Dialog API V1 formats,
-with lazy lookups, parent/child relationships, slot indexers, and document preflight checks.
+Provides uniform indexed access across Legacy/Enterprise formats and official IBM Watson API V1/V2 formats,
+with lazy lookups, parent/child relationships, slot indexers, multichannel awareness, and document preflight checks.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator
 
 from watson_dialog_conditions import sorted_siblings
+from watson_dialog_explorer import (
+    DialogNode,
+    DialogResponse,
+    DialogSlot,
+    UniversalDialogDocument,
+    detect_dialog_format,
+    explore_document,
+    introspect_primitives,
+)
 from watson_dialog_external import DialogSourceIndex
 from watson_dialog_resources import resolve_max_input_bytes
 from watson_dialog_test import normalize_document
@@ -20,12 +29,15 @@ from watson_dialog_test import normalize_document
 class PreflightMetadata:
     path: str
     file_size_bytes: int
-    format_type: str  # 'legacy', 'v1', 'empty', or 'unknown'
+    format_type: str  # 'watson_v1_flat', 'enterprise_nested', 'hybrid', 'empty', or 'unknown'
     node_count: int
     intent_count: int
     entity_count: int
     is_safe: bool
-    warnings: list[str]
+    warnings: list[str] = field(default_factory=list)
+    channels: list[str] = field(default_factory=list)
+    has_multimedia: bool = False
+    tags_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -37,6 +49,9 @@ class PreflightMetadata:
             "entity_count": self.entity_count,
             "is_safe": self.is_safe,
             "warnings": self.warnings,
+            "channels": self.channels,
+            "has_multimedia": self.has_multimedia,
+            "tags_count": self.tags_count,
         }
 
 
@@ -47,6 +62,11 @@ def preflight_check(path: Path, max_bytes: int | None = None) -> PreflightMetada
         raise ValueError(f"Arquivo não encontrado: {path}")
 
     file_size = path.stat().st_size
+    if resolved_max > 0 and file_size > resolved_max:
+        raise ValueError(
+            f"Arquivo {path} ({file_size} bytes) excede o limite configurado de {resolved_max} bytes."
+        )
+
     warnings: list[str] = []
     if file_size > 10 * 1024 * 1024:
         warnings.append(
@@ -79,10 +99,11 @@ def preflight_check(path: Path, max_bytes: int | None = None) -> PreflightMetada
 
 
 class DialogIndex:
-    """Unified, indexed document structure for Watson Dialog (Legacy and V1)."""
+    """Unified, indexed document structure for Watson Dialog (Legacy, Enterprise, and V1)."""
 
     def __init__(self, raw_document: dict[str, Any]) -> None:
         self.raw_document = raw_document
+        self.universal_doc: UniversalDialogDocument = explore_document(raw_document)
         self.normalized_document = normalize_document(raw_document)
         self.nodes_by_id: dict[str, dict[str, Any]] = {}
         self.parent_by_id: dict[str, str | None] = {}
@@ -119,6 +140,9 @@ class DialogIndex:
     def get_node(self, node_id: str) -> dict[str, Any] | None:
         return self.nodes_by_id.get(str(node_id))
 
+    def get_ast_node(self, node_id: str) -> DialogNode | None:
+        return self.universal_doc.get_node(node_id)
+
     def get_parent(self, node_id: str) -> str | None:
         return self.parent_by_id.get(str(node_id))
 
@@ -153,10 +177,11 @@ class DialogIndex:
     def iter_all_slots(self) -> Iterator[dict[str, Any]]:
         yield from self.slots_by_id.values()
 
-    def summary(self) -> dict[str, int]:
+    def summary(self) -> dict[str, Any]:
         return {
             "total_nodes": len(self.nodes_by_id),
             "root_nodes": len(self.roots),
             "folders": len(self.folders),
             "slots": len(self.slots_by_id),
+            "format_detected": self.universal_doc.format_detected,
         }
