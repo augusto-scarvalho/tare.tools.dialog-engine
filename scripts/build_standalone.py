@@ -242,6 +242,7 @@ def clean_module_code(content: str) -> str:
     lines = content.splitlines()
     cleaned: list[str] = []
     in_main_block = False
+    in_internal_import = False
     for line in lines:
         stripped = line.strip()
         if stripped.startswith("#!/usr/bin/env") or stripped.startswith("# -*- coding:"):
@@ -250,7 +251,13 @@ def clean_module_code(content: str) -> str:
             continue
         if "_src_dir = str(Path(__file__)" in stripped or "if _src_dir not in sys.path:" in stripped or "sys.path.insert(0, _src_dir)" in stripped or "Ensure src/ is on sys.path" in stripped:
             continue
+        if in_internal_import:
+            if ")" in stripped or not (line.startswith(" ") or line.startswith("\t")):
+                in_internal_import = False
+            continue
         if re.match(r"^from (watson_\w+|tare_dialog\.\w+) import", stripped) or re.match(r"^import (watson_\w+|tare_dialog\.\w+)", stripped):
+            if "(" in stripped and ")" not in stripped:
+                in_internal_import = True
             continue
         if stripped == 'if __name__ == "__main__":':
             in_main_block = True

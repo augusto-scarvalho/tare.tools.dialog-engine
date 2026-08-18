@@ -740,9 +740,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-    configure_utf8_output,
-    load_json,
-)
 
 MAX_TERMS = 256
 INTENT_PATTERN = re.compile(r"(?<![\w#])#([\w.-]+)")
@@ -1210,9 +1207,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-    configure_utf8_output,
-    load_json,
-)
 
 SCHEMA_VERSION = 2
 ROOT_GROUP = "root"
@@ -1845,9 +1839,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-    configure_utf8_output,
-    load_json,
-)
 
 GRAPH_SCHEMA_VERSION = 1
 
@@ -2180,9 +2171,6 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-    configure_utf8_output,
-    load_json,
-)
 
 SCHEMA_VERSION = 1
 MAX_CONDITION_LENGTH = 2048
