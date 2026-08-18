@@ -8,8 +8,9 @@ testing blindspots, dead predicates, and unverified edge cases.
 from __future__ import annotations
 
 import copy
+import json
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -56,16 +57,37 @@ class RuleMutant:
     original_expression: str
     mutated_expression: str
     explanation: str
-    mutated_doc: dict[str, Any]
+    mutated_doc: dict[str, Any] = field(default_factory=dict)
+    new_cond: str | None = None
+    new_ctx_key: str | None = None
+    new_ctx_val: Any = None
     status: str = "PENDING"  # "KILLED" or "SURVIVED_BLINDSPOT"
     killing_scenario_id: str | None = None
     curation_decision: str = "PENDING_REVIEW"
+
+    def get_mutated_doc(self, baseline_doc: dict[str, Any], binding: SchemaBinding | None = None) -> dict[str, Any]:
+        """Produce the mutated document variant on demand."""
+        if self.mutated_doc:
+            return self.mutated_doc
+        b = binding or DEFAULT_BINDING or SchemaBinding.discover(baseline_doc)
+        m_doc = copy.deepcopy(baseline_doc)
+        for n in b.iter_all_nodes(m_doc):
+            if b.get_id(n) == self.node_id:
+                if self.new_cond is not None:
+                    b.set_condition(n, self.new_cond)
+                if self.new_ctx_key is not None:
+                    b.set_context_variable(n, self.new_ctx_key, self.new_ctx_val)
+                break
+        return m_doc
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["risk_tier"] = self.risk_tier.value
         d["operator"] = self.operator.value
         d.pop("mutated_doc", None)  # Exclude raw doc from summary dict
+        d.pop("new_cond", None)
+        d.pop("new_ctx_key", None)
+        d.pop("new_ctx_val", None)
         return d
 
 
@@ -86,17 +108,6 @@ class SemanticRuleMutator:
         mutants: list[RuleMutant] = []
         all_nodes = list(b.iter_all_nodes(document))
 
-        def make_mutated_doc(target_id: str, new_cond: str | None = None, new_ctx_key: str | None = None, new_ctx_val: Any = None) -> dict[str, Any]:
-            m_doc = copy.deepcopy(document)
-            for n in b.iter_all_nodes(m_doc):
-                if b.get_id(n) == target_id:
-                    if new_cond is not None:
-                        b.set_condition(n, new_cond)
-                    if new_ctx_key is not None:
-                        b.set_context_variable(n, new_ctx_key, new_ctx_val)
-                    break
-            return m_doc
-
         for node in all_nodes:
             node_id = b.get_id(node)
             if not node_id:
@@ -111,7 +122,6 @@ class SemanticRuleMutator:
             if "user_authenticated" in cond or "auth" in cond.lower() or "!user_authenticated" in str(ctx):
                 orig = cond
                 mutated = "true" if cond else "true"
-                m_doc = make_mutated_doc(node_id, new_cond=mutated)
                 mutants.append(RuleMutant(
                     mutation_id=self._next_id("SEC"),
                     node_id=node_id,
@@ -121,7 +131,7 @@ class SemanticRuleMutator:
                     original_expression=orig or "user_authenticated check",
                     mutated_expression=mutated,
                     explanation="Bypassed user authentication guard to test if unauthorized users reach this node.",
-                    mutated_doc=m_doc,
+                    new_cond=mutated,
                 ))
 
             # ----------------------------------------------------------
@@ -134,7 +144,6 @@ class SemanticRuleMutator:
                     if mutated_val == orig_val:
                         mutated_val = f"<? false /* mutated {orig_val} */ ?>"
 
-                    m_doc = make_mutated_doc(node_id, new_ctx_key=field, new_ctx_val=mutated_val)
                     mutants.append(RuleMutant(
                         mutation_id=self._next_id("FIN"),
                         node_id=node_id,
@@ -144,7 +153,8 @@ class SemanticRuleMutator:
                         original_expression=f"{field}: {orig_val}",
                         mutated_expression=f"{field}: {mutated_val}",
                         explanation=f"Inverted financial underwriting threshold in context variable '{field}'.",
-                        mutated_doc=m_doc,
+                        new_ctx_key=field,
+                        new_ctx_val=mutated_val,
                     ))
 
             # ----------------------------------------------------------
@@ -154,7 +164,6 @@ class SemanticRuleMutator:
                 mutated_cond = "false"
                 is_escalation = any(k in cond.lower() for k in ("atendente", "humano", "transbordo", "ajuda", "duvida"))
                 risk = RiskTier.ROUTING_ESCALATION if is_escalation else RiskTier.BUSINESS_FINANCIAL
-                m_doc = make_mutated_doc(node_id, new_cond=mutated_cond)
                 mutants.append(RuleMutant(
                     mutation_id=self._next_id("ROU"),
                     node_id=node_id,
@@ -164,7 +173,7 @@ class SemanticRuleMutator:
                     original_expression=cond,
                     mutated_expression=mutated_cond,
                     explanation=f"Disabled route trigger '{cond}' to test if conversational test suite detects loss of {node_title}.",
-                    mutated_doc=m_doc,
+                    new_cond=mutated_cond,
                 ))
 
         return mutants
@@ -181,7 +190,8 @@ def evaluate_rules_against_scenarios(
     A mutant SURVIVES if all test scenarios produce the identical output (Blindspot!).
     """
     mutator = mutator or SemanticRuleMutator()
-    mutants = mutator.generate_rule_mutants(document)
+    b = mutator.binding or SchemaBinding.discover(document)
+    mutants = mutator.generate_rule_mutants(document, binding=b)
 
     # 1. Record baseline execution traces for each scenario
     baseline_traces: list[dict[str, Any]] = []
@@ -199,13 +209,14 @@ def evaluate_rules_against_scenarios(
     for m in mutants:
         mutant_killed = False
         killing_scen_id = None
+        m_doc = m.get_mutated_doc(document, binding=b)
 
         for i, scen in enumerate(scenarios):
             scen_id = scen.get("id") or f"scenario_{i+1}"
             base_trace = baseline_traces[i]
 
             try:
-                m_trace = run_scenario(m.mutated_doc, scen)
+                m_trace = run_scenario(m_doc, scen)
                 # Check if behavior diverged:
                 # A) Test scenario failed assertions on mutant
                 if m_trace.get("passed") is False and base_trace.get("passed") is True:
