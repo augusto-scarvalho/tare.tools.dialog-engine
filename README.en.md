@@ -2,26 +2,25 @@
 
 # tare.tools — Dialog Engine
 
-**Deterministic Conversational AST, Semantic Diff Engine, Hardened SpEL Evaluator, Topological Graph Analyzer, Symbolic Mutation Fuzzer, and Mission Control Triage Console for Enterprise Dialog Systems.**
+**Deterministic Conversational AST, Semantic Diff Engine, Hardened SpEL Evaluator, Topological Graph Analyzer, Symbolic Mutation Fuzzer, Decoupled Schema Binding Adapter, and Mission Control Triage Console for Enterprise Dialog Systems.**
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://python.org)
 [![High Performance](https://img.shields.io/badge/Accelerated-orjson%20%7C%20networkx%20%7C%20rich-purple.svg)](#performance-and-architecture)
-[![Tests](https://img.shields.io/badge/Tests-148%20Passed%20(100%25)-success.svg)](#automated-testing)
+[![Tests](https://img.shields.io/badge/Tests-151%20Passed%20(100%25)-success.svg)](#automated-testing)
 [![Dual Distribution](https://img.shields.io/badge/Dual%20Dist-Modular%20%2B%20Ephemeral%20ADA-orange.svg)](#dual-distribution-strategy)
 [![Live Web Console](https://img.shields.io/badge/Web%20Console-SIGNAL%20Live-blueviolet.svg)](https://augusto-scarvalho.github.io/tare.tools.dialog-engine/)
 
 <p align="center">
   <a href="#why-dialog-engine-the-paradigm-shift">Why Dialog Engine?</a> •
+  <a href="#universal-schema-binding--total-decoupling">Universal Schema Adapter</a> •
   <a href="#real-world-practical-examples-what-we-solve">Real-World Examples</a> •
+  <a href="#automated-test-generation--curation">Test Generation & Curation</a> •
   <a href="#feature-catalog--benefits">Features & Benefits</a> •
-  <a href="#architectural-pillars">Architectural Pillars</a> •
-  <a href="#dual-distribution-strategy">Dual Distribution</a> •
   <a href="#the-12-phase-validation-taxonomy">Validation Taxonomy</a> •
   <a href="#cli-command-reference">CLI Reference</a> •
   <a href="#python-library-api">Python API</a> •
-  <a href="#mission-control-html-console">Mission Control UI</a> •
-  <a href="#license">License</a>
+  <a href="#mission-control-html-console">SIGNAL Console</a>
 </p>
 
 </div>
@@ -48,6 +47,51 @@ DETERMINISTIC DIALOG AST ENGINE (Semantic Invariant Preservation)
 [Root Tree] -------------------- (Deterministic UUID Binding) -------------> [Success Node]
    |                                                                          ▲
    +---> [Digression: #help] ---> (Stack Preservation / Return) --------------+
+```
+
+---
+
+## Universal Schema Binding & Total Decoupling (`SchemaBinding`)
+
+The Dialog Engine is **100% agnostic to vendor-specific key names and proprietary JSON schemas**. Powered by `tare_dialog.schema_adapter` ([ADR-0006](docs/adr/0006-universal-schema-binding-and-state-machine-adapter.md)), the engine dynamically discovers and binds any conversational state machine into the canonical **Universal Abstract Syntax Tree (UniversalDialogAST)**:
+
+```text
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │ ANY STATE MACHINE / DIALOG TREE JSON / AGENTIC GRAPH                        │
+  │ • Watson V1 Flat (dialog_nodes, conditions, context, parent)                │
+  │ • Watson V2 Actions (actions, steps, handlers, variables)                   │
+  │ • Nested / Enterprise Hierarchical (nos, filhos, condicao, contexto, slots) │
+  │ • Rasa / Botpress / Custom Schema (states, guard, transitions, variables)   │
+  └─────────────────────────────────────────────────────────────────────────────┘
+                                         │
+                                         ▼
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │ 🧭 SCHEMA AUTO-DISCOVERY & BINDING ADAPTER (tare_dialog.schema_adapter)     │
+  │    • Automatically inspects structural keys and computes alignment matrix   │
+  │    • Supports declarative custom bindings (KeyMapping) or auto-inference   │
+  └─────────────────────────────────────────────────────────────────────────────┘
+                                         │
+                                         ▼
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │ 💎 UNIVERSAL CANONICAL AST (UniversalDialogAST & Automata Invariants)       │
+  │    All engine tools operate EXCLUSIVELY upon canonical primitives:          │
+  │    [Mutator] • [Rule Mutator] • [Diff Engine] • [Validator] • [Graph]       │
+  └─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Auto-Discovery in Code:
+```python
+from tare_dialog import SchemaBinding
+
+# 1. Automatic Schema Discovery with Confidence Scoring
+binding = SchemaBinding.discover(unknown_document)
+print(f"Schema: {binding.schema_name} (Confidence: {binding.confidence_score * 100}%)")
+
+# 2. Agnostic Node Iteration (Zero hardcoded keys!)
+for node in binding.iter_all_nodes(unknown_document):
+    node_id = binding.get_id(node)
+    cond = binding.get_condition(node)
+    ctx = binding.get_context(node)
 ```
 
 ---
@@ -180,10 +224,35 @@ To understand how **Dialog Engine** protects high-stakes conversational agents i
 
 ---
 
+## Automated Test Generation & Curation
+
+Even if your project has zero tests today, **Dialog Engine automatically synthesizes and runs your full test suite**:
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│ 1. TOPOLOGY-DRIVEN TEST SYNTHESIS (`dialog-engine generate-tests`)                          │
+│    Computes the full path from root to destination and generates the end-to-end test JSON.  │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 2. DIFF-FOCUSED TEST SYNTHESIS (`dialog-engine generate-diff-tests`)                        │
+│    Synthesizes targeted test scenarios exclusively for modified and added nodes.            │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 3. BLINDSPOT GAP SYNTHESIS (`dialog-engine audit-rules --synthesize-gaps`)                  │
+│    Discovers unprotected business rules and writes the missing test scenarios.              │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 4. DETERMINISTIC IN-MEMORY RUNNER (`dialog-engine test`)                                    │
+│    Executes test scenarios in milliseconds without network or live Watson server.           │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Feature Catalog & Benefits
 
 | Module / CLI | Key Capability | Tangible Engineering Benefit |
 |---|---|---|
+| **`schema_adapter`** | Universal Schema Binding & Discovery | Complete decoupling from vendor JSON names with automatic semantic alignment. |
+| **`generate-tests`** | Automated Test Generation | Automatic synthesis of conversational test scenarios from node topology. |
+| **`generate-diff-tests`** | Diff-Driven Test Synthesis | Targeted test generation exclusively for changed/added nodes. |
 | **`audit-rules`** | Business Rule Audit & Test Blindspots | Injects business faults and automatically synthesizes missing JSON test scenarios. |
 | **`mutate`** | Symbolic AST & Automata Mutation | 7 formal operators and metamorphic testing proving 100% detection and 0 false alarms. |
 | **`diff`** | Noise-Free Semantic AST Diff | Node matching by immutable UUID, eliminating false conflicts from JSON key ordering. |
@@ -191,7 +260,7 @@ To understand how **Dialog Engine** protects high-stakes conversational agents i
 | **`spel`** | Hardened SpEL Lexer & Sandbox | Static syntax auditing and fail-closed evaluation with LRU caching and dunder protection. |
 | **`graph`** | Topological Graph & Cycle Detection | Early discovery of infinite loops with export to JSON and Graphviz DOT. |
 | **`explore`** | Universal Schema Introspection | Lossless bidirectional normalization between Watson V1 flat and enterprise nested schemas. |
-| **SIGNAL Console** | Web Triage Console (HTML) | Zero-install web application with 14 engineering themes, instant search, and inspection drawer. |
+| **SIGNAL Console** | Web Triage Console (HTML) | Zero-install web application with 14 engineering themes, instant search, and curation drawer. |
 
 ---
 
@@ -202,14 +271,14 @@ To understand how **Dialog Engine** protects high-stakes conversational agents i
                              
    ┌───────────────────────┐     ┌────────────────────────┐     ┌───────────────────────┐
    │  Universal Schema &   │ ──► │  Hardened SpEL AST     │ ──► │  Topological Graph &  │
-   │  AST Explorer         │     │  Lexer with LRU Cache  │     │  Cycle Detection      │
-   │  (tare_dialog.explorer)│     │  (tare_dialog.spel)    │     │  (tare_dialog.graph)  │
+   │  Binding Adapter      │     │  Lexer with LRU Cache  │     │  Cycle Detection      │
+   │  (schema_adapter.py)  │     │  (tare_dialog.spel)    │     │  (tare_dialog.graph)  │
    └───────────────────────┘     └────────────────────────┘     └───────────────────────┘
                │                             │                              │
                ▼                             ▼                              ▼
    ┌───────────────────────┐     ┌────────────────────────┐     ┌───────────────────────┐
    │ Semantic AST Diff     │     │ 12-Phase Validation    │     │ Symbolic Mutation &   │
-   │ Engine with orjson    │     │ Single Issue Contract  │     │ Rule Auditor Engine   │
+   │ Engine with orjson    │     │ Single Issue Contract  │     │ Test Generator Engine │
    │ (tare_dialog.diff)    │     │ (tare_dialog.validator)│     │ (tare_dialog.mutator) │
    └───────────────────────┘     └────────────────────────┘     └───────────────────────┘
 ```
@@ -224,13 +293,13 @@ The project provides **two distinct distributions** ([ADR-0004](docs/adr/0004-du
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 📦 DISTRIBUTION A — MODULAR PACKAGE (Engineering Workstations, Servers, CI) │
 │    - Full src/tare_dialog package with orjson, networkx, pydantic, and rich. │
-│    - CLI commands for mutate and audit-rules with rich terminal output.     │
+│    - CLI commands for mutate, audit-rules, and generate-tests.              │
 │    - Interactive SIGNAL Mission Control Console (HTML).                     │
-│    - 148 automated unit & integration tests (pytest).                       │
+│    - 151 automated unit & integration tests (pytest).                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ ⚡ DISTRIBUTION B — EPHEMERAL STANDALONE (ChatGPT ADA & Copilot Sandboxes)   │
-│    - Zero-install single file: dist/dialog_engine_standalone.py (~250 KB)   │
-│    - Portable ZipApp executable: dist/dialog_engine.pyz (~57 KB)            │
+│    - Zero-install single file: dist/dialog_engine_standalone.py (~255 KB)   │
+│    - Portable ZipApp executable: dist/dialog_engine.pyz (~59 KB)            │
 │    - Upload directly to Code Interpreter / Sandboxes without pip!           │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -270,7 +339,7 @@ cd tare.tools.dialog-engine
 pip install -e .
 ```
 
-### Run Test Suite (148 Automated Tests)
+### Run Test Suite (151 Automated Tests)
 ```bash
 python -m pytest
 ```
@@ -281,7 +350,19 @@ python -m pytest
 
 The `dialog-engine` (or `tare-dialog`) CLI provides native `rich` terminal output:
 
-### 1. Business Rule Audit & Test Blindspots (`audit-rules`)
+### 1. Automated Test Generation (`generate-tests` & `generate-diff-tests`)
+```bash
+# Synthesize conversational test scenario reaching a target node
+dialog-engine generate-tests input/skill.json node_card_invoice --output tests/test_invoice.json
+
+# Synthesize targeted tests for changes between two versions
+dialog-engine generate-diff-tests current.json candidate.json --output tests/diff_tests.json
+
+# Execute scenario in deterministic in-memory runner
+dialog-engine test input/skill.json tests/test_invoice.json
+```
+
+### 2. Business Rule Audit & Test Blindspots (`audit-rules`)
 ```bash
 # Audit business rules against test scenarios
 dialog-engine audit-rules input/skill.json --scenarios tests/scenarios.json
@@ -294,7 +375,7 @@ dialog-engine audit-rules input/skill.json \
   --gaps-out-dir dist/synthesized_tests/
 ```
 
-### 2. Symbolic AST Mutation Analysis (`mutate`)
+### 3. Symbolic AST Mutation Analysis (`mutate`)
 ```bash
 # Execute formal mutation testing and compute Mutation Score
 dialog-engine mutate input/skill.json
@@ -303,7 +384,7 @@ dialog-engine mutate input/skill.json
 dialog-engine mutate input/skill.json --output-dir dist/mutants/
 ```
 
-### 3. Semantic AST Diff (`diff`)
+### 4. Semantic AST Diff (`diff`)
 ```bash
 # Rich formatted terminal diff
 dialog-engine diff input/current.json input/candidate.json --format rich
@@ -315,7 +396,7 @@ dialog-engine diff input/current.json input/candidate.json --format markdown --o
 dialog-engine diff input/current.json input/candidate.json --format json --output output/diff.json
 ```
 
-### 4. Static Validation (`validate`)
+### 5. Static Validation (`validate`)
 ```bash
 # Rich terminal validation table
 dialog-engine validate input/skill.json --rich
@@ -324,22 +405,13 @@ dialog-engine validate input/skill.json --rich
 dialog-engine validate input/skill.json --output output/validation_report.json
 ```
 
-### 5. Flow Graph & Cycle Detection (`graph`)
+### 6. Flow Graph & Cycle Detection (`graph`)
 ```bash
 # Generate topological graph and reachability telemetry
 dialog-engine graph input/skill.json --output-json output/graph.json
 
 # Export Graphviz DOT visualization
 dialog-engine graph input/skill.json --output-dot output/graph.dot
-```
-
-### 6. Universal Schema Introspection (`explore`)
-```bash
-# Full introspection of primitives, channels, and rich media
-dialog-engine explore input/skill.json
-
-# Lossless conversion between schemas (flat V1 <-> nested enterprise)
-dialog-engine explore input/skill.json --convert-to v1 --output output/v1_skill.json
 ```
 
 ---
@@ -349,12 +421,14 @@ dialog-engine explore input/skill.json --convert-to v1 --output output/v1_skill.
 ```python
 import tare_dialog as td
 
-# 1. High-speed document loading (orjson)
+# 1. High-speed document loading with auto-discovered schema
 doc = td.load_json("input/skill.json")
+binding = td.SchemaBinding.discover(doc)
+print(f"Schema: {binding.schema_name} (Confidence: {binding.confidence_score * 100}%)")
 
 # 2. Audit business rules against test scenarios
 scenarios = td.load_json("tests/scenarios.json")
-report = td.evaluate_rules_against_scenarios(doc, scenarios)
+report = td.evaluate_rules_against_scenarios(doc, scenarios, binding=binding)
 print(f"Test Suite Protection Rate: {report['summary']['test_mutation_score_pct']}%")
 
 # 3. Execute 12-phase static validation
@@ -378,6 +452,7 @@ The project includes [`triage_viewer.html`](triage_viewer.html), hosted live on 
 - **14 Engineering Themes** (NASA Deep Space, Tokyo Night, Monokai Pro, Synthwave, etc.).
 - **Advanced Filtering:** Filter by severity, audit phase, node UUID, and regression status.
 - **Deep Inspection Drawer:** Side-by-side node JSON inspection, AST hierarchy, and mutation gap details.
+- **Interactive Curation:** Approve/reject mutants and export signed compliance manifests with 1-click.
 
 ---
 
