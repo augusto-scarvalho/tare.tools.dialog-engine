@@ -52,7 +52,7 @@ When inspecting each finding in the triage interface, classify it under one of t
 * **Responsibility:** Technical Debt / Periodic Maintenance.
 * **Expected Action:**
   1. Keep classified as Technical Debt / Backlog.
-  2. Validator classifies as `info` or `provenance` severity to avoid polluting high-priority (P0/P1) queues.
+  2. Validator classistudent_credit as `info` or `provenance` severity to avoid polluting high-priority (P0/P1) queues.
 * **Common Examples:**
   - References to deleted entities/intents inside nodes marked `INATIVO` or `REVISAO`.
   - Branches intentionally disabled via `false` condition kept as historical drafts.

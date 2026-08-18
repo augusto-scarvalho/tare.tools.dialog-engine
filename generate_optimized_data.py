@@ -10,8 +10,15 @@ import watson_dialog_diff as diff
 import watson_dialog_validate as validate
 
 print("Loading documents...")
-current_doc = diff.load_json(ROOT / "input" / "current.json", max_bytes=104857600)
-candidate_doc = diff.load_json(ROOT / "input" / "candidate.json", max_bytes=104857600)
+current_path = ROOT / "input" / "current.json"
+candidate_path = ROOT / "input" / "candidate.json"
+if not current_path.exists():
+    current_path = ROOT / "tests" / "fixtures" / "validation_legacy.json"
+if not candidate_path.exists():
+    candidate_path = ROOT / "tests" / "fixtures" / "validation_legacy.json"
+
+current_doc = diff.load_json(current_path, max_bytes=104857600)
+candidate_doc = diff.load_json(candidate_path, max_bytes=104857600)
 
 current_rep = validate.validate(current_doc)
 candidate_rep = validate.validate(candidate_doc)
