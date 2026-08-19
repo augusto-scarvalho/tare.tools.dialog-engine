@@ -62,18 +62,18 @@ The Dialog Engine is **100% agnostic to vendor-specific key names and proprietar
 ```mermaid
 flowchart TD
     subgraph Inputs ["1. Heterogeneous State Machines & Dialog JSONs"]
-        W1["🔵 Watson V1 Flat<br><code>dialog_nodes, conditions, parent</code>"]
-        W2["🟣 Watson V2 Actions<br><code>actions, steps, handlers</code>"]
-        Ent["🟢 Enterprise Hierarchical<br><code>nos, filhos, condicao, slots</code>"]
-        Rasa["🟠 Rasa / Custom Agent Graphs<br><code>states, guard, transitions</code>"]
+        W1["🔵 Watson V1 Flat<br/>(dialog_nodes, conditions, parent)"]
+        W2["🟣 Watson V2 Actions<br/>(actions, steps, handlers)"]
+        Ent["🟢 Enterprise Hierarchical<br/>(nos, filhos, condicao, slots)"]
+        Rasa["🟠 Rasa / Custom Agent Graphs<br/>(states, guard, transitions)"]
     end
 
-    subgraph Adapter ["2. Universal Schema Discovery (tare_dialog.schema_adapter)"]
-        Discovery["🧭 Automated Schema & Confidence Discovery<br>• Structural key alignment matrix<br>• Declarative custom key bindings"]
+    subgraph Adapter ["2. Universal Schema Discovery"]
+        Discovery["🧭 Automated Schema & Confidence Discovery<br/>• Structural key alignment matrix<br/>• Declarative custom key bindings"]
     end
 
-    subgraph CoreAST ["3. Universal Dialog AST (UniversalDialogAST)"]
-        AST["💎 Canonical AST Primitives & Automata Invariants<br>• [Mutator] • [Rule Auditor] • [AST Diff] • [12-Phase Validator] • [Topological Graph]"]
+    subgraph CoreAST ["3. Universal Dialog AST"]
+        AST["💎 Canonical AST Primitives & Invariants<br/>Mutator • Rule Auditor • AST Diff • Validator • Graph"]
     end
 
     W1 --> Discovery
@@ -250,13 +250,13 @@ flowchart TD
     end
 
     subgraph Engines ["2. Synthesis Engines"]
-        TopoGen["🌲 Topology Test Synthesis<br><code>generate-tests</code>"]
-        DiffGen["🎯 Diff-Targeted Synthesis<br><code>generate-diff-tests</code>"]
-        RuleAudit["🔬 Mutation Blindspot Synthesis<br><code>audit-rules --synthesize-gaps</code>"]
+        TopoGen["🌲 Topology Test Synthesis<br/>generate-tests"]
+        DiffGen["🎯 Diff-Targeted Synthesis<br/>generate-diff-tests"]
+        RuleAudit["🔬 Mutation Blindspot Synthesis<br/>audit-rules --synthesize-gaps"]
     end
 
     subgraph Runner ["3. Execution & Verification"]
-        RunnerCore["⚡ In-Memory Deterministic Runner<br><code>dialog-engine test</code><br><i>(Sub-millisecond execution, zero network)</i>"]
+        RunnerCore["⚡ In-Memory Deterministic Runner<br/>dialog-engine test<br/>(Sub-millisecond execution, zero network)"]
         Reports["📊 Test Evidence & Coverage Reports"]
     end
 
@@ -304,20 +304,20 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph Layer1 ["1. Core Ingestion & Dynamic Evaluation"]
-        Schema["🧭 Universal Schema Adapter<br><code>tare_dialog.schema_adapter</code>"]
-        Spel["⚡ Hardened SpEL AST & Lexer<br><code>tare_dialog.spel</code>"]
-        Graph["🌐 Topological Graph & Cycle Detector<br><code>tare_dialog.graph</code>"]
+        Schema["🧭 Universal Schema Adapter<br/>tare_dialog.schema_adapter"]
+        Spel["⚡ Hardened SpEL AST & Lexer<br/>tare_dialog.spel"]
+        Graph["🌐 Topological Graph & Cycle Detector<br/>tare_dialog.graph"]
     end
 
     subgraph Layer2 ["2. Analysis, Validation & Fuzzing"]
-        Diff["🔍 Semantic AST Diff Engine<br><code>tare_dialog.diff</code>"]
-        Validator["🛡️ 12-Phase Static Validator<br><code>tare_dialog.validator</code>"]
-        Mutator["🧬 Symbolic Mutation Fuzzer<br><code>tare_dialog.mutator</code>"]
+        Diff["🔍 Semantic AST Diff Engine<br/>tare_dialog.diff"]
+        Validator["🛡️ 12-Phase Static Validator<br/>tare_dialog.validator"]
+        Mutator["🧬 Symbolic Mutation Fuzzer<br/>tare_dialog.mutator"]
     end
 
     subgraph Layer3 ["3. Cockpit & User Interfaces"]
-        CLI["💻 Rich Terminal CLI<br><code>dialog-engine</code>"]
-        SIGNAL["🖥️ SIGNAL Mission Control Web Console<br><code>triage_viewer.html</code>"]
+        CLI["💻 Rich Terminal CLI<br/>dialog-engine"]
+        SIGNAL["🖥️ SIGNAL Mission Control Web Console<br/>triage_viewer.html"]
     end
 
     Schema --> Diff
