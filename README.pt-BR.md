@@ -59,28 +59,37 @@ MOTOR DE AST DETERMINÍSTICO DO DIALOG ENGINE (Preservação de Invariantes Sem�
 
 O Dialog Engine é **100% agnóstico de formatos proprietários e nomes de chaves JSON**. Através do módulo `tare_dialog.schema_adapter` ([ADR-0006](docs/adr/0006-universal-schema-binding-and-state-machine-adapter.md)), o motor descobre e alinha dinamicamente qualquer máquina de estados conversacional para a **Árvore de Sintaxe Abstrata (AST) Canônica**:
 
-```text
-  ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ QUALQUER MÁQUINA DE ESTADOS / DIÁLOGO JSON / GRAFO                          │
-  │ • Watson V1 Flat (dialog_nodes, conditions, context, parent)                │
-  │ • Watson V2 Actions (actions, steps, handlers, variables)                   │
-  │ • Árvore Aninhada / Customizada (nos, filhos, condicao, contexto, slots)    │
-  │ • Rasa / Botpress / Formato Próprio (states, guard, transitions, variables) │
-  └─────────────────────────────────────────────────────────────────────────────┘
-                                         │
-                                         ▼
-  ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ 🧭 MOTOR DE AUTO-DESCOBERTA & BINDING SEMÂNTICO (tare_dialog.schema_adapter)│
-  │    • Inspeciona as chaves estruturais e calcula a matriz de alinhamento     │
-  │    • Permite binding automático ou customizado pelo usuário (KeyMapping)   │
-  └─────────────────────────────────────────────────────────────────────────────┘
-                                         │
-                                         ▼
-  ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ 💎 AST CANÔNICA UNIVERSAL (UniversalDialogAST & Invariantes de Autômatos)   │
-  │    Todas as ferramentas operam EXCLUSIVAMENTE sobre primitivas universais:  │
-  │    [Mutator] • [Rule Mutator] • [Diff Engine] • [Validator] • [Graph]       │
-  └─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Inputs ["1. Máquinas de Estados & JSONs Heterogêneos"]
+        W1["🔵 Watson V1 Flat<br/>(dialog_nodes, conditions, parent)"]
+        W2["🟣 Watson V2 Actions<br/>(actions, steps, handlers)"]
+        Ent["🟢 Esquemas Customizados Corporativos<br/>(flow_nodes, subflows, predicates, memory_frame)"]
+        Rasa["🟠 Rasa / Grafos de Agentes Customizados<br/>(states, guard, transitions)"]
+    end
+
+    subgraph Adapter ["2. Auto-Descoberta & Adaptador Universal (tare_dialog.schema_adapter)"]
+        Discovery["🧭 Descoberta de Esquema & Pontuação de Confiança<br/>• Matriz de alinhamento estrutural de chaves<br/>• Mapeamentos semânticos customizáveis"]
+    end
+
+    subgraph CoreAST ["3. AST Canônica Universal (UniversalDialogAST)"]
+        AST["💎 Primitivas Universais de AST & Autômatos<br/>Mutator • Auditor de Regras • Diff AST • Validador • Grafo"]
+    end
+
+    W1 --> Discovery
+    W2 --> Discovery
+    Ent --> Discovery
+    Rasa --> Discovery
+
+    Discovery --> AST
+
+    classDef inStyle fill:#1e1e2e,stroke:#89b4fa,stroke-width:2px,color:#cdd6f4;
+    classDef adStyle fill:#2d1b4e,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
+    classDef astStyle fill:#182820,stroke:#a6e3a1,stroke-width:2px,color:#a6e3a1;
+
+    class W1,W2,Ent,Rasa inStyle;
+    class Discovery adStyle;
+    class AST astStyle;
 ```
 
 ### Auto-Descoberta Semântica em Código:
@@ -232,20 +241,42 @@ Para entender como o **Dialog Engine** protege assistentes em bancos, seguradora
 
 Mesmo que seu projeto não tenha nenhum teste hoje, o **Dialog Engine constrói e executa sua suíte de testes automaticamente**:
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 1. GERAÇÃO POR NÓ / ROTA (`dialog-engine generate-tests`)                                   │
-│    Calcula a topologia da raiz até o nó desejado e sintetiza o teste JSON de ponta a ponta. │
-├─────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 2. GERAÇÃO FOCADA NO DIFF (`dialog-engine generate-diff-tests`)                             │
-│    Gera testes direcionados exclusivamente para os nós que foram alterados ou adicionados.  │
-├─────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 3. SÍNTESE DE PONTOS CEGOS (`dialog-engine audit-rules --synthesize-gaps`)                  │
-│    Descobre regras de negócio desprotegidas e escreve os testes JSON que faltavam.          │
-├─────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 4. RUNNER DETERMINÍSTICO EM MEMÓRIA (`dialog-engine test`)                                  │
-│    Executa cenários em milissegundos sem precisar de rede ou servidor conectado.            │
-└─────────────────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Sources ["1. Fontes de Entrada Conversacionais"]
+        Topology["🌐 Topologia da AST de Diálogo"]
+        Diff["📝 Diff Semântico de AST"]
+        Rules["⚖️ Condições e Regras de Negócio"]
+    end
+
+    subgraph Engines ["2. Motores de Síntese"]
+        TopoGen["🌲 Síntese por Topologia<br/>generate-tests"]
+        DiffGen["🎯 Síntese Focada em Diff<br/>generate-diff-tests"]
+        RuleAudit["🔬 Síntese de Pontos Cegos<br/>audit-rules --synthesize-gaps"]
+    end
+
+    subgraph Runner ["3. Execução & Verificação"]
+        RunnerCore["⚡ Runner Determinístico em Memória<br/>dialog-engine test<br/>(Execução sub-milissegundo, zero rede)"]
+        Reports["📊 Evidências de Teste & Relatórios de Cobertura"]
+    end
+
+    Topology --> TopoGen
+    Diff --> DiffGen
+    Rules --> RuleAudit
+
+    TopoGen --> RunnerCore
+    DiffGen --> RunnerCore
+    RuleAudit --> RunnerCore
+
+    RunnerCore --> Reports
+
+    classDef srcStyle fill:#1e1e2e,stroke:#89b4fa,stroke-width:2px,color:#cdd6f4;
+    classDef engStyle fill:#2d1b4e,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
+    classDef runStyle fill:#182820,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4;
+
+    class Topology,Diff,Rules srcStyle;
+    class TopoGen,DiffGen,RuleAudit engStyle;
+    class RunnerCore,Reports runStyle;
 ```
 
 ---
@@ -270,21 +301,42 @@ Mesmo que seu projeto não tenha nenhum teste hoje, o **Dialog Engine constrói 
 
 ## Pilares Arquiteturais
 
-```text
-                                ARQUITETURA DO TARE.TOOLS DIALOG ENGINE
-                                
-   ┌───────────────────────┐     ┌────────────────────────┐     ┌───────────────────────┐
-   │  Adaptador Universal  │ ──► │  Lexer AST SpEL Seguro │ ──► │ Grafo Topológico &    │
-   │  de Esquemas (Binding)│     │  com Cache LRU         │     │ Detecção de Ciclos    │
-   │  (schema_adapter.py)  │     │  (tare_dialog.spel)    │     │ (tare_dialog.graph)   │
-   └───────────────────────┘     └────────────────────────┘     └───────────────────────┘
-               │                             │                              │
-               ▼                             ▼                              ▼
-   ┌───────────────────────┐     ┌────────────────────────┐     ┌───────────────────────┐
-   │ Motor de Diff AST     │     │ Validador em 12 Fases  │     │ Mutação Simbólica &   │
-   │ Semântico com orjson  │     │ com Contrato Único     │     │ Gerador de Testes     │
-   │ (tare_dialog.diff)    │     │ (tare_dialog.validator)│     │ (tare_dialog.mutator) │
-   └───────────────────────┘     └────────────────────────┘     └───────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Layer1 ["1. Ingestão & Avaliação Dinâmica"]
+        Schema["🧭 Adaptador Universal de Esquemas<br/>tare_dialog.schema_adapter"]
+        Spel["⚡ AST SpEL Seguro & Lexer<br/>tare_dialog.spel"]
+        Graph["🌐 Grafo Topológico & Detector de Ciclos<br/>tare_dialog.graph"]
+    end
+
+    subgraph Layer2 ["2. Análise, Validação & Fuzzing"]
+        Diff["🔍 Motor de Diff Semântico AST<br/>tare_dialog.diff"]
+        Validator["🛡️ Validador Estático em 12 Fases<br/>tare_dialog.validator"]
+        Mutator["🧬 Fuzzer de Mutação Simbólica<br/>tare_dialog.mutator"]
+    end
+
+    subgraph Layer3 ["3. Cockpit & Interfaces"]
+        CLI["💻 CLI Terminal Rico<br/>dialog-engine"]
+        SIGNAL["🖥️ Console Web SIGNAL Mission Control<br/>triage_viewer.html"]
+    end
+
+    Schema --> Diff
+    Spel --> Validator
+    Graph --> Mutator
+
+    Diff --> CLI
+    Validator --> CLI
+    Mutator --> CLI
+
+    CLI --> SIGNAL
+
+    classDef l1Style fill:#1e1e2e,stroke:#89b4fa,stroke-width:2px,color:#cdd6f4;
+    classDef l2Style fill:#2d1b4e,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
+    classDef l3Style fill:#182820,stroke:#a6e3a1,stroke-width:2px,color:#a6e3a1;
+
+    class Schema,Spel,Graph l1Style;
+    class Diff,Validator,Mutator l2Style;
+    class CLI,SIGNAL l3Style;
 ```
 
 ---
@@ -457,6 +509,19 @@ O projeto inclui o console visual interativo [`triage_viewer.html`](triage_viewe
 - **Filtros Avançados:** Filtragem por severidade, fase de auditoria, UUID do nó e status de regressão.
 - **Painel de Inspeção Profunda:** Visualização do JSON bruto do nó, árvore hierárquica e histórico de mudanças.
 - **Curadoria Interativa:** Botões de aprovação/rejeição de mutantes e exportação de manifestos assinados.
+
+---
+
+## Família do Ecossistema
+
+| Repositório | Papel | Tecnologia Principal |
+|---|---|---|
+| **[`tare.tools.os`](https://github.com/augusto-scarvalho/tare.tools.os)** | Sistema Operacional Agêntico & Orquestrador Central | Python, AsyncIO, Submódulos |
+| **[`tare.tools.kernel`](https://github.com/augusto-scarvalho/tare.tools.kernel)** | Microkernel em 5 Planos & Sandboxing Hermético | Python, SQLite WAL, bwrap |
+| **[`tare.tools.specgraph`](https://github.com/augusto-scarvalho/tare.tools.specgraph)** | Desenvolvimento Orientado a Especificação & Matriz Causal | Python AST, Tree-Sitter, Schemas |
+| **[`tare.tools.backlog-graph`](https://github.com/augusto-scarvalho/tare.tools.backlog-graph)** | Motor Determinístico de Grafo de Tarefas DAG | Python (Pure Stdlib), CAS |
+| **[`tare.tools.dialog-engine`](https://github.com/augusto-scarvalho/tare.tools.dialog-engine)** | Interação Topológica & Grafos de Diálogo AST (Este Repo) | Python, Statecharts, orjson |
+| **[`tare.tools.research`](https://github.com/augusto-scarvalho/tare.tools.research)** | Artigos Científicos, ADRs & Hub de Memória | Markdown, GitHub Pages, Jekyll |
 
 ---
 

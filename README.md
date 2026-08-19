@@ -64,7 +64,7 @@ flowchart TD
     subgraph Inputs ["1. Heterogeneous State Machines & Dialog JSONs"]
         W1["🔵 Watson V1 Flat<br/>(dialog_nodes, conditions, parent)"]
         W2["🟣 Watson V2 Actions<br/>(actions, steps, handlers)"]
-        Ent["🟢 Enterprise Hierarchical<br/>(nos, filhos, condicao, slots)"]
+        Ent["🟢 Custom Enterprise Schemas<br/>(flow_nodes, subflows, predicates, memory_frame)"]
         Rasa["🟠 Rasa / Custom Agent Graphs<br/>(states, guard, transitions)"]
     end
 
