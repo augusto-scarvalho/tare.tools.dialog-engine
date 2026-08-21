@@ -41,16 +41,28 @@ Traditional text-based diff tools (`git diff`) and naive JSON comparators fail c
 2. **Blindness to Dynamic SpEL Expressions:** Syntactic anomalies, unreachable branches, type contradictions, and shadowed conditions remain undetected until runtime failures in production.
 3. **Scale & Digression Exhaustion:** Massive enterprise trees (28,000+ nodes, 80+ MB JSON exports) trigger out-of-memory crashes during naive DOM parsing, while recursive digressions corrupt conversation stack state.
 
-```text
-TRADITIONAL NAIVE DIFF (Spurious Key Noise & False Conflicts)
-[Node A (line 40)] <--- Diff Chaos ---> [Node A (line 1200)]  [!] Key reordering creates false conflicts.
+```mermaid
+flowchart TD
+    subgraph NaiveDiff ["❌ TRADITIONAL NAIVE DIFF (Line/Key Noise)"]
+        direction LR
+        N1["[Node A (line 40)]"] <-.->|Spurious Diff Chaos| N2["[Node A (line 1200)]"]
+    end
 
-DETERMINISTIC DIALOG AST ENGINE (Semantic Invariant Preservation)
-   +---> [Intent: #transfer] ---> [Slot: $amount (@sys-number)] ---> [Condition: $amount > 0]
-   |                                                                          │
-[Root Tree] -------------------- (Deterministic UUID Binding) -------------> [Success Node]
-   |                                                                          ▲
-   +---> [Digression: #help] ---> (Stack Preservation / Return) --------------+
+    subgraph ASTDiff ["✅ DETERMINISTIC DIALOG AST ENGINE (Semantic Invariants)"]
+        Root["[Root Tree]"] --> Intent["[Intent: #transfer]"]
+        Intent --> Slot["[Slot: $amount (@sys-number)]"]
+        Slot --> Cond["[Condition: $amount > 0]"]
+        Cond --> Success["[Success Node]"]
+        Root -.->|Deterministic UUID Binding| Success
+        Root --> Digression["[Digression: #help]"]
+        Digression -->|Stack Return| Success
+    end
+
+    classDef naiveStyle fill:#331c24,stroke:#f38ba8,stroke-width:2px,color:#f38ba8;
+    classDef astStyle fill:#182820,stroke:#a6e3a1,stroke-width:2px,color:#a6e3a1;
+
+    class N1,N2 naiveStyle;
+    class Root,Intent,Slot,Cond,Success,Digression astStyle;
 ```
 
 ---
@@ -345,19 +357,23 @@ flowchart TD
 
 The project provides **two distinct distributions** ([ADR-0004](docs/adr/0004-dual-distribution-strategy-modular-and-ephemeral.md)):
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 📦 DISTRIBUTION A — MODULAR PACKAGE (Engineering Workstations, Servers, CI) │
-│    - Full src/tare_dialog package with orjson, networkx, pydantic, and rich. │
-│    - CLI commands for mutate, audit-rules, and generate-tests.              │
-│    - Interactive SIGNAL Mission Control Console (HTML).                     │
-│    - 151 automated unit & integration tests (pytest).                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ ⚡ DISTRIBUTION B — EPHEMERAL STANDALONE (ChatGPT ADA & Copilot Sandboxes)   │
-│    - Zero-install single file: dist/dialog_engine_standalone.py (~255 KB)   │
-│    - Portable ZipApp executable: dist/dialog_engine.pyz (~59 KB)            │
-│    - Upload directly to Code Interpreter / Sandboxes without pip!           │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph DistA ["📦 DISTRIBUTION A: MODULAR PACKAGE (CLI / CI / Server)"]
+        direction TB
+        A1["• Full <code>src/tare_dialog</code> package<br/>• orjson, networkx, pydantic, rich<br/>• CLI: mutate, audit-rules, generate-tests<br/>• SIGNAL Mission Control Console (HTML)<br/>• 151 pytest automated test suites"]
+    end
+
+    subgraph DistB ["⚡ DISTRIBUTION B: EPHEMERAL STANDALONE (Sandboxes / Copilot)"]
+        direction TB
+        B1["• Zero-install single script: <code>dist/dialog_engine_standalone.py</code><br/>• Portable ZipApp executable: <code>dist/dialog_engine.pyz</code> (~59 KB)<br/>• Direct upload to ChatGPT Code Interpreter & Copilot Sandboxes"]
+    end
+
+    classDef distAStyle fill:#2d1b4e,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
+    classDef distBStyle fill:#182820,stroke:#a6e3a1,stroke-width:2px,color:#a6e3a1;
+
+    class DistA distAStyle;
+    class DistB distBStyle;
 ```
 
 ---
