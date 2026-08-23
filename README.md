@@ -24,7 +24,8 @@
   <a href="#the-12-phase-validation-taxonomy">Validation Taxonomy</a> •
   <a href="#cli-command-reference">CLI Reference</a> •
   <a href="#python-library-api">Python API</a> •
-  <a href="#mission-control-html-console">SIGNAL Console</a>
+  <a href="#mission-control-html-console">SIGNAL Console</a> •
+  <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 </div>

@@ -24,7 +24,8 @@
   <a href="#taxonomia-de-validação-em-12-fases">Taxonomia de Validação</a> •
   <a href="#referência-de-comandos-cli">Referência da CLI</a> •
   <a href="#api-da-biblioteca-python">API Python</a> •
-  <a href="#console-mission-control-html">Console SIGNAL</a>
+  <a href="#console-mission-control-html">Console SIGNAL</a> •
+  <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 </div>
