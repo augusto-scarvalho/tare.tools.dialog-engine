@@ -4,7 +4,11 @@ Notable changes to `tare.tools.dialog-engine` are recorded here, newest first. T
 
 ## Unreleased
 
-No entries yet.
+### Added
+
+- Added a shared, tested changelog guard for local pre-push and GitHub CI. It
+  requires meaningful `Unreleased` entries for material changes, validates
+  committed content, and prevents silent deletion or rewriting of history.
 
 ## 2026-08-21
 
