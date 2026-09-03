@@ -6,6 +6,8 @@ Notable changes to `tare.tools.dialog-engine` are recorded here, newest first. T
 
 ### Added
 
+- Moved `SPEC-DIALOG-001` from the central Library copy into this owning
+  repository and linked it from the documentation index.
 - Added a shared, tested changelog guard for local pre-push and GitHub CI. It
   requires meaningful `Unreleased` entries for material changes, validates
   committed content, and prevents silent deletion or rewriting of history.

@@ -11,3 +11,4 @@
 
 ## 📐 2. Arquitetura & Decomposição
 * **[`docs/architecture/DYNAMIC_WORKFLOWS_AND_JOURNEY_DECOMPOSITION.md`](architecture/DYNAMIC_WORKFLOWS_AND_JOURNEY_DECOMPOSITION.md):** Decomposição de fluxos dinâmicos e jornadas de interação conversacional baseada em AST.
+* **[`SPEC-DIALOG-001.md`](SPEC-DIALOG-001.md):** Critérios verificáveis para ingestão agnóstica, transições de statechart e quórum multi-seat.
