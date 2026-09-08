@@ -1,0 +1,85 @@
+version: "1.0.0"
+governance: "ADR-0007"
+last_updated: "2026-09-07"
+
+concepts:
+  - id: "UniversalDialogAst"
+    name: "Universal Dialog AST"
+    domain: "Dialog Ingestion & Schema Binding"
+    governing_adr: "ADR-0007"
+    governing_spec: "SPEC-DIALOG-001"
+    definition: "Vendor-agnostic abstract syntax tree for conversational trees (Watson V1, V2 Actions, Rasa, custom automata) produced through a SchemaBinding capability matrix, where each node carries a hybrid identity of persistent logical node_id plus SHA-256 content fingerprint."
+    invariants:
+      - "A platform feature is preserved, downgraded or rejected fail-closed by the capability matrix; it is never silently dropped."
+      - "Moved, modified, added and removed nodes are distinguished by node_id and content fingerprint, not by position or key order."
+    relationships:
+      governs: ["SchemaBinding", "HybridNodeIdentity"]
+      enables: ["SemanticDiffParity", "BoundedJourneyDecomposition"]
+
+  - id: "SemanticDiffParity"
+    name: "Semantic Diff Parity"
+    domain: "Dialog Validation & Diff"
+    governing_adr: "ADR-0002"
+    governing_spec: "SPEC-DIALOG-001"
+    definition: "Comparison of two dialog trees over the Universal Dialog AST that reports only semantic changes, preserves the V1 sequence-diff results as parity baseline, and runs under adaptive sharding with a bounded memory ceiling for exports above 100 MB."
+    invariants:
+      - "Key reordering or sibling movement without semantic change produces zero findings."
+      - "Sharded analysis stays under the declared RAM ceiling and exposes its manifest in the triage viewer."
+    relationships:
+      requires: ["UniversalDialogAst"]
+      governs: ["AdaptiveSharding", "TriageManifest"]
+      mitigates: ["FalsePositiveDiffNoise", "OutOfMemoryOnLargeExports"]
+
+  - id: "BoundedJourneyDecomposition"
+    name: "Bounded Journey Decomposition"
+    domain: "Dialog Topology"
+    governing_adr: "ADR-0007"
+    governing_spec: "SPEC-DIALOG-001"
+    definition: "Partition of a monolithic dialog into an acyclic DAG of business journeys, where legitimate intra-journey cycles (slot re-prompt, confirmation, digression) exist only as BoundedLoopNode constructs with statically provable termination."
+    invariants:
+      - "The inter-journey graph is acyclic; every remaining cycle is a BoundedLoopNode with an explicit K_max."
+      - "A dead loop or an unbounded cycle is a validation failure, never a warning."
+    relationships:
+      requires: ["UniversalDialogAst"]
+      governs: ["TopologicalPartitioner", "BoundedLoopNode"]
+      produces: ["TaskIR"]
+
+  - id: "SpelPurityPipeline"
+    name: "SpEL Purity Pipeline"
+    domain: "Expression Parsing & Transpilation"
+    governing_adr: "ADR-0007"
+    governing_spec: "SPEC-DIALOG-001"
+    definition: "Four-stage pipeline that parses Spring Expression Language against a fixed EBNF grammar, classifies expressions and statements by purity (Type A boolean guards, Type B state reducers, Type C integration actions) and transpiles pure types to native code while rejecting reflection fail-closed."
+    invariants:
+      - "Recursion, dunder access, T(...) reflection and division by zero are rejected before evaluation."
+      - "Negative integer division truncates toward zero as in the Spring 5.3+/6.x baseline."
+    relationships:
+      governs: ["SpelGrammar", "PurityClassification", "NativeTranspilation"]
+      requires: ["GoldenCorpusDualRun"]
+
+  - id: "ContextDeltaCasMerge"
+    name: "Context Delta CAS Merge"
+    domain: "Dialog State & Concurrency"
+    governing_adr: "ADR-0007"
+    governing_spec: "SPEC-DIALOG-001"
+    definition: "Unified per-path versioning model with atomic snapshots in which context deltas from a task merge under compare-and-swap preconditions, hierarchical prefix collisions take strict priority over commutativity, and retries are idempotent."
+    invariants:
+      - "Two deltas touching a path and one of its prefixes never merge silently; the collision is rejected."
+      - "Disjoint deltas reconcile atomically; a stale snapshot precondition fails the merge."
+    relationships:
+      governs: ["PathVersioning", "DeltaReconciliation"]
+      requires: ["BoundedJourneyDecomposition"]
+      mitigates: ["LostContextWrites", "PrefixAliasing"]
+
+  - id: "GoldenCorpusDualRun"
+    name: "Golden Corpus Dual-Run"
+    domain: "Dialog Validation & Parity"
+    governing_adr: "ADR-0007"
+    governing_spec: "SPEC-DIALOG-001"
+    definition: "Parity oracle that executes transpiled or emulated dialog logic against an immutable, SHA-256 signed golden corpus of real captured runtime scenarios plus property-based tests, so equivalence is measured against a baseline rather than against the emulator itself."
+    invariants:
+      - "The golden corpus is versioned with provenance and digest; a corpus change is an explicit, reviewed event."
+      - "Analysis and validation run fully offline; no external network call occurs during a dual-run."
+    relationships:
+      governs: ["ParityOracle", "PropertyBasedConformance"]
+      mitigates: ["SelfReferentialOracle"]
