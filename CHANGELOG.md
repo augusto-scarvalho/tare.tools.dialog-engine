@@ -4,6 +4,10 @@ Notable changes to `tare.tools.dialog-engine` are recorded here, newest first. T
 
 ## Unreleased
 
+- Publish the repository-owned domain ontology for pinned federated discovery.
+  Its concepts describe architectural requirements, not implementation or
+  execution attestations; the owner ADRs retain their implementation roadmap.
+
 ### Added
 
 - Moved `SPEC-DIALOG-001` from the central Library copy into this owning

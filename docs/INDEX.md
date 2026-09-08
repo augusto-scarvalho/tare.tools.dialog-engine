@@ -5,6 +5,7 @@
 ---
 
 ## 🏛️ 1. Decisões Arquiteturais & North Star
+* **[`ontology/domain_ontology.yaml`](../ontology/domain_ontology.yaml):** Conceitos e invariantes normativos para descoberta federada. A presença de um conceito não comprova implementação, execução ou cobertura de testes; consulte as fases e evidências dos ADRs proprietários.
 * **[`docs/adr/0007-dialog-engine-north-star.md`](adr/0007-dialog-engine-north-star.md):** Especificação da North Star do Dialog Engine (`ADR-047`), AST de conversação, bounded loops e modelo agnóstico de grafos.
 
 ---
