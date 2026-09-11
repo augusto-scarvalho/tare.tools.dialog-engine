@@ -4,6 +4,10 @@ Notable changes to `tare.tools.dialog-engine` are recorded here, newest first. T
 
 ## Unreleased
 
+- Exclude local credential files, private work folders, agent-local settings and SQLite sidecars from future Git additions.
+
+- Stop tracking 12 generated dialog gap reports; preserve regeneration through the existing tooling.
+
 - Publish the repository-owned domain ontology for pinned federated discovery.
   Its concepts describe architectural requirements, not implementation or
   execution attestations; the owner ADRs retain their implementation roadmap.
