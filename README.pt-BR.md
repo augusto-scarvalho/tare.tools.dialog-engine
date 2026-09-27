@@ -30,6 +30,8 @@
 
 </div>
 
+> **Side project (27/09/2026).** Este repositório é um kit de QA para exports de diálogo no estilo Watson e deixou de ser satélite do tare.tools.os. O núcleo determinístico de workflows descrito nas fases 2–3 do ADR-0007 nunca foi construído; se o tare.tools precisar dele, começará a partir de uma demanda concreta do ecossistema.
+
 ---
 
 ## Por que o Dialog Engine? (A Mudança de Paradigma)

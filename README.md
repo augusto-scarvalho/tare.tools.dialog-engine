@@ -30,6 +30,8 @@
 
 </div>
 
+> **Side project (27/09/2026).** This repository is a QA toolkit for Watson-style dialog exports and is no longer a satellite of tare.tools.os. The deterministic workflow core described in ADR-0007 phases 2–3 was never built; if tare.tools needs it, it will start from a concrete demand in the ecosystem.
+
 ---
 
 ## Why Dialog Engine? (The Paradigm Shift)

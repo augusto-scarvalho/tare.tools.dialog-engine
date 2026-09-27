@@ -4,6 +4,8 @@ Notable changes to `tare.tools.dialog-engine` are recorded here, newest first. T
 
 ## Unreleased
 
+- Became a side project: no longer pinned as a tare.tools.os satellite; README states that the workflow core of ADR-0007 phases 2–3 was not built.
+
 - Exclude local credential files, private work folders, agent-local settings and SQLite sidecars from future Git additions.
 
 - Stop tracking 12 generated dialog gap reports; preserve regeneration through the existing tooling.
